@@ -1,0 +1,6 @@
+# Train a robot against PID human policies.
+# FC policy.
+train.timesteps = 1500000
+PPO2.gamma = 0.995
+PPO2.n_steps = 60
+PPO2.ent_coef = 1e-2
