@@ -64,7 +64,8 @@ class MergingEnv(gym.Env):
         self.step_num = 0
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array((-0.1, -4.)), np.array((0.1, 4.0)), dtype=np.float32
+            #np.array((-0.1, -4.)), np.array((0.1, 4.0)), dtype=np.float32
+            np.array((-0.01, -4.)), np.array((0.01, 4.0)), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(14,))
 
@@ -75,7 +76,7 @@ class MergingEnv(gym.Env):
         # update human and robot actions
         h_action = self.human_policy.action(self._get_obs())
         r_action = action
-        r_action[0] = 0.
+        #r_action[0] = 0
         self.world.dynamic_agents[0].set_control(*h_action)
         self.world.dynamic_agents[1].set_control(*r_action)
         self.world.tick()
@@ -128,7 +129,6 @@ class MergingEnv(gym.Env):
     def _get_obs(self):
         """
         Get state of both cars
-        :return:
         """
         #return np.concatenate((self.world.state[:6], self.world.state[7:13]))
         return self.world.state
@@ -136,10 +136,16 @@ class MergingEnv(gym.Env):
     def _get_car_reward(self):
         car = self.cars["R"]
         human = self.cars["H"]
+        coll_cost = 100
 
         # define rewards
-        control_cost = -car.inputAcceleration
-        return control_cost
+        #safe = (car.center.x - human.center.x) + (car.center.y - human.center.y) - coll_cost*car.collidesWith(human)
+        eff = (car.center.y - human.center.y) + (car.center.x - human.center.x)
+        safe = -1*(car.center.y - human.center.y) + (car.center.x - human.center.x)
+
+        return safe
+
+        #return distance_to_h + 10*steering
 
     def render(self):
         self.world.render()
