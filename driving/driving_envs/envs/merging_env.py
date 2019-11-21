@@ -105,7 +105,7 @@ class MergingEnv(gym.Env):
         self.buildings = [
             Building(Point(28.5, 60), Point(57, 120), "gray80"),
             Building(Point(91.5, 60), Point(57, 120), "gray80"),
-            Building(Point(62, 90), Point(2, 60), "gray80"),
+            #Building(Point(62, 90), Point(2, 60), "gray80"),
         ]
 
         # create cars
