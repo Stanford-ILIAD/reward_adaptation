@@ -18,12 +18,12 @@ FLAGS = flags.FLAGS
 # PPO parameters
 flags.DEFINE_integer("timesteps", 1000000, "# timesteps to train")
 # Experiment related parameters
-flags.DEFINE_string("name", "safe0", "Name of experiment")
+flags.DEFINE_string("name", "eff0", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 100, "how often we save state for eval")
+flags.DEFINE_integer("eval_save_period", 10, "how often we save state for eval")
 
 
-def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=2):
+def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=1):
     if is_save:
         if os.path.exists(experiment_name):
             shutil.rmtree(experiment_name)
@@ -33,13 +33,41 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=2):
 
     env_fns = num_envs * [lambda: gym.make("Merging-v0")]
     env = VecNormalize(SubprocVecEnv(env_fns))
-    eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     policy = MlpPolicy
     model = PPO2(policy, env, verbose=1)
+    eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+
+    def evaluate_debug(model, eval_dir=None):
+        """
+        Evaluates model on one episode of driving task. Returns mean episode reward.
+        """
+        rets = 0.0
+        obs = eval_env.reset()
+        state, ever_done = None, False
+        task_data = []
+        while not ever_done:
+            action, state = model.predict(obs, state=state, deterministic=True)
+            #print("\naction: ", action)
+            next_obs, rewards, done, _info = eval_env.step(action)
+            print("rewards: ", rewards)
+            #if not is_save: eval_env.render()
+            eval_env.render()
+            if not ever_done:
+                task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])
+                rets += rewards
+            ever_done = np.logical_or(ever_done, done)
+            obs = next_obs
+            #if not is_save: time.sleep(.1)
+            time.sleep(.1)
+        if is_save:
+            assert eval_dir
+            with open(os.path.join(eval_dir, "task_data.pkl"), "wb") as f:
+                pickle.dump(task_data, f)
+        return rets
 
     def evaluate(model, eval_dir=None):
         """
-        Evaluates model on one episode of driving task. Returns mean episode reward.
+        Evaluates model and returns mean episode reward.
         """
         # rets = 0.0
         # state, ever_done = None, False
@@ -55,7 +83,7 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=2):
             ]
             action, state = model.predict(obs, state=state, mask=dones, deterministic=True)
             next_obs, rewards, dones, _info = eval_env.step(action)
-            if not is_save: eval_env.render()
+            if not is_save: eval_env.venv.envs[0].render()
 
             for env_idx, data in enumerate(zip(true_states, action, rewards, dones)):
                 if not ever_done[env_idx]:
@@ -80,13 +108,14 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=2):
             if is_save:
                 eval_dir = os.path.join(experiment_name, "eval{}".format(n_steps))
                 os.makedirs(eval_dir)
-                ret = evaluate(model, eval_dir)
+                #ret = evaluate(model, eval_dir)
+                ret = evaluate_debug(model, eval_dir)
                 if ret > best_ret:
                     print("Saving new best model")
-                    _locals['self'].save(eval_dir + '{}_{}.pkl'.format(n_steps, best_ret))
+                    _locals['self'].save(eval_dir + 'best_model_{}_{}.pkl'.format(n_steps, ret))
                     best_ret = ret
             else:
-                ret = evaluate(model)
+                ret = evaluate_debug(model)
             print("eval ret: ", ret)
             if is_save:
                 wandb.log({"eval_ret": ret}, step=_locals["self"].num_timesteps)

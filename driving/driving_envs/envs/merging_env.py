@@ -82,7 +82,8 @@ class MergingEnv(gym.Env):
         self.world.tick()
 
         # get reward
-        r_reward = self._get_car_reward()
+        #r_reward = self._get_car_reward()
+        r_reward = self.reward()
 
         # check for dones
         done = False
@@ -96,6 +97,7 @@ class MergingEnv(gym.Env):
                 raise ValueError("Car went out of bounds!")
         if self.step_num >= self.time_limit:
             done = True
+        #print("step reward: ", r_reward)
         return self._get_obs(), r_reward, done, {'episode': {'r': r_reward, 'l': self.step_num}}
 
     def reset(self):
@@ -133,20 +135,77 @@ class MergingEnv(gym.Env):
         #return np.concatenate((self.world.state[:6], self.world.state[7:13]))
         return self.world.state
 
-    def _get_car_reward(self):
+    #def _get_car_reward(self):
+    def reward(self):
         car = self.cars["R"]
         human = self.cars["H"]
         coll_cost = 100
 
         # define rewards
-        #safe = (car.center.x - human.center.x) + (car.center.y - human.center.y) - coll_cost*car.collidesWith(human)
-        eff = (car.center.y - human.center.y) + (car.center.x - human.center.x)
-        safe = -1*(car.center.y - human.center.y) + (car.center.x - human.center.x)
+        safe = -1*(car.center.y - human.center.y) + -1*(car.center.x - human.center.x) +\
+                -10*coll_cost*car.collidesWith(self.buildings[1])
 
+        eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) +\
+            -10*coll_cost*car.collidesWith(self.buildings[1])
         return safe
-
-        #return distance_to_h + 10*steering
 
     def render(self):
         self.world.render()
+
+
+class MergingEnv2(MergingEnv):
+    def reward(self):
+        car = self.cars["R"]
+        human = self.cars["H"]
+        coll_cost = 100
+
+        # define rewards
+        safe = -0.8*(car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+               -10*coll_cost*car.collidesWith(self.buildings[1])
+
+        eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+              -10*coll_cost*car.collidesWith(self.buildings[1])
+        return safe
+
+class MergingEnv3(MergingEnv):
+    def reward(self):
+        car = self.cars["R"]
+        human = self.cars["H"]
+        coll_cost = 100
+
+        # define rewards
+        safe = -0.6*(car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+               -10*coll_cost*car.collidesWith(self.buildings[1])
+
+        eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+              -10*coll_cost*car.collidesWith(self.buildings[1])
+        return safe
+
+class MergingEnv4(MergingEnv):
+    def reward(self):
+        car = self.cars["R"]
+        human = self.cars["H"]
+        coll_cost = 100
+
+        # define rewards
+        safe = -0.4*(car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+               -10*coll_cost*car.collidesWith(self.buildings[1])
+
+        eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+              -10*coll_cost*car.collidesWith(self.buildings[1])
+        return safe
+
+class MergingEnv5(MergingEnv):
+    def reward(self):
+        car = self.cars["R"]
+        human = self.cars["H"]
+        coll_cost = 100
+
+        # define rewards
+        safe = -0.2*(car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+               -10*coll_cost*car.collidesWith(self.buildings[1])
+
+        eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) + \
+              -10*coll_cost*car.collidesWith(self.buildings[1])
+        return safe
 
