@@ -53,7 +53,7 @@ def reward_curriculum_train(model_dir, timesteps, experiment_name, is_save, eval
                 ret = evaluate_debug(model, eval_env, is_save)
             print("eval ret: ", ret)
             if is_save:
-                total_steps = _locals["self"].num_timesteps + (locals["self"].num_timesteps)*l
+                total_steps = _locals["self"].num_timesteps + (timesteps)*l
                 print("TOTAL STEPS: ", total_steps)
                 wandb.log({"eval_ret": ret}, step=total_steps)
                 with open(rets_path, "a", newline="") as f:
@@ -64,8 +64,7 @@ def reward_curriculum_train(model_dir, timesteps, experiment_name, is_save, eval
         n_steps += 1
         return True
 
-    #curriculum = ["Merging-v2", "Merging-v3", "Merging-v4", "Merging-v5"]
-    curriculum = ["Merging-v2", "Merging-v3"]
+    curriculum = ["Merging-v2", "Merging-v3", "Merging-v4", "Merging-v5"]
     curr_params = model.get_parameters()
     for l, lesson in enumerate(curriculum):
         print("\ntraining on ", lesson)
