@@ -35,8 +35,24 @@ def evaluate_debug(model, eval_env, is_save, eval_dir=None):
 
 
 def check_params_equal(param1, param2):
+    """
+    Checks whether two models parameters are equal
+    """
     for key, val in param1.items():
         if np.any(param1[key] != param2[key]):
-            #np.all([np.all(param1[key][i] == param2[key][i]) for i in range(len(param1[key]))])
             return False
     return True
+
+
+def rate_change_param(param1, param2):
+    """
+    Returns mean absolute change across parameters from param1 to param2
+    """
+    total_change = []
+    for key, val in param1.items():
+        total_change.append(np.mean(np.abs(param1[key] - param2[key])))
+    return np.mean(total_change)
+
+
+
+

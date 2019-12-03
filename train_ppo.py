@@ -18,13 +18,17 @@ FLAGS = flags.FLAGS
 # PPO parameters
 flags.DEFINE_integer("timesteps", 1000000, "# timesteps to train")
 # Experiment related parameters
-flags.DEFINE_string("name", "eff0", "Name of experiment")
+flags.DEFINE_string("name", "eff", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10, "how often we save state for eval")
 
 
 def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=1):
-    if is_save:
+    """
+    Trains driving agent
+    :param timesteps: number of timesteps to train. 128 (n_steps) * 100
+    """
+    if is_save:  # create experiment name directory and wandb log
         if os.path.exists(experiment_name):
             shutil.rmtree(experiment_name)
         os.makedirs(experiment_name)
@@ -40,6 +44,7 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=1):
     def evaluate_debug(model, eval_dir=None):
         """
         Evaluates model on one episode of driving task. Returns mean episode reward.
+        Rolls out actions according to current policy until the episode finishes (ever_done)
         """
         rets = 0.0
         obs = eval_env.reset()
@@ -47,15 +52,15 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=1):
         task_data = []
         while not ever_done:
             action, state = model.predict(obs, state=state, deterministic=True)
-            #print("\naction: ", action)
+            print("\naction: ", action)
             next_obs, rewards, done, _info = eval_env.step(action)
             print("rewards: ", rewards)
             #if not is_save: eval_env.render()
             eval_env.render()
             if not ever_done:
-                task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])
+                task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])  # append true state, not model predicted state
                 rets += rewards
-            ever_done = np.logical_or(ever_done, done)
+            ever_done = np.logical_or(ever_done, done)  # ever_done will be True when done=True
             obs = next_obs
             #if not is_save: time.sleep(.1)
             time.sleep(.1)
@@ -101,6 +106,9 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=1):
     best_ret, n_steps = -np.infty, 0
 
     def callback(_locals, _globals):
+        """
+        Calls this function every n_updates during training(I think..need to double check)
+        """
         nonlocal n_steps, best_ret
         model = _locals['self']
         if (n_steps + 1) % eval_save_period == 0:
@@ -141,5 +149,5 @@ def train(timesteps, experiment_name, is_save, eval_save_period, num_envs=1):
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="reward_adaptation", sync_tensorboard=True)
+    if FLAGS.is_save: wandb.init(project="reward_adaptation2", sync_tensorboard=True)
     train(FLAGS.timesteps, FLAGS.name, FLAGS.is_save, FLAGS.eval_save_period)

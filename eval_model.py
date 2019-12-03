@@ -83,8 +83,16 @@ def evaluate(model_dir, num_envs=1):
 
 
 if __name__ == "__main__":
-    model_name = "eval559best_model_559_[710.741].pkl"
-    model_dir = os.path.join("safe0", model_name)
+
+    safe0 = ("safe0", "eval559best_model_559_[710.741].pkl")
+    eff100 = ("eff100", "eval119best_model_119_[58557.055].pkl")
+    eff = ("eff", "eval489best_model_489_[-29.615425].pkl")
+    curr02 = ("0.2_curr", "eval49best_model_49_[235.07114].pkl")
+    curr2 = ("2.0_curr", "eval19best_model_19_[-56.795643].pkl")
+    rand_start02 = ("0.2rand_start", "eval99best_model_99_[-40.224064].pkl")
+    counterbalanced = ("counterbalanced", "eval9best_model_9_[-28.716702].pkl")
+    model = counterbalanced
+    model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
     for _ in range(10):
         mean_ret = evaluate_debug(model_dir)
         print("mean ret: ", mean_ret)
