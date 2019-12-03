@@ -91,7 +91,7 @@ if __name__ == "__main__":
     curr2 = ("2.0_curr", "eval19best_model_19_[-56.795643].pkl")
     rand_start02 = ("0.2rand_start", "eval99best_model_99_[-40.224064].pkl")
     counterbalanced = ("counterbalanced", "eval9best_model_9_[-28.716702].pkl")
-    model = counterbalanced
+    model = safe0
     model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
     for _ in range(10):
         mean_ret = evaluate_debug(model_dir)

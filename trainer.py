@@ -65,7 +65,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
     #    eval_dir = os.path.join(experiment_name, "eval{}".format(n_steps))
     #    model.save(eval_dir + 'lesson_{}.pkl'.format(l+1))
     model.learn(total_timesteps=timesteps, callback=callback)
-    model.save(os.path.join(experiment_name, 'final_model.pkl'))
+    model.save(os.path.join(experiment_name, 'final_model_{}.pkl'.format(num_trains)))
 
     #if is_save:
     #    eval_dir = os.path.join(experiment_name, "eval{}".format(n_steps))
