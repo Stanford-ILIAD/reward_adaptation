@@ -61,7 +61,8 @@ def reward_curriculum_train(model_dir, timesteps, experiment_name, is_save, eval
 
             total_steps = _locals["self"].num_timesteps + (timesteps)*l
             print("total steps: ", total_steps)
-            print("model steps: ", _locals["self"].num_timesteps)
+            print("model num_timesteps: ", model.num_timesteps)
+            print("n_steps",n_steps)
             print("lesson: ", l)
             print("num callbacks: ", num_callbacks)
             if is_save:
