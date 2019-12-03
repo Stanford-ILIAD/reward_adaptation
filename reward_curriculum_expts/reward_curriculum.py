@@ -1,4 +1,5 @@
 import os
+import shutil
 import gym
 from stable_baselines import PPO2
 from stable_baselines.common.policies import MlpPolicy
@@ -14,7 +15,7 @@ FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 100, "# timesteps to train")
 # n_updates = total_timesteps/n_steps(128)
-flags.DEFINE_string("name", "reward_curriculum_expts/test_0.2curr", "Name of experiment")
+flags.DEFINE_string("name", "reward_curriculum_expts/eff_lite", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -32,6 +33,8 @@ class RewardCurriculum(object):
         self.timesteps = timesteps
         self.is_save = is_save
         self.eval_save_period = eval_save_period
+        self.eval_dir = None
+        self.create_eval_dir()
         self.curriculum = [
             "Merging-v2",
             "Merging-v3",
@@ -44,6 +47,13 @@ class RewardCurriculum(object):
             "Merging-v10",
             "Merging-v11"
         ]
+
+    def create_eval_dir(self):
+        if self.is_save:
+            if os.path.exists(self.experiment_name):
+                shutil.rmtree(self.experiment_name)
+            os.makedirs(self.experiment_name)
+            wandb.save(self.experiment_name)
 
     def train_curriculum(self):
         """
@@ -69,6 +79,7 @@ class RewardCurriculum(object):
         """
         Directly trains on single domain
         """
+        self.timesteps = 10000000  # to train for longer
         env_fns = self.num_envs * [lambda: gym.make("Merging-v0")]
         env = VecNormalize(SubprocVecEnv(env_fns))
         policy = MlpPolicy
@@ -83,5 +94,5 @@ if __name__ == '__main__':
     model_name = "eval559best_model_559_[710.741].pkl"
     model_dir = os.path.join("reward_curriculum_expts", "safe0", model_name)
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_curriculum()
-    #RC.train_single()
+    #RC.train_curriculum()
+    RC.train_single()

@@ -28,10 +28,10 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         if (n_callbacks) % eval_save_period == 0:
             start_eval_time = time.time()
             if is_save:
-                eval_dir = os.path.join(experiment_name, "eval{}".format(total_steps))
-                os.makedirs(eval_dir)
+                #eval_dir = os.path.join(experiment_name, "eval{}".format(total_steps))
+                #os.makedirs(eval_dir)
                 # ret = evaluate(model, eval_dir)
-                ret = evaluate_debug(model, eval_env, is_save, eval_dir)
+                ret = evaluate_debug(model, eval_env)
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
@@ -53,12 +53,12 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
             print("Finished evaluation in {:.2f} seconds".format(end_eval_time))
         return True
 
-    if is_save:
-        if os.path.exists(experiment_name):
-            shutil.rmtree(experiment_name)
-        os.makedirs(experiment_name)
-        #rets_path = os.path.join(experiment_name, "eval.csv")
-        wandb.save(experiment_name)
+    #if is_save:
+    #    if os.path.exists(experiment_name):
+    #        shutil.rmtree(experiment_name)
+    #    os.makedirs(experiment_name)
+    #    #rets_path = os.path.join(experiment_name, "eval.csv")
+    #    wandb.save(experiment_name)
 
     best_ret, n_callbacks = -np.infty, 0
     #if is_save:
