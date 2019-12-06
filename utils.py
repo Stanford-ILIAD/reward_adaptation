@@ -28,7 +28,7 @@ def evaluate_debug(model, eval_env):
                     obs = next_obs
                     #time.sleep(.1)
             total_rets.append(rets)
-        return np.mean(total_rets), np.std(total_rets)
+        return np.mean(total_rets), np.std(total_rets), total_rets
 
 
 def check_params_equal(param1, param2):
