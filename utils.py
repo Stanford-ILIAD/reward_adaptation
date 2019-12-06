@@ -11,7 +11,7 @@ def evaluate_debug(model, eval_env):
         Returns mean episode reward and standard deviation.
         """
         total_rets = []
-        for _ in range(10):
+        for e in range(10):
             rets = 0.0
             obs = eval_env.reset()
             state, done = None, False
@@ -27,7 +27,7 @@ def evaluate_debug(model, eval_env):
                     #ever_done = np.logical_or(ever_done, done)
                     obs = next_obs
                     #time.sleep(.1)
-            total_rets.append(rets)
+            total_rets.append(rets[0])
         return np.mean(total_rets), np.std(total_rets), total_rets
 
 
