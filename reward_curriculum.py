@@ -30,8 +30,6 @@ class RewardCurriculum(object):
     def __init__(self, model_dir, num_envs, experiment_name, timesteps, is_save, eval_save_period):
         if model_dir is not None:
           self.model = PPO2.load(model_dir)  # loads pre-trained model
-        import pdb
-        pdb.set_trace()
         self.num_envs = num_envs
         self.experiment_name = experiment_name
         self.timesteps = timesteps
