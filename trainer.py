@@ -37,7 +37,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
             else:
-                ret = evaluate_debug(model, eval_env, is_save)
+                ret = evaluate_debug(model, eval_env)
             print("eval ret: ", ret)
             print("num_timesteps: ", model.num_timesteps)
             print("n_callbacks", n_callbacks)

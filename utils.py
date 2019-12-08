@@ -7,23 +7,28 @@ import pickle
 
 def evaluate_debug(model, eval_env):
         """
-        Evaluates model on one episode of driving task. Returns mean episode reward.
+        Evaluates model on 10 episodes of driving task.
+        Returns mean episode reward and standard deviation.
         """
-        rets = 0.0
-        obs = eval_env.reset()
-        state, ever_done = None, False
-        task_data = []
-        while not ever_done:
-                action, state = model.predict(obs, state=state, deterministic=True)
-                next_obs, rewards, done, _info = eval_env.step(action)
-                #eval_env.render()
-                if not ever_done:
-                        task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])
-                        rets += rewards
-                ever_done = np.logical_or(ever_done, done)
-                obs = next_obs
-                #time.sleep(.1)
-        return rets
+        total_rets = []
+        for e in range(10):
+            rets = 0.0
+            obs = eval_env.reset()
+            state, done = None, False
+            #task_data = []
+            while not done:
+                    action, state = model.predict(obs, state=state, deterministic=True)
+                    #print("\naction", action)
+                    next_obs, rewards, done, _info = eval_env.step(action)
+                    #eval_env.render()
+                    if not done:
+                            #task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])
+                            rets += rewards
+                    #ever_done = np.logical_or(ever_done, done)
+                    obs = next_obs
+                    #time.sleep(.1)
+            total_rets.append(rets[0])
+        return np.mean(total_rets), np.std(total_rets), total_rets
 
 
 def check_params_equal(param1, param2):
