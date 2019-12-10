@@ -145,13 +145,10 @@ class MergingEnv(gym.Env):
 
         eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) +\
             -10*coll_cost*car.collidesWith(self.buildings[1])
-<<<<<<< HEAD
 
         #print("\ny dist: ", -1*(car.center.y - human.center.y) )
         #print("x dist: ", -1*(car.center.x - human.center.x) )
         #print("rew: ", safe)
-=======
->>>>>>> b637fbb621ab172e5bcc0f0bc8e9afa51be58764
         return safe
 
     def render(self):
