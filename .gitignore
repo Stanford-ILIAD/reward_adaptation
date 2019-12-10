@@ -1,3 +1,5 @@
 .idea*
 *__pycache__*
 *.pyc
+reward_curriculum_expts/weight*
+wandb/*

@@ -50,8 +50,5 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
     model.save(os.path.join(experiment_name, 'final_model_{}.pkl'.format(num_trains)))
     return model
 
-
-
-
 # every 128 timesteps, the callback function gets called (n_updates increases)
 # every 1280 timestpes, we log the graph
