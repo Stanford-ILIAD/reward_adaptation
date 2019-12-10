@@ -33,7 +33,7 @@ def evaluate_debug(model_dir, eval_dir=None, num_envs=1):
         action, state = model.predict(obs, state=state, deterministic=True)
         # print("\naction: ", action)
         next_obs, rewards, done, _info = eval_env.step(action)
-        print("rewards: ", rewards)
+        #print("rewards: ", rewards)
         # if not is_save: eval_env.render()
         eval_env.render()
         if not ever_done:
@@ -84,14 +84,14 @@ def evaluate(model_dir, num_envs=1):
 
 if __name__ == "__main__":
 
-    safe0 = ("safe0", "eval559best_model_559_[710.741].pkl")
-    eff100 = ("eff100", "eval119best_model_119_[58557.055].pkl")
-    eff = ("eff", "eval489best_model_489_[-29.615425].pkl")
-    curr02 = ("0.2_curr", "eval49best_model_49_[235.07114].pkl")
-    curr2 = ("2.0_curr", "eval19best_model_19_[-56.795643].pkl")
-    rand_start02 = ("0.2rand_start", "eval99best_model_99_[-40.224064].pkl")
-    counterbalanced = ("counterbalanced", "eval9best_model_9_[-28.716702].pkl")
-    model = safe0
+    eff = ("eff", "best_model_16640_386.66973876953125.pkl")
+    safe = ("safe", "best_model_298240_540.3814697265625.pkl")
+    safe = ("safe", "best_model_247040_257.32415771484375.pkl")
+    eff_lite = ("eff_lite", "best_model_92160_-32.7154655456543.pkl")
+    safe_lite = ("safe_lite", "best_model_1280_-56.451454162597656.pkl")
+    safe2eff = ("0.2safe_eff", "final_model_9.pkl")
+    eff2safe = ("0.2eff_safe", "final_model_9.pkl")
+    model = safe
     model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
     for _ in range(10):
         mean_ret = evaluate_debug(model_dir)
