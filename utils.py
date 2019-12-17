@@ -73,13 +73,13 @@ def evaluate_debug(model, eval_env):
                 action, state = model.predict(obs, state=state, deterministic=True)
                 # print("\naction", action)
                 next_obs, rewards, done, _info = eval_env.step(action)
-                # eval_env.render()
+                eval_env.render()
                 if not done:
                     # task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])
                     rets += rewards
                 # ever_done = np.logical_or(ever_done, done)
                 obs = next_obs
-                # time.sleep(.1)
+                time.sleep(.1)
             total_rets.append(rets[0])
         return np.mean(total_rets), np.std(total_rets), total_rets
 
