@@ -15,7 +15,7 @@ from tensorflow import flags
 import driving_envs
 
 def load_env(num_envs=1):
-    env_fns = num_envs * [lambda: gym.make("Navigation-v2")]
+    env_fns = num_envs * [lambda: gym.make("Navigation-v31")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     #env = VecNormalize(SubprocVecEnv(env_fns))
     #env = VecNormalize(env_fns)
@@ -91,9 +91,12 @@ def evaluate(model_dir, num_envs=1):
 
 if __name__ == "__main__":
   scenario = 'navigation'
-  if scenario == 'navigation'
-    navigation = ("navigation_easy_central_sudden_death_down", "best_model_1487360_[-300581.84].pkl")
-    model = navigation
+  if scenario == 'navigation':
+    navigation_down_5 = ("navigation_easy_central_sudden_death_down", "best_model_1487360_[-300581.84].pkl")
+    navigation_up_5 = ("navigation_easy_central_sudden_death_up", "best_model_1487360_[-300581.84].pkl")
+    navigation_down_10 = ("navigation_easy_central_sudden_death_down_larger", "best_model_1930240_[-243753.58].pkl")
+    navigation_up_10 = ("navigation_easy_central_sudden_death_up_larger", "best_model_453120_[-230827.05].pkl")
+    model = navigation_down_10
   elif scenario == 'merging':
     safe0 = ("safe0", "eval559best_model_559_[710.741].pkl")
     eff100 = ("eff100", "eval119best_model_119_[58557.055].pkl")

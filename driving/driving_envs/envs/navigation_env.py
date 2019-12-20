@@ -7,49 +7,10 @@ import numpy as np
 import scipy.special
 from driving_envs.world import World
 from driving_envs.entities import TextEntity
-<<<<<<< HEAD
-from driving_envs.agents import Car, Building
-from driving_envs.geometry import Point
-from typing import Tuple
-
-
-class PidVelPolicy:
-    """PID controller for H that maintains its initial velocity."""
-
-    def __init__(self, dt: float, params: Tuple[float, float, float] = (3.0, 1.0, 6.0)):
-        self._target_vel = None
-        self.previous_error = 0
-        self.integral = 0
-        self.errors = []
-        self.dt = dt
-        self.Kp, self.Ki, self.Kd = params
-
-    def action(self, obs):
-        my_y_dot = obs[3]
-        if self._target_vel is None:
-            self._target_vel = my_y_dot
-        error = self._target_vel - my_y_dot
-        derivative = (error - self.previous_error) * self.dt
-        self.integral = self.integral + self.dt * error
-        acc = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
-        self.previous_error = error
-        self.errors.append(error)
-        return np.array((0, acc))
-
-    def reset(self):
-        self._target_vel = None
-        self.previous_error = 0
-        self.integral = 0
-        self.errors = []
-
-    def __str__(self):
-        return "PidVelPolicy({})".format(self.dt)
-=======
 from driving_envs.agents import Car, Building, Barrier1, Barrier2
 from driving_envs.geometry import Point
 from typing import Tuple
 import math
->>>>>>> 24926eca8a6d392958dbc020ae06d1460e583b81
 
 
 class NavigationEnv(gym.Env):
