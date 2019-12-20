@@ -65,7 +65,7 @@ class MergingEnv(gym.Env):
         self.time_limit = time_limit
         self.action_space = spaces.Box(
             #np.array((-0.1, -4.)), np.array((0.1, 4.0)), dtype=np.float32
-            np.array((-0.01, -4.)), np.array((0.01, 4.0)), dtype=np.float32
+            np.array((-0.001, -4.)), np.array((0.001, 4.0)), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(14,))
 
@@ -145,6 +145,10 @@ class MergingEnv(gym.Env):
 
         eff = (car.center.y - human.center.y) + -1*(car.center.x - human.center.x) +\
             -10*coll_cost*car.collidesWith(self.buildings[1])
+
+        #print("\ny dist: ", -1*(car.center.y - human.center.y) )
+        #print("x dist: ", -1*(car.center.x - human.center.x) )
+        #print("rew: ", safe)
         return safe
 
     def render(self):

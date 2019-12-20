@@ -93,8 +93,8 @@ class RewardCurriculum(object):
         """
         Directly trains on single domain
         """
-        self.timesteps = 4000000  # to train for longer
-        env_fns = self.num_envs * [lambda: gym.make('Merging-v7')]
+        self.timesteps = 1000000000  # to train for longer
+        env_fns = self.num_envs * [lambda: gym.make('Navigation-v31')]
         env = VecNormalize(SubprocVecEnv(env_fns))
         policy = MlpPolicy
         self.model = PPO2(policy, env, verbose=1)
@@ -105,8 +105,8 @@ class RewardCurriculum(object):
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="reward_adaptation20", sync_tensorboard=True, entity='caozj')
-    model_name = "best_model_151040_[710.741].pkl"
-    model_dir = os.path.join("reward_curriculum_expts", "weight_-1", model_name)
+    model_name = "eval109best_model_109_[-32.39167].pkl"
+    model_dir = os.path.join("reward_curriculum_expts", "safe0", model_name)
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_curriculum()
     #RC.train_single()

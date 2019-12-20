@@ -15,7 +15,7 @@ from tensorflow import flags
 import driving_envs
 
 def load_env(num_envs=1):
-    env_fns = num_envs * [lambda: gym.make("Merging-v7")]
+    env_fns = num_envs * [lambda: gym.make("Navigation-v2")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     #env = VecNormalize(SubprocVecEnv(env_fns))
     #env = VecNormalize(env_fns)
@@ -42,7 +42,7 @@ def evaluate_debug(model, eval_env, eval_dir=None):
         next_obs, rewards, done, _info = eval_env.step(action)
         #print("rewards: ", rewards)
         # if not is_save: eval_env.render()
-        #eval_env.render()
+        eval_env.render()
         if not ever_done:
             rets += rewards
         ever_done = np.logical_or(ever_done, done)
@@ -58,7 +58,7 @@ def evaluate(model_dir, num_envs=1):
     Evaluates model on one episode of driving task. Returns mean episode reward.
     """
 
-    env_fns = num_envs * [lambda: gym.make("Merging-v7")]
+    env_fns = num_envs * [lambda: gym.make("Navigation-v0")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     env = VecNormalize(SubprocVecEnv(env_fns))
     policy = MlpPolicy
@@ -90,7 +90,11 @@ def evaluate(model_dir, num_envs=1):
 
 
 if __name__ == "__main__":
-
+  scenario = 'navigation'
+  if scenario == 'navigation'
+    navigation = ("navigation_easy_central_sudden_death_down", "best_model_1487360_[-300581.84].pkl")
+    model = navigation
+  elif scenario == 'merging':
     safe0 = ("safe0", "eval559best_model_559_[710.741].pkl")
     eff100 = ("eff100", "eval119best_model_119_[58557.055].pkl")
     eff = ("eff", "eval489best_model_489_[-29.615425].pkl")
@@ -130,11 +134,11 @@ if __name__ == "__main__":
     weight_n1_p05_fine = ("weight_-1-0.5-finetune", "best_model_454400_[197.53082].pkl")
     weight_n1_p1d25_fine = ("weight_-1-1.25-finetune", "best_model_757760_[626.55853].pkl")
     model = weight_n1
-    model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
-    model = load_model(model_dir)
-    eval_env = load_env()
-    sum_reward = 0
-    num_episode = 200
-    for _ in range(num_episode):
-        sum_reward += evaluate_debug(model, eval_env)
-    print("mean ret: ", sum_reward/num_episode)
+  model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
+  model = load_model(model_dir)
+  eval_env = load_env()
+  sum_reward = 0
+  num_episode = 200
+  for _ in range(num_episode):
+      sum_reward += evaluate_debug(model, eval_env)
+  print("mean ret: ", sum_reward/num_episode)

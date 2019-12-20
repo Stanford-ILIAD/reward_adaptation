@@ -241,3 +241,40 @@ class Circle:
     def distanceTo(self, other: "Point") -> float:
         if isinstance(other, Point):
             return other.distanceTo(self)
+
+'''
+class Triangle:
+    def __init__(self, m1: Point, m2: Point, m3: Point):
+        self.m1 = m1
+        self.m2 = m2
+        self.m3 = m3
+
+    def __str__(self):
+        return "Triangle(m1: "+ str(self.m1) + ", m2: " + str(self.m2) + ", m3: "+str(self.m3)+")"
+
+    @property
+    def edges(self):
+        e1 = Line(self.m1, self.m2)
+        e2 = Line(self.m2, self.m3)
+        e3 = Line(self.m3, self.m1)
+        return [e1, e2, e3]
+
+    @property
+    def corners(self):
+        return [self.m1, self.m2, self.m3]
+
+    def intersectsWith(self, other: Union["Line", "Rectangle", "Circle", "Triangle"]):
+        if isinstance(other, Line) or isinstance(other, Rectangle):
+            return other.intersectsWith(self)
+
+        elif isinstance(other, Circle):
+            return self.m.distanceTo(other.m) <= self.r + other.r
+
+        elif isinstance(other, Circle):
+
+        raise NotImplementedError
+
+    def distanceTo(self, other: "Point") -> float:
+        if isinstance(other, Point):
+            return other.distanceTo(self)
+'''
