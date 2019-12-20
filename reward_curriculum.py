@@ -94,7 +94,7 @@ class RewardCurriculum(object):
         Directly trains on single domain
         """
         self.timesteps = 1000000000  # to train for longer
-        env_fns = self.num_envs * [lambda: gym.make('Navigation-v31')]
+        env_fns = self.num_envs * [lambda: gym.make('Navigation-v41')]
         env = VecNormalize(SubprocVecEnv(env_fns))
         policy = MlpPolicy
         self.model = PPO2(policy, env, verbose=1)
@@ -109,5 +109,5 @@ if __name__ == '__main__':
     model_dir = os.path.join("reward_curriculum_expts", "safe0", model_name)
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_curriculum()
-    #RC.train_single()
-    RC.train_finetuning()
+    RC.train_single()
+    #RC.train_finetuning()
