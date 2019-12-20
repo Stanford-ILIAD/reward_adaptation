@@ -166,16 +166,16 @@ class NavigationEnv2(NavigationEnv):
 
     def reward(self):
         goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))
-        boundary_rew = -(10000 if self.collide else 0)
-        building_rew = -(1000000000 if self.collide_building else 0)
+        boundary_rew = -(40 if self.collide else 0)
+        building_rew = -(1000000 if self.collide_building else 0)
         return goal_rew + boundary_rew + building_rew
 
 
 class NavigationEnv3(NavigationEnv2):
     def reward(self):
         goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))
-        boundary_rew = -(10000 if self.collide else 0)
-        building_rew = -(1000000000 if self.collide_building else 0)
+        boundary_rew = -(40 if self.collide else 0)
+        building_rew = -(1000000 if self.collide_building else 0)
         prefer_rew = 20 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else -20
         return goal_rew + boundary_rew + building_rew + prefer_rew
 
@@ -214,8 +214,8 @@ class NavigationEnv31(NavigationEnv3):
 class NavigationEnv4(NavigationEnv2):
     def reward(self):
         goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))
-        boundary_rew = -(10000 if self.collide else 0)
-        building_rew = -(1000000000 if self.collide_building else 0)
+        boundary_rew = -(40 if self.collide else 0)
+        building_rew = -(1000000 if self.collide_building else 0)
         prefer_rew = -20 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else 20
         return goal_rew + boundary_rew + building_rew + prefer_rew
 
