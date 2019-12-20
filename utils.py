@@ -16,7 +16,7 @@ def evaluate_debug(model, eval_env):
     while not ever_done:
         action, state = model.predict(obs, state=state, deterministic=True)
         next_obs, rewards, done, _info = eval_env.step(action)
-        # eval_env.render()
+        #eval_env.render()
         if not ever_done:
             task_data.append([eval_env.venv.envs[0].world.state, action, rewards, done])
             rets += rewards

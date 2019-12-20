@@ -15,7 +15,7 @@ from tensorflow import flags
 import driving_envs
 
 def load_env(num_envs=1):
-    env_fns = num_envs * [lambda: gym.make("Merging-v6")]
+    env_fns = num_envs * [lambda: gym.make("Navigation-v2")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     #env = VecNormalize(SubprocVecEnv(env_fns))
     #env = VecNormalize(env_fns)
@@ -42,7 +42,7 @@ def evaluate_debug(model, eval_env, eval_dir=None):
         next_obs, rewards, done, _info = eval_env.step(action)
         #print("rewards: ", rewards)
         # if not is_save: eval_env.render()
-        #eval_env.render()
+        eval_env.render()
         if not ever_done:
             rets += rewards
         ever_done = np.logical_or(ever_done, done)
@@ -58,7 +58,7 @@ def evaluate(model_dir, num_envs=1):
     Evaluates model on one episode of driving task. Returns mean episode reward.
     """
 
-    env_fns = num_envs * [lambda: gym.make("Merging-v0")]
+    env_fns = num_envs * [lambda: gym.make("Navigation-v0")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     env = VecNormalize(SubprocVecEnv(env_fns))
     policy = MlpPolicy
@@ -90,32 +90,9 @@ def evaluate(model_dir, num_envs=1):
 
 
 if __name__ == "__main__":
-
-    eff = ("eff", "best_model_16640_386.66973876953125.pkl")
-    safe = ("safe", "best_model_298240_540.3814697265625.pkl")
-    safe = ("safe", "best_model_247040_257.32415771484375.pkl")
-    eff_lite = ("eff_lite", "best_model_92160_-32.7154655456543.pkl")
-    safe_lite = ("safe_lite", "best_model_1280_-56.451454162597656.pkl")
-    safe2eff = ("0.2safe_eff", "final_model_9.pkl")
-    eff2safe = ("0.2eff_safe", "final_model_9.pkl")
-
-    model = safe
-    #safe0 = ("safe0", "eval559best_model_559_[710.741].pkl")
-    #eff100 = ("eff100", "eval119best_model_119_[58557.055].pkl")
-    #eff = ("eff", "eval489best_model_489_[-29.615425].pkl")
-    #curr02 = ("0.2_curr", "eval49best_model_49_[235.07114].pkl")
-    #curr2 = ("2.0_curr", "eval19best_model_19_[-56.795643].pkl")
-    #rand_start02 = ("0.2rand_start", "eval99best_model_99_[-40.224064].pkl")
-    #counterbalanced = ("counterbalanced", "eval9best_model_9_[-28.716702].pkl")
-    #weight_n1 = ("weight_-1", "best_model_151040_[710.741].pkl")
-    #weight_n05 = ("weight_-0.5", "best_model_1428480_[309.0573].pkl")
-    #weight_0 = ("weight_0", "best_model_87040_[-37.172234].pkl")
-    #weight_p05 = ("weight_0.5", "best_model_16640_[-33.3783].pkl")
-    #weight_p1 = ("weight_1", "best_model_8960_[-29.448769].pkl")
-    #weight_p10 = ("weight_10", "best_model_3527680_[5769.4253].pkl")
-    #weight_p100 = ("weight_100", "best_model_14080_[58647.805].pkl")
-    #weight_p100 = ("weight_100_trial", "best_model_53760_[58498.3].pkl")
-    #model = weight_p10
+    safe = ("safe0", "eval469best_model_469_[681.3239].pkl")
+    navigation = ("navigation_easy_central_sudden_death_down", "best_model_1487360_[-300581.84].pkl")
+    model = navigation
 
     model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
     model = load_model(model_dir)

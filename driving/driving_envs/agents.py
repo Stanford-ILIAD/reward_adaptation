@@ -33,6 +33,22 @@ class Pedestrian(CircleEntity):
         self.collidable = True
 
 
+class Barrier1(CircleEntity):
+    def __init__(self, center: Point, radius: float, color: str = "gray26", heading=0.0):
+        movable = False
+        friction = 0.0
+        super(Barrier1, self).__init__(center, heading, radius, movable, friction)
+        self.color = color
+        self.collidable = True
+
+class Barrier2(RectangleEntity):
+    def __init__(self, center: Point, size: Point, color: str = "gray26", heading=0.0):
+        movable = False
+        friction = 0.0
+        super(Barrier2, self).__init__(center, heading, size, movable, friction)
+        self.color = color
+        self.collidable = True
+
 class Building(RectangleEntity):
     def __init__(self, center: Point, size: Point, color: str = "gray26", heading=0.0):
         movable = False

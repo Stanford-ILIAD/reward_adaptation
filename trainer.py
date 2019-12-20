@@ -12,7 +12,7 @@ import driving_envs
 from utils import evaluate_debug
 
 
-def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains):
+def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, num_trains):
     """
     Trains model for specified timesteps. Returns trained model.
     :param num_trains: number of previous lessons, for continual learning setting
@@ -25,7 +25,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         if (n_callbacks) % eval_save_period == 0:
             start_eval_time = time.time()
             if is_save:
-                ret, std, total_rets = evaluate_debug(model, eval_env)
+                ret = evaluate_debug(model, eval_env)
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
@@ -33,11 +33,11 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                 wandb.log({"eval_ret": ret,
                            },
                           step=total_steps)
-                with open(rets_path, "a", newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerow([total_steps, total_rets])
+                #with open(rets_path, "a", newline="") as f:
+                #    writer = csv.writer(f)
+                #    writer.writerow([total_steps, total_rets])
             else:
-                ret, std, total_rets = evaluate_debug(model, eval_env)
+                ret = evaluate_debug(model, eval_env)
             print("eval ret: ", ret)
             print("num_timesteps: ", model.num_timesteps)
             print("n_callbacks", n_callbacks)
