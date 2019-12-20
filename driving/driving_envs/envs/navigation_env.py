@@ -12,7 +12,6 @@ from driving_envs.geometry import Point
 from typing import Tuple
 import math
 
-
 class NavigationEnv(gym.Env):
     """Driving gym interface"""
 
