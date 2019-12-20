@@ -77,6 +77,18 @@ class RewardCurriculum(object):
 
             curr_params = self.model.get_parameters()
 
+    def train_finetuning(self):
+        """
+        Trains reward curriculum
+        """
+        self.timesteps = 4000000
+        env_fns = self.num_envs * [lambda: gym.make('Merging-v14')]
+        eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+        env = VecNormalize(SubprocVecEnv(env_fns))
+        self.model.set_env(env)
+        self.model = train(self.model, eval_env, self.timesteps, self.experiment_name,
+                           self.is_save, self.eval_save_period, 0)
+
     def train_single(self):
         """
         Directly trains on single domain
@@ -97,4 +109,5 @@ if __name__ == '__main__':
     model_dir = os.path.join("reward_curriculum_expts", "weight_-1", model_name)
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_curriculum()
-    RC.train_single()
+    #RC.train_single()
+    RC.train_finetuning()

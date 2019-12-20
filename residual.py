@@ -107,11 +107,11 @@ class RewardCurriculum(object):
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="reward_adaptation20", sync_tensorboard=True, entity='caozj')
-    model_name = "best_model_151040_[710.741].pkl"
-    model_dir = os.path.join("reward_curriculum_expts", "weight_-1", model_name)
+    model_name = "best_model_8960_[-29.448769].pkl"
+    model_dir = os.path.join("reward_curriculum_expts", "weight_1", model_name)
     resave_model_residual(model_dir)
     model_name = "residual"+model_name
-    model_dir = os.path.join("reward_curriculum_expts", "weight_-1", model_name)
+    model_dir = os.path.join("reward_curriculum_expts", "weight_1", model_name)
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_curriculum()
     #RC.train_single()

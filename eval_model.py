@@ -15,7 +15,7 @@ from tensorflow import flags
 import driving_envs
 
 def load_env(num_envs=1):
-    env_fns = num_envs * [lambda: gym.make("Merging-v6")]
+    env_fns = num_envs * [lambda: gym.make("Merging-v7")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     #env = VecNormalize(SubprocVecEnv(env_fns))
     #env = VecNormalize(env_fns)
@@ -58,7 +58,7 @@ def evaluate(model_dir, num_envs=1):
     Evaluates model on one episode of driving task. Returns mean episode reward.
     """
 
-    env_fns = num_envs * [lambda: gym.make("Merging-v0")]
+    env_fns = num_envs * [lambda: gym.make("Merging-v7")]
     eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     env = VecNormalize(SubprocVecEnv(env_fns))
     policy = MlpPolicy
@@ -102,11 +102,34 @@ if __name__ == "__main__":
     weight_n05 = ("weight_-0.5", "best_model_1428480_[309.0573].pkl")
     weight_0 = ("weight_0", "best_model_87040_[-37.172234].pkl")
     weight_p05 = ("weight_0.5", "best_model_16640_[-33.3783].pkl")
+    weight_p1d25 = ("weight_1.25", "best_model_39680_[-27.72623].pkl")
+    weight_p1d5 = ("weight_1.5", "best_model_1583360_[799.3216].pkl")
+    weight_p1d75 = ("weight_1.75", "best_model_112640_[942.1476].pkl")
     weight_p1 = ("weight_1", "best_model_8960_[-29.448769].pkl")
+    weight_p2 = ("weight_2", "best_model_1980160_[1087.1274].pkl")
+    weight_p4 = ("weight_4", "best_model_1827840_[2262.8826].pkl")
+    weight_p6 = ("weight_6", "best_model_2670080_[3432.1975].pkl")
+    weight_p8 = ("weight_8", "best_model_3175680_[4600.899].pkl")
     weight_p10 = ("weight_10", "best_model_3527680_[5769.4253].pkl")
     weight_p100 = ("weight_100", "best_model_14080_[58647.805].pkl")
     weight_p100 = ("weight_100_trial", "best_model_53760_[58498.3].pkl")
-    model = weight_p10
+    weight_n1_p100 = ("weight_-1-100-residual", "best_model_107520_[-1212.9834].pkl")
+    weight_n1_n05 = ("weight_-1--05-residual", "best_model_11520_[314.3503].pkl")
+    weight_n1_0 = ("weight_-1-0-residual", "best_model_47360_[-43.04698].pkl")
+    weight_n1_p05 = ("weight_-1-05-residual", "best_model_167680_[-33.393833].pkl")
+    weight_n1_p1 = ("weight_-1-1-residual", "best_model_166400_[-29.615425].pkl")
+    weight_n1_p10 = ("weight_-1-10-residual", "best_model_106240_[-137.1123].pkl")
+    weight_p1_p10 = ("weight_1-10-residual", "best_model_1280_[46.919632].pkl")
+    weight_p1_p100 = ("weight_1-100-residual", "best_model_1280_[808.3808].pkl")
+    weight_n1_p100_fine = ("weight_-1-100-finetune", "best_model_2977280_[58541.312].pkl")
+    weight_n05_p100_fine = ("weight_-05-100-finetune", "best_model_290560_[58499.133].pkl")
+    weight_0_p100_fine = ("weight_0-100-finetune", "best_model_380160_[58527.918].pkl")
+    weight_p05_p100_fine = ("weight_05-100-finetune", "best_model_243200_[58529.555].pkl")
+    weight_p1_p100_fine = ("weight_1-100-finetune", "best_model_2447360_[58373.15].pkl")
+    weight_p10_p100_fine = ("weight_10-100-finetune", "best_model_1280_[60365.332].pkl")
+    weight_n1_p05_fine = ("weight_-1-0.5-finetune", "best_model_454400_[197.53082].pkl")
+    weight_n1_p1d25_fine = ("weight_-1-1.25-finetune", "best_model_757760_[626.55853].pkl")
+    model = weight_n1
     model_dir = os.path.join("reward_curriculum_expts", model[0], model[1])
     model = load_model(model_dir)
     eval_env = load_env()

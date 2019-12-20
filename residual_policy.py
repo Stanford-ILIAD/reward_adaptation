@@ -249,4 +249,7 @@ class ResidualMlpPolicy(ResidualFeedForwardPolicy):
                                         feature_extraction="mlp", **_kwargs)
 
 if __name__ == '__main__':
-  resave_model_residual('/mnt/parallel/caozj/reward_adaptation/reward_curriculum_expts/weight_-1/best_model_151040_[710.741].pkl')
+  data, params = load_from_file('/mnt/parallel/caozj/reward_adaptation/reward_curriculum_expts/weight_-1-100-residual/best_model_107520_[-1212.9834].pkl')
+  data1, params1 = load_from_file('/mnt/parallel/caozj/reward_adaptation/reward_curriculum_expts/weight_-1/best_model_151040_[710.741].pkl')
+  import pdb
+  pdb.set_trace()
