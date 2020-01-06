@@ -81,8 +81,8 @@ class RewardCurriculum(object):
         """
         Trains reward curriculum
         """
-        self.timesteps = 4000000
-        env_fns = self.num_envs * [lambda: gym.make('Merging-v14')]
+        self.timesteps = 100000000
+        env_fns = self.num_envs * [lambda: gym.make('Navigation-v3')]
         eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
         env = VecNormalize(SubprocVecEnv(env_fns))
         self.model.set_env(env)
@@ -94,20 +94,27 @@ class RewardCurriculum(object):
         Directly trains on single domain
         """
         self.timesteps = 1000000000  # to train for longer
-        env_fns = self.num_envs * [lambda: gym.make('Navigation-v41')]
-        env = VecNormalize(SubprocVecEnv(env_fns))
+        env_fns = self.num_envs * [lambda: gym.make('Navigation-v3')]
+        #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False, clip_obs=40.)
+        env = SubprocVecEnv(env_fns)
         policy = MlpPolicy
         self.model = PPO2(policy, env, verbose=1)
-        eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+        #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False, clip_obs=40.)
+        eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False, norm_obs=False)
         self.model = train(self.model, eval_env, self.timesteps, self.experiment_name,
                            self.is_save, self.eval_save_period, 0)
 
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="reward_adaptation20", sync_tensorboard=True, entity='caozj')
-    model_name = "eval109best_model_109_[-32.39167].pkl"
-    model_dir = os.path.join("reward_curriculum_expts", "safe0", model_name)
+    #model_name = "eval39best_model_39_[-34.84455].pkl"
+    #exp_name = "safe0"
+    #model_name = ("navigation_easy_central_5_down1", "best_model_3921920_[642.8856].pkl")
+    #model_name = ("navigation_easy_central_5_up1", "best_model_6647040_[681.9671].pkl")
+    model_name = ("navigation_easy_central_10_down1", "best_model_5470720_[618.0299].pkl")
+    #model_name = ("navigation_easy_central_10_up1", "best_model_2009600_[588.5629].pkl")
+    model_dir = os.path.join("reward_curriculum_expts", model_name[0], model_name[1])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_curriculum()
-    RC.train_single()
-    #RC.train_finetuning()
+    #RC.train_single()
+    RC.train_finetuning()

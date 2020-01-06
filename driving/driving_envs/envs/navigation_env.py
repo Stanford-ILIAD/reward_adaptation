@@ -54,15 +54,19 @@ class NavigationEnv(gym.Env):
             self.finish = True
         if self.cars["R"].y >= self.height:
             self.cars["R"].center.y = self.height
+            self.cars["R"].velocity.y = 0
             self.collide = True
         elif self.cars["R"].y <= 0:
             self.cars["R"].center.y = 0
+            self.cars["R"].velocity.y = 0
             self.collide = True
         if self.cars["R"].x >= self.width:
             self.cars["R"].center.x = self.width
+            self.cars["R"].velocity.x = 0
             self.collide = True
         elif self.cars["R"].x <= 0:
             self.cars["R"].center.x = 0
+            self.cars["R"].velocity.x = 0
             self.collide = True
         if self.step_num >= self.time_limit:
             done = True
@@ -116,7 +120,10 @@ class NavigationEnv(gym.Env):
                                abs(self.cars["R"].center.y)])
         return np.concatenate([self.world.state, np.array(barrier_states)])
         '''
-        return self.world.state[0:4]
+        state = np.copy(self.world.state[0:4])
+        state[0] = (state[0] - (self.width / 2)) / (self.width / 2)
+        state[1] = (state[1] - (self.height / 2)) / (self.height / 2)
+        return state
 
     def reward(self):
         barrier_states = []
@@ -165,19 +172,20 @@ class NavigationEnv2(NavigationEnv):
         return self._get_obs()
 
     def reward(self):
-        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))
-        boundary_rew = -(40 if self.collide else 0)
-        building_rew = -(1000000 if self.collide_building else 0)
-        return goal_rew + boundary_rew + building_rew
+        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))/5 + (10 if self.finish else 0)
+        boundary_rew = -(4 if self.collide else 0)
+        building_rew = -(10000 if self.collide_building else 0)
+        return goal_rew + boundary_rew + building_rew + prefer_rew
 
 
 class NavigationEnv3(NavigationEnv2):
     def reward(self):
-        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))
-        boundary_rew = -(40 if self.collide else 0)
-        building_rew = -(1000000 if self.collide_building else 0)
-        prefer_rew = 20 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else -20
+        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))/5 + (1000 if self.finish else 0)
+        boundary_rew = -(4 if self.collide else 0)
+        building_rew = -(5000 if self.collide_building else 0)
+        prefer_rew = 1 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else -9
         return goal_rew + boundary_rew + building_rew + prefer_rew
+
 
 class NavigationEnv31(NavigationEnv3):
     def reset(self):
@@ -213,10 +221,18 @@ class NavigationEnv31(NavigationEnv3):
 
 class NavigationEnv4(NavigationEnv2):
     def reward(self):
-        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))
-        boundary_rew = -(40 if self.collide else 0)
-        building_rew = -(1000000 if self.collide_building else 0)
-        prefer_rew = -20 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else 20
+        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))/5 + (1000 if self.finish else 0)
+        boundary_rew = -(4 if self.collide else 0)
+        building_rew = -(5000 if self.collide_building else 0)
+        prefer_rew = -9 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else 1
+        return goal_rew + boundary_rew + building_rew + prefer_rew
+
+class NavigationEnv42(NavigationEnv4):
+    def reward(self):
+        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))/5 + (1000 if self.finish else 0)
+        boundary_rew = (-4 if self.collide else 0)
+        building_rew = -(5000 if self.collide_building else 0)
+        prefer_rew = -9 if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else 1
         return goal_rew + boundary_rew + building_rew + prefer_rew
 
 class NavigationEnv41(NavigationEnv4):
