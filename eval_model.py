@@ -89,46 +89,28 @@ def eval_action_divergence(num_envs):
         #print("mean kl div: ", mean_KL_div)
         #break
 
-def eval_weight_similarity(self):
-    E1 = ("weight_-1", "best_model_151040_[710.741].pkl", "Merging-v0")
-    E2 = ("weight_-0.5", "best_model_1428480_[309.0573].pkl", "Merging-v2")
-    E3 = ("weight_0", "best_model_87040_[-37.172234].pkl", "Merging-v3")
-    E4 = ("weight_0.5", "best_model_16640_[-33.3783].pkl", "Merging-v4")
-    E5 = ("weight_1", "best_model_8960_[-29.448769].pkl", "Merging-v5")
-    E6 = ("weight_2", "best_model_1980160_[1087.1274].pkl", "Merging-v8")
-    E7 = ("weight_4", "best_model_1827840_[2262.8826].pkl", "Merging-v9")
-    E8 = ("weight_6", "best_model_2670080_[3432.1975].pkl", "Merging-v10")
-    E9 = ("weight_8", "best_model_3175680_[4600.899].pkl", "Merging-v11")
-    E10 = ("weight_10", "best_model_3527680_[5769.4253].pkl", "Merging-v6")
-    E11 = ("weight_100", "best_model_14080_[58647.805].pkl", "Merging-v7")
 
-    model1_dir = os.path.join("policy_curriculum_expts", E2[0], E2[1])
+def eval_weight_similarity(model1, model2):
+    """
+    Computes distance between each parameter between two models
+    """
+    model1_dir = os.path.join(model1[0], model1[1], model1[2])
     model1 = PPO2.load(model1_dir)
     param1 = model1.get_parameters()
 
-    model2_dir = os.path.join("policy_curriculum_expts", E1[0], E1[1])
+    model2_dir = os.path.join(model2[0], model2[1], model2[2])
     model2 = PPO2.load(model2_dir)
     param2 = model2.get_parameters()
 
     for key, val in param1.items():
         print(key)
+        norm1 = np.linalg.norm(param1[key]-param2[key], ord=1)
         norm2 = np.linalg.norm(param1[key]-param2[key], ord=2)
         normfro = np.linalg.norm(param1[key]-param2[key], ord='fro') if len(val.shape)>=2 else None
         norminf = np.linalg.norm(param1[key]-param2[key], ord=np.inf)
-        print(norm2, normfro, norminf)
+        print(norm1, norm2, normfro, norminf)
 
 
-    model2_dir = os.path.join("policy_curriculum_expts", E11[0], E11[1])
-    model2 = PPO2.load(model2_dir)
-    param2 = model2.get_parameters()
-
-    print()
-    for key, val in param1.items():
-        print(key)
-        norm2 = np.linalg.norm(param1[key]-param2[key], ord=2)
-        normfro = np.linalg.norm(param1[key]-param2[key], ord='fro') if len(val.shape)>=2 else None
-        norminf = np.linalg.norm(param1[key]-param2[key], ord=np.inf)
-        print(norm2, normfro, norminf)
 
 #def evaluate(model_dir, num_envs=1):
 #    """
@@ -188,23 +170,37 @@ if __name__ == "__main__":
     weight_p10 = ("weight_10", "best_model_3527680_[5769.4253].pkl")
     weight_p100 = ("weight_100", "best_model_14080_[58647.805].pkl")
 
-    no_obstacle = ("no_obstacle", "best_model_680960_-2806.66162109375.pkl")
-    obstacle = ("obstacle", "best_model_5120_-3236.948974609375.pkl")
-    obstacle1 = ("obstacle1", "best_model_864000_-1840.4173583984375.pkl")
-    obstacle2 = ("obstacle2", "best_model_33280_-2025.617431640625.pkl")
+    weight_p1 = ("weight_1", "best_model_72960_15906.4873046875.pkl")
+    weight_p100 = ("weight_100", "best_model_30720_778549.9375.pkl")
+    weight_p100_free = ("weight_100_free", "best_model_1280_521154.40625.pkl")
+    weight_p10 = ("weight_10", "best_model_180480_935024.125.pkl")
+    weight_p05 = ("weight_0.5", "ckpt_model_160000_253363.203125.pkl")
+    weight_0 = ("weight_0", "best_model_33280_899905.375.pkl")
+    weight_n05 = ("weight_-0.5", "best_model_125440_906951.0.pkl")
+    weight_n1 = ("weight_-1", "best_model_67840_827945.125.pkl")
+    weight_n10 = ('weight_-10', 'best_model_74240_940575.6875.pkl')
 
-    #weight_n05 = ("weight_-0.5", "best_model_392960_7.897286891937256.pkl")
-    #weight_0 = ("weight_0", "ckpt_model_320000_131.7333221435547.pkl")
-    #weight_p1 = ("weight_1", "ckpt_model_320000_62.78840255737305.pkl")
-    #weight_p15 = ("weight_1.5", "ckpt_model_320000_131.7333221435547.pkl")
-    weight_n1 = ("weight_-1", "ckpt_model_320000_-127.33536529541016.pkl")
+    # obstacle_avoidance
+    weight_n1 = ("weight_-1", "best_model_7680_22.056026458740234.pkl")
+    weight_n10 = ("weight_-10", "ckpt_model_160000_-45933.6171875.pkl")
+    weight_n100 = ("weight_-100", "ckpt_model_128000_-372112.3125.pkl")
 
-    model = weight_p1
+    # curriculum
+    n1_p100 = ("-1_100", "best_model_72960_539.8695068359375.pkl")
+    n1_p1 = ("-1_1", "best_model_24320_-57.98554611206055.pkl")
+    n1_p10 = ("-1_10", "ckpt_model_96000_25.50602912902832.pkl")
+    n1_0 = ("-1_0")
 
-    model_dir = os.path.join("omg", model[0], model[1])
-    model_dir = os.path.join("driving_policies", model[0], model[1])
+
+    model = weight_n10
+    model_dir = os.path.join("obstacle_avoidance", model[0], model[1])
+    eval_env = load_env("Obstacle-v9")
+
+    #model = n1_p10
+    #model_dir = os.path.join("merging", model[0], model[1])
+    #eval_env = load_env("Merging-v6")
+
     model = load_model(model_dir)
-    eval_env = load_env("Merging-v0")
     sum_reward = 0
     num_episode = 200
     for _ in range(num_episode):

@@ -59,13 +59,14 @@ class MergingEnv(gym.Env):
         self.height = height
         self.world = World(self.dt, width=width, height=height, ppm=6)
         self.buildings, self.cars = [], {}
-        self.action_space = spaces.Box(-np.inf, np.inf, shape=(12,))
+        #self.action_space = spaces.Box(-np.inf, np.inf, shape=(12,))
         self.human_policy = PidVelPolicy(dt=self.dt)
         self.step_num = 0
         self.time_limit = time_limit
         self.action_space = spaces.Box(
             #np.array((-0.1, -4.)), np.array((0.1, 4.0)), dtype=np.float32
-            np.array((-0.001, -4.)), np.array((0.001, 4.0)), dtype=np.float32
+            #np.array((-0.001, -4.)), np.array((0.001, 4.0)), dtype=np.float32
+            np.array((-0.01, -4.)), np.array((0.01, 4.0)), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(14,))
 
@@ -222,7 +223,7 @@ class MergingEnv7(MergingEnv):
         return safe
 
 class MergingEnv8(MergingEnv):
-    def reward(self, weight=0.4):
+    def reward(self, weight=2.0):
         car = self.cars["R"]
         human = self.cars["H"]
         coll_cost = 100
@@ -233,7 +234,7 @@ class MergingEnv8(MergingEnv):
         return safe
 
 class MergingEnv9(MergingEnv):
-    def reward(self, weight=0.6):
+    def reward(self, weight=4.0):
         car = self.cars["R"]
         human = self.cars["H"]
         coll_cost = 100
@@ -244,7 +245,7 @@ class MergingEnv9(MergingEnv):
         return safe
 
 class MergingEnv10(MergingEnv):
-    def reward(self, weight=0.8):
+    def reward(self, weight=6.0):
         car = self.cars["R"]
         human = self.cars["H"]
         coll_cost = 100
@@ -255,7 +256,7 @@ class MergingEnv10(MergingEnv):
         return safe
 
 class MergingEnv11(MergingEnv):
-    def reward(self, weight=1.0):
+    def reward(self, weight=1.25):
         car = self.cars["R"]
         human = self.cars["H"]
         coll_cost = 100

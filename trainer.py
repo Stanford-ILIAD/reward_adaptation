@@ -22,6 +22,14 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         n_callbacks += 1
         model = _locals['self']
         total_steps = model.num_timesteps + (timesteps)*num_trains
+
+        # Saving checkpoint model
+        if is_save and total_steps % 1000 == 0:
+            print("Saving checkpoint model")
+            ret, std, total_rets = evaluate_debug(model, eval_env)
+            model.save(os.path.join(experiment_name, "ckpt_model_{}_{}.pkl".format(total_steps, ret)))
+
+        # Saving best model
         if (n_callbacks) % eval_save_period == 0:
             start_eval_time = time.time()
             if is_save:

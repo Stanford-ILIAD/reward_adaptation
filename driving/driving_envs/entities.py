@@ -208,6 +208,9 @@ class RectangleEntity(Entity):
         C = self.corners
         self.obj = Rectangle(*C[:-1])  # pylint: disable=no-value-for-parameter
 
+    #def distanceTo(self, other):
+    #    return np.linalg.norm(np.array([self.center.x, self.center.y]) - np.array([other.center.x, other.center.y]), ord=1)
+
 
 class CircleEntity(Entity):
     def __init__(

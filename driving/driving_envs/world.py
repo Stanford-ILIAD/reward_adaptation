@@ -24,9 +24,9 @@ class World:
             agent.tick(self.dt)
         self.t += self.dt
 
-    def render(self):
+    def render(self, correct_pos=None, next_pos=None):
         self.visualizer.create_window(bg_color="gray")
-        self.visualizer.update_agents(self.agents)
+        self.visualizer.update_agents(self.agents, correct_pos, next_pos)
 
     @property
     def state(self):
@@ -79,4 +79,5 @@ class World:
 
     def reset(self):
         self.dynamic_agents = []
+        self.static_agents = []
         self.t = 0

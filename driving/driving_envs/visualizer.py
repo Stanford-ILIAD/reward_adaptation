@@ -2,6 +2,7 @@ from driving_envs.graphics import *
 from driving_envs.entities import RectangleEntity, CircleEntity, TextEntity
 
 
+
 class Visualizer:
     def __init__(self, width: float, height: float, ppm: int):
         # width (meters)
@@ -21,7 +22,7 @@ class Visualizer:
             self.window_created = True
             self.visualized_imgs = []
 
-    def update_agents(self, agents: list):
+    def update_agents(self, agents: list, correct_pos: list=None, next_pos: list=None):
         new_visualized_imgs = []
 
         # Remove the movable agents from the window
@@ -49,6 +50,16 @@ class Visualizer:
                 if isinstance(agent, RectangleEntity):
                     C = [self.ppm * c for c in agent.corners]
                     img = Polygon([Point(c.x, self.display_height - c.y) for c in C])
+
+                    # arrow
+                    if agent.movable and (correct_pos and next_pos):
+                        start = Point(self.ppm * agent.center.x, self.display_height - self.ppm * agent.center.y)
+                        end = Point(self.ppm * correct_pos[0], self.display_height - self.ppm * correct_pos[1])
+                        #print("ACTION??: ", correct_pos)
+                        line = Line(start, end)
+                        line.setArrow("last")
+                        line.draw(self.win)
+                        new_visualized_imgs.append({"movable": agent.movable, "graphics": line})
                 elif isinstance(agent, CircleEntity):
                     img = Circle(
                         Point(
