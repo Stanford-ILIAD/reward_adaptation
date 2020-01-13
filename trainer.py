@@ -12,7 +12,7 @@ import driving_envs
 from utils import evaluate_debug
 
 
-def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains):
+def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains, seed):
     """
     Trains model for specified timesteps. Returns trained model.
     :param num_trains: number of previous lessons, for continual learning setting
@@ -54,7 +54,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
             print("Finished evaluation in {:.2f} seconds".format(end_eval_time))
         return True
     best_ret, n_callbacks = -np.infty, 0
-    model.learn(total_timesteps=timesteps, callback=callback)
+    model.learn(total_timesteps=timesteps, callback=callback, seed=seed)
     model.save(os.path.join(experiment_name, 'final_model_{}.pkl'.format(num_trains)))
     return model
 

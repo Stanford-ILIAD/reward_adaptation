@@ -37,7 +37,9 @@ def evaluate_debug(model, eval_env, eval_dir=None):
     rets = 0.0
     obs = eval_env.reset()
     state, ever_done = None, False
+    nsteps = 0
     while not ever_done:
+        nsteps +=1
         action, state = model.predict(obs, state=state, deterministic=True)
         # print("\naction: ", action)
         next_obs, rewards, done, _info = eval_env.step(action)
@@ -51,6 +53,7 @@ def evaluate_debug(model, eval_env, eval_dir=None):
         # if not is_save: time.sleep(.1)
         time.sleep(.1)
     eval_env.close()
+    print("nsteps: ", nsteps)
     return rets
 
 
@@ -180,21 +183,15 @@ if __name__ == "__main__":
     weight_n1 = ("weight_-1", "best_model_67840_827945.125.pkl")
     weight_n10 = ('weight_-10', 'best_model_74240_940575.6875.pkl')
 
-    # obstacle_avoidance
-    weight_n1 = ("weight_-1", "best_model_7680_22.056026458740234.pkl")
-    weight_n10 = ("weight_-10", "ckpt_model_160000_-45933.6171875.pkl")
-    weight_n100 = ("weight_-100", "ckpt_model_128000_-372112.3125.pkl")
-
-    # curriculum
-    n1_p100 = ("-1_100", "best_model_72960_539.8695068359375.pkl")
-    n1_p1 = ("-1_1", "best_model_24320_-57.98554611206055.pkl")
-    n1_p10 = ("-1_10", "ckpt_model_96000_25.50602912902832.pkl")
-    n1_0 = ("-1_0")
-
-
-    model = weight_n10
-    model_dir = os.path.join("obstacle_avoidance", model[0], model[1])
-    eval_env = load_env("Obstacle-v9")
+    w1 = ("1", "final_model_0.pkl")
+    w1000 = ("1000", "best_model_473600_6036.03759765625.pkl")
+    w10 = ("10", "best_model_844800_5182.9755859375.pkl")
+    w1000norm = ('1000_norm', 'best_model_38400_0.06706708669662476.pkl')
+    w100norm = ('100_norm', 'best_model_806400_546.5267944335938.pkl')
+    w10norm = ('10_norm', 'best_model_806400_474.72021484375.pkl')
+    model = w100norm
+    model_dir = os.path.join("monotonic", model[0], model[1])
+    eval_env = load_env("Merging-v8")
 
     #model = n1_p10
     #model_dir = os.path.join("merging", model[0], model[1])
