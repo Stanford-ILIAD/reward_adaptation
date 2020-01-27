@@ -189,8 +189,24 @@ if __name__ == "__main__":
     w1000norm = ('1000_norm', 'best_model_38400_0.06706708669662476.pkl')
     w100norm = ('100_norm', 'best_model_806400_546.5267944335938.pkl')
     w10norm = ('10_norm', 'best_model_806400_474.72021484375.pkl')
-    model = w100norm
-    model_dir = os.path.join("monotonic", model[0], model[1])
+
+    w1000_20 = ("20_1000", "best_model_25600_0.0670783743262291.pkl")
+    w100_20 = ("20_100", "best_model_115200_0.5881983041763306.pkl")
+    w10_20 = ("20_10", "best_model_2483200_0.057892389595508575.pkl")
+    w1_20 = ("20_1", "best_model_38400_-0.0003237240598537028.pkl")
+
+    w1000_10 = ("10_1000", "best_model_64000_5.894476413726807.pkl")
+    w100_10 = ("10_100", "best_model_716800_0.5878414511680603.pkl")
+    w10_10 = ("10_10", "best_model_12800_0.00030311677255667746.pkl")
+    w1_10 = ("10_1", "best_model_38400_-0.0003237240598537028.pkl")
+
+    w1000_42 = ("42_1000", "best_model_4697600_5.894959449768066.pkl")
+    w100_42 = ("42_100", "best_model_2112000_0.5882474780082703.pkl")
+    w10_42 = ("42_10", "best_model_12800_0.0003144020738545805.pkl")
+    w1_42 = ("42_1", "best_model_12800_-0.0003223083622287959.pkl")
+
+    model = w1_42
+    model_dir = os.path.join("monotone2/monotonic", model[0], model[1])
     eval_env = load_env("Merging-v8")
 
     #model = n1_p10
@@ -200,6 +216,8 @@ if __name__ == "__main__":
     model = load_model(model_dir)
     sum_reward = 0
     num_episode = 200
-    for _ in range(num_episode):
+    for ne in range(num_episode):
         sum_reward += evaluate_debug(model, eval_env)
+        print("running mean: ", sum_reward/(ne+1))
+
     print("mean ret: ", sum_reward/num_episode)
