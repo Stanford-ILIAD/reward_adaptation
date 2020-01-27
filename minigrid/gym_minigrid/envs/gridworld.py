@@ -4,14 +4,15 @@ import numpy as np
 from minigrid.gym_minigrid.register import register
 from minigrid.gym_minigrid.grid import *
 
+
 class Gridworld(gym.Env):
     def __init__(self):
         self.grid_size = 5
-        self.T = self.grid_size * 2 - 2
+        self.T = self.grid_size * 2 - 1
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(low=np.array([0,0]), high=np.array([self.grid_size, self.grid_size]))
+        self.observation_space = spaces.Box(low=np.array([0, 0]), high=np.array([self.grid_size, self.grid_size]))
         self.start = np.array([0, 0])
-        self.goal = np.array([self.grid_size-1, self.grid_size-1])
+        self.goal = np.array([self.grid_size - 1, self.grid_size - 1])
         self.obstacles = []
         self.window = None
         self.moves = {
@@ -26,13 +27,16 @@ class Gridworld(gym.Env):
 
     def step(self, action, verbose=False):
         self.step_count += 1
-        #print("step no: ", self.step_count)
+        # print("step no: ", self.step_count)
+
+        ret = self._get_reward(verbose=verbose)
+
         # move agent
         dx, dy = self.moves[action]
-        #print("dx, dy: ", dx, dy)
-        #print("curr state: ", self.S)
+        # print("dx, dy: ", dx, dy)
+        # print("curr state: ", self.S)
         self.S = np.array([self.S[0] + dx, self.S[1] + dy])
-        #print("new state: ", self.S)
+        # print("new state: ", self.S)
 
         # Set bounds
         # self.S = max(0, self.S[0]), max(0, self.S[1])
@@ -49,27 +53,27 @@ class Gridworld(gym.Env):
         is_collision = np.array([(self.S == obstacle).all() for obstacle in self.obstacles])
         if is_collision.any():
             done = True
-        return self._get_obs(), self._get_reward(verbose=verbose), done, {}
+        return self._get_obs(), ret, done, {}
 
     def _get_obs(self):
         # return np.concatendate(([self.S, self.start, self.goal], self.obstacles))
         return self.S
 
     def _get_reward(self, verbose=False):
-        #max_dist = 9.0
-        max_rew = 7.0 + 6 + 5 + 4 + 3 + 2 + 1
+        max_dist = 8.0
+        max_rew = 8.0 + 7 + 6 + 5 + 4 + 3 + 2 + 1
         dist_goal = np.linalg.norm((self.S - self.goal), 1)
         is_collision = np.all([(self.S == obstacle).all() for obstacle in self.obstacles])
         obstacle_penalty = -1.0 if np.any(is_collision) else 0.0
         dist_upper_right = np.linalg.norm((self.S - np.array([self.grid_size, 0])), 1)
-        #reward = -dist_goal - dist_upper_right + obstacle_penalty
+        # reward = -dist_goal - dist_upper_right + obstacle_penalty
 
-        reward = -(dist_goal/max_rew) + (2.0/self.T) + obstacle_penalty
-        #if verbose: print("dist2goal: ", dist_goal, " reward: ", reward)
+        reward = -(dist_goal / max_rew) + (2.0 / self.T) + obstacle_penalty
+        if verbose: print("dist2goal: ", dist_goal, " reward: ", reward, "pos: ", self.S)
         return reward
 
     def reset(self):
-        #print("\nreset")
+        # print("\nreset")
         self.S = self.start
         self.obstacles.append(np.array([2, 2]))
         self.step_count = 0
@@ -108,6 +112,7 @@ class Gridworld(gym.Env):
         self.window.set_caption(self.mission)
 
         return img
+
 
 register(
     id='Gridworld-v0',

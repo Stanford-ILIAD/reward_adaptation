@@ -13,7 +13,6 @@ from stable_baselines.common.vec_env.vec_normalize import VecNormalize
 import wandb
 from tensorflow import flags
 import minigrid.gym_minigrid
-import utils
 
 def load_env(env, num_envs=1):
     env_fns = num_envs * [lambda: gym.make(env)]
@@ -33,33 +32,39 @@ def evaluate(model, eval_env):
     Returns mean episode reward and standard deviation.
     """
     total_rets = []
-    for e in range(10):
+    nsteps = 0
+    for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
         state, done = None, False
         while not done:
+            nsteps +=1
             action, state = model.predict(obs, state=state, deterministic=True)
-            next_obs, ret, done, _info = eval_env.step(action, verbose=True)
+            next_obs, ret, done, _info = eval_env.step(action, verbose=False)
             #eval_env.render()
             if not done:
                 rets += ret
             obs = next_obs
             #time.sleep(.1)
         total_rets.append(rets)
+        #print("total ep return: ", total_rets)
+        #print("total mean ep return: ", np.mean(total_rets))
+        #print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets
 
 if __name__ == "__main__":
-    gwv0_unnorm = ("gridworld", "no_norm", "best_model_3000_3.888888888888889.pkl")
-    gwv0_norm = ("gridworld", "norm", "best_model_42000_0.4861111111111111.pkl")
-    model = gwv0_unnorm
+    gw1 = ("gridworld", "lr_1e-3", "best_model_10000_0.75.pkl")
+
+    model = gw1
     model_dir = os.path.join(model[0], model[1], model[2])
     eval_env = load_env("Gridworld-v0")
 
     model = load_model(model_dir)
-    sum_reward = 0
+    sum_reward = 0.0
     num_episode = 200
     for ne in range(num_episode):
-        sum_reward += evaluate(model, eval_env)
+        mean_ret, std_ret, total_ret = evaluate(model, eval_env)
+        sum_reward += mean_ret
         print("running mean: ", sum_reward/(ne+1))
 
     print("mean ret: ", sum_reward/num_episode)
