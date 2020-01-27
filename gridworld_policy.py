@@ -18,12 +18,9 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 
 FLAGS = flags.FLAGS
 n_steps = 128
-#flags.DEFINE_integer("timesteps", n_steps * 781, "# timesteps to train")
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-# n_updates = total_timesteps/n_steps(128)
-#flags.DEFINE_string("name", "merging/-1_1.25", "Name of experiment")
-flags.DEFINE_string("name", "gridworld", "Name of experiment")
-flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
+flags.DEFINE_string("name", "gridworld/norm", "Name of experiment")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
@@ -91,7 +88,7 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        self.timesteps = 200000 # to train for longer
+        self.timesteps = 300000 # to train for longer
         set_global_seeds(100)
         env_fns = self.num_envs * [lambda: gym.make(env_name)]
         #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)

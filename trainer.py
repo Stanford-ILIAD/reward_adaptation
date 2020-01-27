@@ -44,7 +44,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer.writerow([total_steps, total_rets])
             else:
                 ret, std, total_rets = evaluate_debug(model, eval_env)
-            print("eval ret: ", ret)
+            #print("eval ret: ", ret)
         #print("training steps: ", model.num_timesteps)
         return True
     best_ret, n_callbacks = -np.infty, 0
