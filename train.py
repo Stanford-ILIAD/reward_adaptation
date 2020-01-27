@@ -20,7 +20,7 @@ import csv
 FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-flags.DEFINE_string("name", "gridworld/lr_1e-3", "Name of experiment")
+flags.DEFINE_string("name", "gridworld/lr_1e-2", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 5000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -95,7 +95,7 @@ class RewardCurriculum(object):
         #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)
         #env = VecNormalize(SubprocVecEnv(env_fns))
         env = gym.make(env_name)
-        self.model = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True, learning_rate=1e-3)
+        self.model = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True, learning_rate=1e-2)
         #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
         #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False)
         eval_env = gym.make(env_name)
