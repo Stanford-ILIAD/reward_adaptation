@@ -56,17 +56,16 @@ class Gridworld(gym.Env):
         return self.S
 
     def _get_reward(self, verbose=False):
-        max_dist = 9.0
+        #max_dist = 9.0
+        max_rew = 7.0 + 6 + 5 + 4 + 3 + 2 + 1
         dist_goal = np.linalg.norm((self.S - self.goal), 1)
         is_collision = np.all([(self.S == obstacle).all() for obstacle in self.obstacles])
         obstacle_penalty = -1.0 if np.any(is_collision) else 0.0
         dist_upper_right = np.linalg.norm((self.S - np.array([self.grid_size, 0])), 1)
         #reward = -dist_goal - dist_upper_right + obstacle_penalty
 
-        reward = -(dist_goal/max_dist) + 1.0 + obstacle_penalty
-        #reward = 1.0 if (self.S == self.goal).all() else 0.0
-        reward = reward/self.T
-        if verbose: print("dist2goal: ", dist_goal, " reward: ", reward)
+        reward = -(dist_goal/max_rew) + (2.0/self.T) + obstacle_penalty
+        #if verbose: print("dist2goal: ", dist_goal, " reward: ", reward)
         return reward
 
     def reset(self):
@@ -109,7 +108,6 @@ class Gridworld(gym.Env):
         self.window.set_caption(self.mission)
 
         return img
-
 
 register(
     id='Gridworld-v0',

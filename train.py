@@ -20,7 +20,7 @@ import csv
 FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-flags.DEFINE_string("name", "gridworld/norm", "Name of experiment")
+flags.DEFINE_string("name", "gridworld/lr_1e-3", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 5000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -151,5 +151,3 @@ if __name__ == '__main__':
     model_dir = os.path.join(utils.weight_n1[0], utils.weight_n1[1], utils.weight_n1[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     RC.train_single(env_name="Gridworld-v0")
-
-
