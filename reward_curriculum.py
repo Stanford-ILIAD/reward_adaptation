@@ -20,7 +20,7 @@ n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
 # n_updates = total_timesteps/n_steps(128)
 #flags.DEFINE_string("name", "merging/-1_1.25", "Name of experiment")
-flags.DEFINE_string("name", "monotonic/1000_norm", "Name of experiment")
+flags.DEFINE_string("name", "sample_complexity/-1", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 100, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -89,7 +89,7 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        self.timesteps = 1200000 # to train for longer
+        self.timesteps = 500000 # to train for longer
         set_global_seeds(100)
         env_fns = self.num_envs * [lambda: gym.make(env_name)]
         #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)
@@ -103,9 +103,9 @@ class RewardCurriculum(object):
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="monotone", sync_tensorboard=True)
+    if FLAGS.is_save: wandb.init(project="sample_complexity", sync_tensorboard=True)
     model_dir = os.path.join(utils.weight_n1[0], utils.weight_n1[1], utils.weight_n1[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="Merging-v8")
+    RC.train_single(env_name="Merging-v0")
 
 
