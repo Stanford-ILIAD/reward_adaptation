@@ -39,7 +39,7 @@ def evaluate(model, eval_env):
         state, done = None, False
         while not done:
             action, state = model.predict(obs, state=state, deterministic=True)
-            next_obs, ret, done, _info = eval_env.step(action)
+            next_obs, ret, done, _info = eval_env.step(action, verbose=True)
             eval_env.render()
             if not done:
                 rets += ret

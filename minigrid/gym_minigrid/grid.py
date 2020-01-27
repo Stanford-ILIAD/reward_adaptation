@@ -114,8 +114,8 @@ class WorldObj:
         #    v = Door(color, is_open, is_locked)
         #elif obj_type == 'goal':
         #    v = Goal()
-        #elif obj_type == 'lava':
-        #    v = Lava()
+        elif obj_type == 'lava':
+            v = Lava()
         else:
             assert False, "unknown object type in decode"
 
@@ -146,6 +146,29 @@ class Goal(WorldObj):
 
     def render(self, img):
         fill_coords(img, point_in_rect(0, 1, 0, 1), COLORS[self.color])
+
+
+class Lava(WorldObj):
+    def __init__(self):
+        super().__init__('lava', 'red')
+
+    def can_overlap(self):
+        return True
+
+    def render(self, img):
+        c = (255, 128, 0)
+
+        # Background color
+        fill_coords(img, point_in_rect(0, 1, 0, 1), c)
+
+        # Little waves
+        for i in range(3):
+            ylo = 0.3 + 0.2 * i
+            yhi = 0.4 + 0.2 * i
+            fill_coords(img, point_in_line(0.1, ylo, 0.3, yhi, r=0.03), (0,0,0))
+            fill_coords(img, point_in_line(0.3, yhi, 0.5, ylo, r=0.03), (0,0,0))
+            fill_coords(img, point_in_line(0.5, ylo, 0.7, yhi, r=0.03), (0,0,0))
+            fill_coords(img, point_in_line(0.7, yhi, 0.9, ylo, r=0.03), (0,0,0))
 
 
 class Grid:
@@ -197,13 +220,6 @@ class Grid:
         Render a tile and cache the result
         """
 
-        # Hash map lookup key for the cache
-        #key = (agent_here, highlight, tile_size)
-        #key = obj.encode() + key if obj else key
-
-        #if key in cls.tile_cache:
-        #    return cls.tile_cache[key]
-
         img = np.zeros(shape=(tile_size * subdivs, tile_size * subdivs, 3), dtype=np.uint8)
 
         # Draw the grid lines (top and left edges)
@@ -222,15 +238,8 @@ class Grid:
             )
             fill_coords(img, tri_fn, (255, 0, 0))
 
-        # Highlight the cell if needed
-        #if highlight:
-        #    highlight_img(img)
-
         # Downsample the image to perform supersampling/anti-aliasing
         img = downsample(img, subdivs)
-
-        # Cache the rendered tile
-        #cls.tile_cache[key] = img
 
         return img
 

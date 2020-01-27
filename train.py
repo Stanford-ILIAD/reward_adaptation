@@ -21,8 +21,8 @@ FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
 flags.DEFINE_string("name", "gridworld/norm", "Name of experiment")
-flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 1000, "how often we save state for eval")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_integer("eval_save_period", 5000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -95,7 +95,7 @@ class RewardCurriculum(object):
         #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)
         #env = VecNormalize(SubprocVecEnv(env_fns))
         env = gym.make(env_name)
-        self.model = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True)
+        self.model = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True, learning_rate=1e-3)
         #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
         #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False)
         eval_env = gym.make(env_name)
@@ -128,9 +128,10 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
-                wandb.log({"eval_ret": ret,
-                           },
-                          step=total_steps)
+                wandb.log({"eval_ret": ret}, step=total_steps)
+                for param_name in model.get_parameters():
+                    if 'deepq/model' in param_name:
+                        wandb.log({param_name: wandb.Histogram(model.get_parameters()[param_name])})
                 with open(rets_path, "a", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow([total_steps, total_rets])

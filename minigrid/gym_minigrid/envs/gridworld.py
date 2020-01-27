@@ -24,7 +24,7 @@ class Gridworld(gym.Env):
         # begin in start state
         self.reset()
 
-    def step(self, action):
+    def step(self, action, verbose=False):
         self.step_count += 1
         #print("step no: ", self.step_count)
         # move agent
@@ -46,29 +46,33 @@ class Gridworld(gym.Env):
             done = True
         if (self.S == self.goal).all():
             done = True
-        return self._get_obs(), self._get_reward(), done, {}
+        is_collision = np.array([(self.S == obstacle).all() for obstacle in self.obstacles])
+        if is_collision.any():
+            done = True
+        return self._get_obs(), self._get_reward(verbose=verbose), done, {}
 
     def _get_obs(self):
         # return np.concatendate(([self.S, self.start, self.goal], self.obstacles))
         return self.S
 
-    def _get_reward(self):
+    def _get_reward(self, verbose=False):
         max_dist = 9.0
         dist_goal = np.linalg.norm((self.S - self.goal), 1)
-        is_collision = [self.S == obstacle for obstacle in self.obstacles]
-        obstacle_penalty = -10 if np.any(is_collision) else 0
+        is_collision = np.all([(self.S == obstacle).all() for obstacle in self.obstacles])
+        obstacle_penalty = -1.0 if np.any(is_collision) else 0.0
         dist_upper_right = np.linalg.norm((self.S - np.array([self.grid_size, 0])), 1)
         #reward = -dist_goal - dist_upper_right + obstacle_penalty
-        reward = -(dist_goal/max_dist) + 1.0
+
+        reward = -(dist_goal/max_dist) + 1.0 + obstacle_penalty
         #reward = 1.0 if (self.S == self.goal).all() else 0.0
         reward = reward/self.T
-        #print("dist2goal: ", dist_goal, " reward: ", reward)
+        if verbose: print("dist2goal: ", dist_goal, " reward: ", reward)
         return reward
 
     def reset(self):
         #print("\nreset")
         self.S = self.start
-        self.obstacles.append(np.array([3, 3]))
+        self.obstacles.append(np.array([2, 2]))
         self.step_count = 0
         self.mission = "go to the goal while avoiding the obstacle"
         self._gen_grid(self.grid_size, self.grid_size)
@@ -77,12 +81,9 @@ class Gridworld(gym.Env):
     def _gen_grid(self, width, height):
         # Create an empty grid
         self.grid = Grid(width, height)
-
-        # Generate the surrounding walls
-        #self.grid.wall_rect(0, 0, width, height)
-
-        # Place a goal square in the bottom-right corner
         self.grid.put_obj(Goal(), self.goal[0], self.goal[1])
+        for obstacle in self.obstacles:
+            self.grid.put_obj(Lava(), obstacle[0], obstacle[1])
 
     def render(self, close=False, highlight=True, tile_size=TILE_PIXELS):
         """
