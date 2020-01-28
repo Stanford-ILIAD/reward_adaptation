@@ -40,7 +40,7 @@ class RewardCurriculum(object):
         self.eval_save_period = eval_save_period
         self.rets_path = None
         self.create_eval_dir()
-        self.seed = 42
+        self.seed = 100
         self.curriculum = [
             #"Merging-v3",
             #"Merging-v4",
@@ -92,14 +92,14 @@ class RewardCurriculum(object):
         self.timesteps = 500000 # to train for longer
         set_global_seeds(100)
         env_fns = self.num_envs * [lambda: gym.make(env_name)]
-        #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)
-        env = VecNormalize(SubprocVecEnv(env_fns))
+        env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)
+        #env = VecNormalize(SubprocVecEnv(env_fns))
         policy = MlpPolicy
-        self.model = PPO2(policy, env, verbose=1)
-        #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
-        eval_env = VecNormalize(DummyVecEnv(env_fns), training=False)
+        self.model = PPO2(policy, env, verbose=1, seed=self.seed)
+        eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+        #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False)
         self.model = train(self.model, eval_env, self.timesteps, self.experiment_name,
-                           self.is_save, self.eval_save_period, self.rets_path, 0, self.seed)
+                           self.is_save, self.eval_save_period, self.rets_path, 0)
 
 
 if __name__ == '__main__':
