@@ -83,11 +83,11 @@ def evaluate_debug(model, eval_env):
             while not done:
                 action, state = model.predict(obs, state=state, deterministic=True)
                 next_obs, ret, done, _info = eval_env.step(action)
-                eval_env.render()
+                #eval_env.render()
                 if not done:
                     rets += ret
                 obs = next_obs
-                time.sleep(.1)
+                #time.sleep(.1)
             total_rets.append(rets)
         return np.mean(total_rets), np.std(total_rets), total_rets
 
