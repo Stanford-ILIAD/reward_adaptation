@@ -122,13 +122,13 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
-                wandb.log({"eval_ret": ret}, step=total_steps)
+                    wandb.log({"eval_ret": ret}, step=total_steps)
                 for param_name in model.get_parameters():
                     if 'deepq/model' in param_name:
                         wandb.log({param_name: wandb.Histogram(model.get_parameters()[param_name])})
-                with open(rets_path, "a", newline="") as f:
-                    writer = csv.writer(f)
-                    writer.writerow([total_steps, total_rets])
+                #with open(rets_path, "a", newline="") as f:
+                #    writer = csv.writer(f)
+                #    writer.writerow([total_steps, total_rets])
             else:
                 ret, std, total_rets = evaluate(model, eval_env)
             #print("eval ret: ", ret)
