@@ -15,8 +15,9 @@ from tensorflow import flags
 import minigrid.gym_minigrid
 
 def load_env(env, num_envs=1):
-    env_fns = num_envs * [lambda: gym.make(env)]
-    eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+    #env_fns = num_envs * [lambda: gym.make(env)]
+    #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+    eval_env = gym.make(env)
     #env = VecNormalize(SubprocVecEnv(env_fns))
     #env = VecNormalize(env_fns)
     return eval_env
@@ -36,25 +37,26 @@ def evaluate(model, eval_env):
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        state, done = None, False
-        while not done:
+        state, ever_done = None, False
+        while not ever_done:
             nsteps +=1
             action, state = model.predict(obs, state=state, deterministic=True)
             next_obs, ret, done, _info = eval_env.step(action, verbose=False)
+            #print("ret: ", ret)
             #eval_env.render()
-            if not done:
+            if not ever_done:
                 rets += ret
+            #print("rets: ", rets)
             obs = next_obs
             #time.sleep(.1)
+            ever_done = done
         total_rets.append(rets)
-        #print("total ep return: ", total_rets)
-        #print("total mean ep return: ", np.mean(total_rets))
+        #print("total mean ep return: ", np.mean(total_rets), total_rets)
         #print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets
 
 if __name__ == "__main__":
-    gw1 = ("gridworld", "lr_1e-3", "best_model_10000_0.75.pkl")
-
+    gw1 = ("gridworld", "v0", "best_model_5000_101.0.pkl")
     model = gw1
     model_dir = os.path.join(model[0], model[1], model[2])
     eval_env = load_env("Gridworld-v0")

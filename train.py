@@ -20,9 +20,9 @@ import csv
 FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-flags.DEFINE_string("name", "gridworld/v0", "Name of experiment")
-flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 5000, "how often we save state for eval")
+flags.DEFINE_string("name", "gridworld/h2_v0", "Name of experiment")
+flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
+flags.DEFINE_integer("eval_save_period", 1000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -112,12 +112,6 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         nonlocal n_callbacks, best_ret
         model = _locals['self']
         total_steps = model.num_timesteps + (timesteps)*num_trains
-
-        # Saving checkpoint model
-        #if is_save and total_steps % 1000 == 0:
-        #    print("Saving checkpoint model")
-        #    ret, std, total_rets = evaluate_debug(model, eval_env)
-        #    model.save(os.path.join(experiment_name, "ckpt_model_{}_{}.pkl".format(total_steps, ret)))
 
         # Saving best model
         if (total_steps) % eval_save_period == 0:
