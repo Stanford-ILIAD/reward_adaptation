@@ -29,6 +29,7 @@ class Gridworld(gym.Env):
         self.step_count += 1
         # print("step no: ", self.step_count)
 
+        if verbose: print("state: ", self.S)
         ret = self._get_reward(verbose=verbose)
         if verbose: print("step: ", self.step_count)
         if verbose: print("ret: ", ret)
@@ -64,15 +65,12 @@ class Gridworld(gym.Env):
     def _get_reward(self, verbose=False):
         max_dist = 8.0
         max_rew = 8.0 + 7 + 6 + 5 + 4 + 3 + 2 + 1
-        #max_dist = 4.0
-        #max_rew = 4.0 + 3 + 2 + 1
         dist_goal = np.linalg.norm((self.S - self.goal), 1)
         is_collision = np.all([(self.S == obstacle).all() for obstacle in self.obstacles])
         obstacle_penalty = -1.0 if np.any(is_collision) else 0.0
         dist_bottom = self.S[1] - self.grid_size
         dist_right = self.S[0] - self.grid_size
 
-        stick_left = -self.S[0]
         reward = -(dist_goal / max_rew) + (2.0 / self.T) + obstacle_penalty
         reward += dist_bottom/50.
         if (self.S == self.goal).all():

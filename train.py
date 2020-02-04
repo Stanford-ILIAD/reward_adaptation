@@ -3,7 +3,7 @@ import shutil
 import gym
 import time
 import numpy as np
-from stable_baselines import DQN, PPO2
+from stable_baselines import DQN
 from stable_baselines.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines.common.vec_env.vec_normalize import VecNormalize
 from stable_baselines.common import set_global_seeds
@@ -20,8 +20,8 @@ import csv
 FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-flags.DEFINE_string("name", "gridworld/h2_v0", "Name of experiment")
-flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
+flags.DEFINE_string("name", "gridworld/h2v1_h2v0", "Name of experiment")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
@@ -32,7 +32,7 @@ class RewardCurriculum(object):
     """
 
     def __init__(self, model_dir, num_envs, experiment_name, timesteps, is_save, eval_save_period):
-        self.model = PPO2.load(model_dir) if model_dir else None  # loads pre-trained model
+        self.model = DQN.load(model_dir) if model_dir else None  # loads pre-trained model
         self.num_envs = num_envs
         self.experiment_name = experiment_name
         self.timesteps = timesteps
@@ -42,17 +42,7 @@ class RewardCurriculum(object):
         self.create_eval_dir()
         self.seed = 42
         self.curriculum = [
-            #"Merging-v3",
-            #"Merging-v4",
-            #"Merging-v6",
-            #"Merging-v2",
-            #"Merging-v5",
-            #"Merging-v7",
-            #"Merging-v0",
-            # "Merging-v8",
-            # "Merging-v9",
-            # "Merging-v10",
-            "Merging-v11"
+            "Gridworld-v0"
         ]
 
     def create_eval_dir(self):
@@ -68,22 +58,24 @@ class RewardCurriculum(object):
         """
         Trains reward curriculum
         """
-        curr_params = self.model.get_parameters()
-        self.timesteps = 100000
+        #curr_params = self.model.get_parameters()
+        self.timesteps = 300000 # to train for longer
+        #set_global_seeds(100)
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
 
             # change env
-            env_fns = self.num_envs * [lambda: gym.make(lesson)]
-            eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
-            env = VecNormalize(SubprocVecEnv(env_fns))
+            #env_fns = self.num_envs * [lambda: gym.make(lesson)]
+            #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
+            #env = VecNormalize(SubprocVecEnv(env_fns))
+            env = gym.make(lesson)
             self.model.set_env(env)
-
-            assert utils.check_params_equal(curr_params, self.model.get_parameters())
+            eval_env = gym.make(lesson)
+            #assert utils.check_params_equal(curr_params, self.model.get_parameters())
             self.model = train(self.model, eval_env, self.timesteps, self.experiment_name,
                                self.is_save, self.eval_save_period, self.rets_path, l)
 
-            curr_params = self.model.get_parameters()
+            #curr_params = self.model.get_parameters()
 
     def train_single(self, env_name="Merging-v0"):
         """
@@ -142,6 +134,8 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="gridworld-v0", sync_tensorboard=True)
-    model_dir = os.path.join(utils.weight_n1[0], utils.weight_n1[1], utils.weight_n1[2])
+    model = ("gridworld", "h2_v1", "best_model_88000_11.559999999999999.pkl")
+    model_dir = os.path.join(model[0], model[1], model[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="Gridworld-v0")
+    #RC.train_single(env_name="Gridworld-v0")
+    RC.train_curriculum()
