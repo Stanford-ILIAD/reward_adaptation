@@ -20,8 +20,8 @@ import csv
 FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-flags.DEFINE_string("name", "gridworld/h2_v0", "Name of experiment")
-flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
+flags.DEFINE_string("name", "gridworld/h1_v1", "Name of experiment")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
