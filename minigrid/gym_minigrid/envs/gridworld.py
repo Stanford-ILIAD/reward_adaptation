@@ -72,12 +72,12 @@ class Gridworld(gym.Env):
         dist_right = self.S[0] - self.grid_size
 
         reward = -(dist_goal / max_rew) + (2.0 / self.T) + obstacle_penalty
-        reward += dist_bottom/50.
+        reward += dist_right/50.
         if (self.S == self.goal).all():
             reward += 10
-        if (self.S == np.array([0,4])).all() and self.step_count <=5:
+        if (self.S == np.array([3,1])).all() and self.step_count <=5:
             reward += 1
-        if verbose: print("dist2goal: ", dist_goal, " reward: ", reward, "pref: ", dist_bottom/50.)  # , "pos: ", self.S)
+        if verbose: print("dist2goal: ", dist_goal, " reward: ", reward, "pref: ", dist_right/50.)  # , "pos: ", self.S)
         return reward
 
     def reset(self):
