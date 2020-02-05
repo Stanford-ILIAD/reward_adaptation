@@ -16,10 +16,10 @@ class Gridworld(gym.Env):
         self.obstacles = []
         self.window = None
         self.moves = {
-            0: [-1, 0],  # up
-            1: [0, 1],  # right
-            2: [1, 0],  # down
-            3: [0, -1],  # left
+            0: [-1, 0],  # left
+            1: [0, 1],  # down
+            2: [1, 0],  # right
+            3: [0, -1],  # up
         }
 
         # begin in start state
@@ -68,8 +68,8 @@ class Gridworld(gym.Env):
         dist_goal = np.linalg.norm((self.S - self.goal), 1)
         is_collision = np.all([(self.S == obstacle).all() for obstacle in self.obstacles])
         obstacle_penalty = -1.0 if np.any(is_collision) else 0.0
-        dist_bottom = self.S[1] - self.grid_size
-        dist_right = self.S[0] - self.grid_size
+        dist_bottom = self.S[1] - self.grid_size  #h2
+        dist_right = self.S[0] - self.grid_size   #h1
 
         reward = -(dist_goal / max_rew) + (2.0 / self.T) + obstacle_penalty
         reward += dist_right/50.
