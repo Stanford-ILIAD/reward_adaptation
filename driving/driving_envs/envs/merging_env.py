@@ -69,7 +69,7 @@ class MergingEnv(gym.Env):
             np.array((-0.01, -4.)), np.array((0.01, 4.0)), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(14,))
-        self.max_reward = self.height*1000.
+        self.max_reward = self.height*self.time_limit
         #self.goal = (43.5, self.height)
         #self.success = False
 
@@ -151,7 +151,7 @@ class MergingEnv(gym.Env):
     def reward(self):
         car = self.cars["R"]
         human = self.cars["H"]
-        coll_cost = -1000
+        coll_cost = -100
 
         # define rewards
         rew = -1*(car.center.y - human.center.y) + -1*(car.center.x - human.center.x) +\
