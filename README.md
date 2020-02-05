@@ -1,16 +1,14 @@
 ## Overview 
+### Environments
 * `driving` contains the driving environment. The specific Merging Environments can be found in 
 `driving/driving_envs/envs/merging_env.py`. This defines all the rewards for different curricula.
-* `reward_curriculum_expts/reward_curriculum.py` contains the code for training the reward curriculum.
-This file also contains code for directly training on a single domain.
-* `trainer.py` contains the main training code that is commonly used across different experiments for training.
-* `utils.py` contains helper code, including the `evaluate` function when training.
+* `minigrid` contains the gridworld environment. 
 
-## Training reward curriculum
-* Specify reward in `merging_env.py` by changing `weight` arguments. For example, for the curriculum 
-[-0.5, 0, 0.5, 1.0], I would specify those weights for MergingEnv2, MergingEnv3, .., MergingEnv5. 
-* In `reward_curriculum.py`, comment out MergingEnvironments that you do not use where `self.curriculum` is defined 
-* To train, run `python reward_curriculum_expts/reward_curriculum.py`
-    * To train a curriculum, choose the `train_curriculum` function. The pre-trained model is specified at the bottom of the file.
-    * To train on a single domain, choose the `train_single` function. 
- 
+### Training
+* `train.py` contains code to train single models as well as curriculums. Adapted from `reward_curriculum.py` as well as `trainer.py`. This currently uses `DQN` for the policy, but you should change it back to `PPO` when using the driving environment. We should come up with a better way to switch between training these policies soon. 
+
+### Output
+* `output` contains all output from our training. Currently stores policies from driving and gridworld environments.
+
+### Experiments
+* `experiments` contains environment-specific experiments. CURRENTLY MISSING DRIVING/NAV-SPECIFIC EXPT FILES.
