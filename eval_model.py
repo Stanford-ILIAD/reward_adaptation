@@ -58,29 +58,7 @@ def evaluate(model, eval_env):
     return np.mean(total_rets), np.std(total_rets), total_rets
 
 if __name__ == "__main__":
-    h2v0 = ("gridworld", "h2_v0", "best_model_5000_11.62.pkl")
-    h2v1 = ("gridworld", "h2_v1", "best_model_88000_11.559999999999999.pkl")
-    h1v0 = ("gridworld", "h1_v0", "best_model_6000_11.62.pkl")
-    h1v1 = ("gridworld", "h1_v1", "best_model_17000_11.52.pkl")
-
-    h2v1_h2v0 = ("gridworld", "h2v1_h2v0", "best_model_22000_11.62.pkl")
-    h1v0_h2v0 = ("gridworld", "h1v0_h2v0", "best_model_27000_11.62.pkl")
-    h1v1_h2v0 = ("gridworld", "h1v1_h2v0", "best_model_108000_11.62.pkl")
-
-    h2v0_h2v1 = ("gridworld", "h2v0_h2v1", "best_model_2000_11.58.pkl")
-    h1v0_h2v1 = ("gridworld", "h1v0_h2v1", "best_model_46000_10.4.pkl")
-    h1v1_h2v1 = ("gridworld", "h1v1_h2v1", "best_model_46000_10.4.pkl")
-
-    h2v0_h1v0 = ('gridworld', 'h2v0_h1v0', 'best_model_2000_10.34.pkl')
-    h2v1_h1v0 = ('gridworld', 'h2v1_h1v0', 'best_model_25000_11.62.pkl')
-    h1v1_h1v0 = ('gridworld', 'h1v1_h1v0', 'best_model_16000_11.62.pkl')
-
-    h2v0_h1v1 = ('gridworld', 'h2v0_h1v1', 'best_model_5000_11.54.pkl')
-    h2v0_h1v1 = ('gridworld', 'h2v0_h1v1', 'best_model_8000_11.559999999999999.pkl')
-    h2v1_h1v1 = ('gridworld', 'h2v1_h1v1', 'best_model_27000_11.52.pkl')
-    h2v1_h1v1 = ('gridworld', 'h2v1_h1v1', 'best_model_29000_11.58.pkl')
-    h1v0_h1v1 = ('gridworld', 'h1v0_h1v1', 'best_model_7000_11.52.pkl')
-
+    from gridworld_policies.policies import *
     model = h2v0
     model_dir = os.path.join(model[0], model[1], model[2])
     eval_env = load_env("Gridworld-v0")
