@@ -15,14 +15,16 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from eval_model import evaluate
 import csv
-
+from gridworld_policies.policies import *
 
 FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
-flags.DEFINE_string("name", "gridworld/h2v1_h1v1", "Name of experiment")
+flags.DEFINE_string("experiment_dir", "gridworld_policies", "Name of experiment")
+flags.DEFINE_string("experiment_name", "h2v1_h2v0", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 1000, "how often we save state for eval")
+flags.DEFINE_integer("eval_save_period", 300, "how often we save state for eval")
+#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -31,9 +33,10 @@ class RewardCurriculum(object):
     Code related to training reward curriculum or single domain
     """
 
-    def __init__(self, model_dir, num_envs, experiment_name, timesteps, is_save, eval_save_period):
+    def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
         self.model = DQN.load(model_dir) if model_dir else None  # loads pre-trained model
         self.num_envs = num_envs
+        self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
         self.timesteps = timesteps
         self.is_save = is_save
@@ -47,32 +50,30 @@ class RewardCurriculum(object):
 
     def create_eval_dir(self):
         if self.is_save:
-            print(self.experiment_name)
-            if os.path.exists(self.experiment_name):
-                shutil.rmtree(self.experiment_name)
-            os.makedirs(self.experiment_name)
-            self.rets_path = os.path.join(self.experiment_name, "eval.csv")
-            wandb.save(self.experiment_name)
+            print(self.experiment_dir)
+            if os.path.exists(self.experiment_dir):
+                shutil.rmtree(self.experiment_dir)
+            os.makedirs(self.experiment_dir)
+            self.rets_path = os.path.join(self.experiment_dir, "eval.csv")
+            #wandb.save(self.experiment_name)
 
     def train_curriculum(self):
         """
         Trains reward curriculum
         """
         #curr_params = self.model.get_parameters()
-        self.timesteps = 300000 # to train for longer
-        #set_global_seeds(100)
+        self.timesteps = 200000 # to train for longer
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
 
             # change env
-            #env_fns = self.num_envs * [lambda: gym.make(lesson)]
-            #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
-            #env = VecNormalize(SubprocVecEnv(env_fns))
             env = gym.make(lesson)
             self.model.set_env(env)
+            self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
+            self.model.full_tensorboard_log = True
             eval_env = gym.make(lesson)
             #assert utils.check_params_equal(curr_params, self.model.get_parameters())
-            self.model = train(self.model, eval_env, self.timesteps, self.experiment_name,
+            self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
                                self.is_save, self.eval_save_period, self.rets_path, l)
 
             #curr_params = self.model.get_parameters()
@@ -81,17 +82,14 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        self.timesteps = 300000 # to train for longer
-        set_global_seeds(100)
+        self.timesteps = 200000 # to train for longer
         env_fns = self.num_envs * [lambda: gym.make(env_name)]
-        #env = VecNormalize(SubprocVecEnv(env_fns), norm_reward=False)
-        #env = VecNormalize(SubprocVecEnv(env_fns))
         env = gym.make(env_name)
-        self.model = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True, learning_rate=1e-3, tensorboard_log="./Gridworldv0_tensorboard/")
-        #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
-        #eval_env = VecNormalize(DummyVecEnv(env_fns), training=False)
+        self.model = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True,
+                         learning_rate=1e-3, tensorboard_log="./Gridworldv1_tensorboard/"+self.experiment_name,
+                         full_tensorboard_log=True)
         eval_env = gym.make(env_name)
-        self.model = train(self.model, eval_env, self.timesteps, self.experiment_name,
+        self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
                            self.is_save, self.eval_save_period, self.rets_path, 0)
 
 
@@ -109,33 +107,34 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         if (total_steps) % eval_save_period == 0:
             start_eval_time = time.time()
             if is_save:
-                ret, std, total_rets = evaluate(model, eval_env)
+                ret, std, total_rets, _ = evaluate(model, eval_env)
+                #model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
-                    wandb.log({"eval_ret": ret}, step=total_steps)
-                for param_name in model.get_parameters():
-                    if 'deepq/model' in param_name:
-                        wandb.log({param_name: wandb.Histogram(model.get_parameters()[param_name])})
+                    #wandb.log({"eval_ret": ret}, step=total_steps)
+                #for param_name in model.get_parameters():
+                #    if 'deepq/model' in param_name:
+                        #wandb.log({param_name: wandb.Histogram(model.get_parameters()[param_name])})
                 #with open(rets_path, "a", newline="") as f:
                 #    writer = csv.writer(f)
                 #    writer.writerow([total_steps, total_rets])
             else:
-                ret, std, total_rets = evaluate(model, eval_env)
+                ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
             #print("eval ret: ", ret)
         #print("training steps: ", model.num_timesteps)
         return True
     best_ret, n_callbacks = -np.infty, 0
     model.learn(total_timesteps=timesteps, callback=callback)
-    model.save(os.path.join(experiment_name, 'final_model_{}.pkl'.format(num_trains)))
+    if is_save: model.save(os.path.join(experiment_name, 'final_model_{}.pkl'.format(num_trains)))
     return model
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="gridworld-v0", sync_tensorboard=True)
-    model = ("gridworld", "h2_v1", "best_model_88000_11.559999999999999.pkl")
+    #if FLAGS.is_save: wandb.init(project="gridworld-v1", sync_tensorboard=True)
+    model = h2v1
     model_dir = os.path.join(model[0], model[1], model[2])
-    RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+    RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_single(env_name="Gridworld-v0")
     RC.train_curriculum()
