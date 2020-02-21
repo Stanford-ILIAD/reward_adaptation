@@ -6,3 +6,5 @@ reward_curriculum_expts/navigation*
 wandb/*
 *.tar.gz
 *pycache*
+*swp
+*swo
