@@ -7,7 +7,7 @@ from minigrid.gym_minigrid.grid import *
 
 class Gridworld(gym.Env):
     def __init__(self):
-        self.grid_size = 5
+        self.grid_size = 11
         self.T = self.grid_size * 2 - 1
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.Box(low=np.array([0, 0]), high=np.array([self.grid_size, self.grid_size]))
@@ -60,8 +60,8 @@ class Gridworld(gym.Env):
         return self.S
 
     def _get_reward(self, verbose=False):
-        max_dist = 8.0
-        max_rew = 8.0 + 7 + 6 + 5 + 4 + 3 + 2 + 1
+        max_dist = np.linalg.norm(self.goal - self.start,1)
+        max_rew = np.sum(np.arange(max_dist+1))  # +1 to include max_dist in the sum
         dist_goal = np.linalg.norm((self.S - self.goal), 1)
         is_collision = np.all([(self.S == obstacle).all() for obstacle in self.obstacles])
         obstacle_penalty = -1.0 if np.any(is_collision) else 0.0
