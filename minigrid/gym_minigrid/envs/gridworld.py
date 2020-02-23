@@ -72,9 +72,16 @@ class Gridworld(gym.Env):
         reward += dist_bottom
         if (self.S == self.goal).all():
             reward += 10
-        if (self.S == np.array([0,4])).all() and self.step_count <= 5:
-            reward += 1
-        if verbose: print("dist2goal: ", dist_goal, " reward: ", reward, "pref: ", dist_bottom)  # , "pos: ", self.S)
+        #if (self.S == np.array([0,self.grid_size-1])).all() and self.step_count <= 5:
+        #    reward += 1
+        if self.step_count <= self.grid_size:
+            middle_target = np.array([0, self.grid_size-1])
+            max_dist_middle_target = np.linalg.norm(self.start - middle_target, 1)
+            dist_middle_target = max_dist_middle_target-np.linalg.norm(self.S - middle_target, 1)
+            if verbose: print("distance to middle target: ", dist_middle_target)
+            reward += dist_middle_target
+        #if verbose: print("dist2goal: ", dist_goal, " reward: ", reward, "pref: ", dist_bottom)  # , "pos: ", self.S)
+        if verbose: print("dist2goal: ", dist_goal, " S: ", self.S, "reward: ", reward)  # , "pos: ", self.S)
         return reward
 
     def reset(self):
@@ -117,16 +124,6 @@ class Gridworld(gym.Env):
         self.window.set_caption(self.mission)
 
         return img
-
-    def print_value_all(self, q_table):
-        for i in range(self.grid_size):
-            for j in range(self.grid_size):
-                for action in range(0, 4):
-                    state = [i, j]
-                    if str(state) in q_table.keys():
-                        temp = q_table[str(state)][action]
-                        print(j, i, round(temp, 2), action)
-
 
 register(
     id='Gridworld-v0',
