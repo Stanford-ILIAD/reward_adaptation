@@ -60,7 +60,7 @@ class GridworldContinuousEnv(gym.Env):
         self.accelerate = PidVelPolicy(dt=self.dt)
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array([-0.01]), np.array([0.01]), dtype=np.float32
+            np.array([-0.03]), np.array([0.03]), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
         self.correct_pos = []
@@ -88,7 +88,7 @@ class GridworldContinuousEnv(gym.Env):
             done = True
         if self.step_num >= self.time_limit:
             done = True
-        return self._get_obs(), reward, done, {}
+        return self._get_obs(), reward, done, {'episode': {'r': reward, 'l': self.step_num}}
 
     def reset(self):
         self.world.reset()
@@ -121,8 +121,12 @@ class GridworldContinuousEnv(gym.Env):
         coll_cost = 0
         for building in self.buildings:
             if self.car.collidesWith(building):
-                coll_cost = -10
-        reward = 1.0-dist2goal + coll_cost
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+        reward = 1.0-dist2goal + coll_cost + goal_rew
         if verbose: print("dist to goal: ", dist2goal, "reward: ", reward)
         return reward
 

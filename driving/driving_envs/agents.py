@@ -59,4 +59,4 @@ class Goal(CircleEntity):
         friction = 0.2
         super(Goal, self).__init__(center, heading, radius, movable, friction)
         self.color = color
-        self.collidable = False
+        self.collidable = True
