@@ -60,13 +60,13 @@ class GridworldContinuousEnv(gym.Env):
         self.accelerate = PidVelPolicy(dt=self.dt)
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array([-0.03]), np.array([0.03]), dtype=np.float32
+            np.array([-0.04]), np.array([0.04]), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
         self.correct_pos = []
         self.next_pos = []
-        self.start = np.array([5,5])
-        self.goal = np.array([self.width-5., self.height-5.])
+        self.start = np.array([self.width/2.,5])
+        self.goal = np.array([self.width/2., self.height-5.])
         self.max_dist = np.linalg.norm(self.goal-self.start,2)
 
     def step(self, action: np.ndarray, verbose: bool = False):
@@ -94,11 +94,11 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-            Building(Point(self.width/2., self.height/2.), Point(3,3), "gray80")
+        #    Building(Point(self.width/2., self.height/2.), Point(6,6), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
-        self.car.velocity = Point(0, 10)
+        self.car.velocity = Point(0, 5)
 
         self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
 
@@ -116,8 +116,8 @@ class GridworldContinuousEnv(gym.Env):
         """
         return self.world.state
 
-    def reward(self, verbose):
-        dist2goal = self.car.center.distanceTo(self.goal_obj)/self.max_dist
+    def reward(self, verbose, weight=10.0):
+        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
         coll_cost = 0
         for building in self.buildings:
             if self.car.collidesWith(building):
@@ -126,8 +126,30 @@ class GridworldContinuousEnv(gym.Env):
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
             goal_rew = 10
-        reward = 1.0-dist2goal + coll_cost + goal_rew
-        if verbose: print("dist to goal: ", dist2goal, "reward: ", reward)
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = 2.0
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        homotopy_rew += 2*(heading-mean_heading) # left
+        #homotopy_rew += -2*(heading-mean_heading) # right
+        homotopy_rew *= gamma**(self.step_num)
+        dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
         return reward
 
     def render(self):
