@@ -66,22 +66,30 @@ def evaluate(model, eval_env, render=False):
         print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets, np.array(state_history)
 
+def save_traj(model, state_history):
+    state_history = list(state_history)
+    with open("output/gridworld_continuous/single_trajs/{}.csv".format(model[1]), "a", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(state_history)
 
 if __name__ == "__main__":
     #from gridworld_policies.policies import *
     from output.gridworld_continuous.policies import *
 
 
-    model = barrier0_R1_L1
-    model_dir = os.path.join(model[0], model[1], model[2])
+    model_info = barrier1_L1
+    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     eval_env = load_env("Continuous-v0", "PPO")
+    save = True
 
     model = load_model(model_dir)
     sum_reward = 0.0
     num_episode = 200
     for ne in range(num_episode):
-        mean_ret, std_ret, total_ret, _ = evaluate(model, eval_env, render=True)
+        mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=True)
+        save_traj(model_info, state_history)
         sum_reward += mean_ret
         print("\nrunning mean: ", sum_reward / (ne + 1))
+        break
 
     print("mean ret: ", sum_reward / num_episode)
