@@ -68,7 +68,7 @@ def evaluate(model, eval_env, render=False):
 
 def save_traj(model, state_history):
     state_history = list(state_history)
-    with open("output/gridworld_continuous/single_trajs/{}.csv".format(model[1]), "a", newline="") as f:
+    with open("output/gridworld_continuous/single_trajs/{}.csv".format(model[1]), "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(state_history)
 
@@ -76,8 +76,7 @@ if __name__ == "__main__":
     #from gridworld_policies.policies import *
     from output.gridworld_continuous.policies import *
 
-
-    model_info = barrier1_L1
+    model_info = barrier6_R1
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     eval_env = load_env("Continuous-v0", "PPO")
     save = True
