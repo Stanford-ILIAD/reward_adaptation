@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 
 
-def evaluate_debug(model, eval_env):
+def evaluate_debug(model, eval_env, need_traj=False):
     """
         Evaluates model on one episode of driving task. Returns mean episode reward.
         """
@@ -13,7 +13,10 @@ def evaluate_debug(model, eval_env):
     obs = eval_env.reset()
     state, ever_done = None, False
     task_data = []
+    if need_traj:
+        traj = []
     while not ever_done:
+        traj.append([obs[0][0], obs[0][1]])
         action, state = model.predict(obs, state=state, deterministic=True)
         next_obs, rewards, done, _info = eval_env.step(action)
         #eval_env.render()
@@ -23,6 +26,8 @@ def evaluate_debug(model, eval_env):
         ever_done = np.logical_or(ever_done, done)
         obs = next_obs
         # time.sleep(.1)
+    if need_traj:
+        return rets, traj
     return rets
 
 

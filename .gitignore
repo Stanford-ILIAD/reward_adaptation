@@ -8,3 +8,4 @@ wandb/*
 *pycache*
 *swp
 *swo
+trajectories/*

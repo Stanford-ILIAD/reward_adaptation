@@ -257,3 +257,73 @@ class NavigationEnv41(NavigationEnv4):
 
         self.step_num = 0
         return self._get_obs()
+
+class NavigationEnv32(NavigationEnv3):
+    def reset(self):
+        self.world.reset()
+
+        # create buildings
+        self.buildings = [
+        ]
+        '''
+        self.buildings = [
+            Barrier1(Point(30, 90), 25, "gray80"),
+            Barrier1(Point(90, 90), 25, "gray80"),
+            Barrier1(Point(60, 30), 25, "gray80"),
+        ]
+        '''
+
+        # create cars
+        self.cars = {
+            "R": Car(Point(5, 5), 0, "blue", -math.inf, math.inf)
+        }
+        self.cars["R"].velocity = Point(2, 2)
+
+        # add the objects
+        for building in self.buildings: self.world.add(building)
+        self.world.add(self.cars["R"])
+        self.collide = False
+        self.collide_building = False
+        self.finish = False
+
+        self.step_num = 0
+        return self._get_obs()
+
+class NavigationEnv33(NavigationEnv32):
+    def reward(self):
+        goal_rew = -np.sqrt(np.square(self.cars["R"].center.x-self.width)+np.square(self.cars["R"].center.y-self.height))/20 + (1000 if self.finish else 0)
+        boundary_rew = -(1 if self.collide else 0)
+        building_rew = -(200 if self.collide_building else 0)
+        prefer_rew = 1. if abs(self.cars["R"].center.x) > abs(self.cars["R"].center.y) else -2.25
+        return goal_rew + boundary_rew + building_rew + prefer_rew
+
+class NavigationEnv42(NavigationEnv4):
+    def reset(self):
+        self.world.reset()
+
+        # create buildings
+        self.buildings = [
+        ]
+        '''
+        self.buildings = [
+            Barrier1(Point(30, 90), 25, "gray80"),
+            Barrier1(Point(90, 90), 25, "gray80"),
+            Barrier1(Point(60, 30), 25, "gray80"),
+        ]
+        '''
+
+        # create cars
+        self.cars = {
+            "R": Car(Point(5, 5), 0, "blue", -math.inf, math.inf)
+        }
+        self.cars["R"].velocity = Point(2, 2)
+
+        # add the objects
+        for building in self.buildings: self.world.add(building)
+        self.world.add(self.cars["R"])
+        self.collide = False
+        self.collide_building = False
+        self.finish = False
+
+        self.step_num = 0
+        return self._get_obs()

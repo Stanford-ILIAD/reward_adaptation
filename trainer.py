@@ -12,7 +12,7 @@ import driving_envs
 from utils import evaluate_debug
 
 
-def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, num_trains):
+def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, num_trains, traj_file):
     """
     Trains model for specified timesteps. Returns trained model.
     :param num_trains: number of previous lessons, for continual learning setting
@@ -25,7 +25,17 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         if (n_callbacks) % eval_save_period == 0:
             start_eval_time = time.time()
             if is_save:
-                ret = evaluate_debug(model, eval_env)
+                ret, traj = evaluate_debug(model, eval_env, True)
+                if os.path.exists(traj_file):
+                    with open(traj_file, 'a') as f:
+                        for observation in traj:
+                            f.write("{:.2f} {:.2f} ".format(observation[0], observation[1]))
+                        f.write('{:.2f}\n'.format(ret[0]))
+                else:
+                    with open(traj_file, 'w') as f:
+                        for observation in traj:
+                            f.write("{:.2f} {:.2f} ".format(observation[0], observation[1]))
+                        f.write('{:.2f}\n'.format(ret[0]))
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
