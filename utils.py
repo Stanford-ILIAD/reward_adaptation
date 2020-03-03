@@ -52,3 +52,14 @@ def add_random_noise(w, mean=0.0, stddev=1.0):
     )
     return tf.assign_add(w, noise)
 
+
+LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+
+def excel_style(col):
+    """ Convert given row and column number to an Excel-style cell name. """
+    result = []
+    while col:
+        col, rem = divmod(col-1, 26)
+        result[:0] = LETTERS[rem]
+    return ''.join(result)
+
