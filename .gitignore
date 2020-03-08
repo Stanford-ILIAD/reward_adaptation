@@ -3,3 +3,5 @@
 *.pyc
 reward_curriculum_expts/weight*
 wandb/*
+reward_curriculum_expts/navigation*
+trajectories/*
