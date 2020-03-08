@@ -7,3 +7,5 @@ reward_curriculum_expts/navigation*
 trajectories/*
 *.swp
 *.swo
+*.tar.gz
+output/gridworld_continuous/MO*

@@ -152,9 +152,10 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
-    from output.gridworld_continuous.policies import *
-    model = B6B0_RL
-    model_dir = os.path.join(model[0], model[1], model[2])
+    #from output.gridworld_continuous.policies import *
+    #model = B6B0_RL
+    #model_dir = os.path.join(model[0], model[1], model[2])
+    model_dir = None
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    #RC.train_single(env_name="Tightrope-v0")
-    RC.train_curriculum()
+    RC.train_single(env_name="ContinuousMultiObjLR-v0")
+    #RC.train_curriculum()
