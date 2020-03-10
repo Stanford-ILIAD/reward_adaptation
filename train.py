@@ -18,13 +18,11 @@ from eval_model import evaluate
 import csv
 
 FLAGS = flags.FLAGS
-n_steps = 128
-flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
+flags.DEFINE_integer("timesteps", 220000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/gridworld_continuous", "Name of experiment")
 flags.DEFINE_string("experiment_name", "B6B0B6_RL", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -66,7 +64,7 @@ class RewardCurriculum(object):
         Trains reward curriculum
         """
         #curr_params = self.model.get_parameters()
-        self.timesteps = 220000 # to train for longer
+        #self.timesteps = 220000 # to train for longer
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
 
@@ -84,7 +82,7 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        self.timesteps = 220000 # to train for longer
+        #self.timesteps = 220000 # to train for longer
         self.model = None
         env = gym.make(env_name)
         eval_env = gym.make(env_name)
@@ -157,5 +155,5 @@ if __name__ == '__main__':
     #model_dir = os.path.join(model[0], model[1], model[2])
     model_dir = None
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="ContinuousMultiObjLR-v0")
+    RC.train_single(env_name="Continuous-v0")
     #RC.train_curriculum()
