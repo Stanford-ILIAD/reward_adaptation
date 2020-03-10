@@ -7,6 +7,7 @@ from stable_baselines import PPO2, DQN
 import wandb
 #import minigrid.gym_minigrid
 import driving_envs
+import tightrope.gym_tightrope
 import utils
 from tensorflow import flags
 import stable_baselines
@@ -20,7 +21,7 @@ FLAGS = flags.FLAGS
 n_steps = 128
 flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "barrier02_R1_L1", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B6B0B6_RL", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
 #flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
@@ -151,9 +152,10 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
-    from output.gridworld_continuous.policies import *
-    model = barrier02_R1
-    model_dir = os.path.join(model[0], model[1], model[2])
+    #from output.gridworld_continuous.policies import *
+    #model = B6B0_RL
+    #model_dir = os.path.join(model[0], model[1], model[2])
+    model_dir = None
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    #RC.train_single(env_name="Continuous-v0")
-    RC.train_curriculum()
+    RC.train_single(env_name="ContinuousMultiObjLR-v0")
+    #RC.train_curriculum()

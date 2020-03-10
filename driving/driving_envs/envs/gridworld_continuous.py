@@ -60,7 +60,7 @@ class GridworldContinuousEnv(gym.Env):
         self.accelerate = PidVelPolicy(dt=self.dt)
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array([-0.04]), np.array([0.04]), dtype=np.float32
+            np.array([-0.06]), np.array([0.06]), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
         self.correct_pos = []
@@ -154,3 +154,202 @@ class GridworldContinuousEnv(gym.Env):
 
     def render(self):
         self.world.render()
+
+class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
+    def __init__(self,
+                 dt: float = 0.1,
+                 width: int = 50,
+                 height: int = 80,
+                 time_limit: float = 250.0):
+        super(GridworldContinuousMultiObjLLEnv, self).__init__(dt=dt, width=width, height=height, time_limit=time_limit)
+
+
+    def reset(self):
+        self.world.reset()
+
+        self.buildings = [
+            Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(4,4), "gray80"),
+            Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(4,4), "gray80")
+        ]
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+
+        self.step_num = 0
+        return self._get_obs()
+
+    def reward(self, verbose, weight=10.0):
+        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = np.pi / 2
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        #homotopy_rew += 2*(heading-mean_heading) # left
+        #homotopy_rew += -2*(heading-mean_heading) # right
+
+        location_rew = (self.width / 2. - self.car.x) / (self.width / 2.)
+        homotopy_rew += location_rew
+
+        homotopy_rew *= gamma**(self.step_num)
+        dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
+        return reward
+
+class GridworldContinuousMultiObjRREnv(GridworldContinuousMultiObjLLEnv):
+    def reward(self, verbose, weight=10.0):
+        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = np.pi / 2
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        #homotopy_rew += 2*(heading-mean_heading) # left
+        #homotopy_rew += -2*(heading-mean_heading) # right
+
+        location_rew = (self.car.x - self.width / 2.) / (self.width / 2.)
+        homotopy_rew += location_rew
+
+        homotopy_rew *= gamma**(self.step_num)
+        dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
+        return reward
+
+class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
+    def reward(self, verbose, weight=10.0):
+        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = np.pi / 2
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        if self.car.y < int(self.height*3./10.):
+            #homotopy_rew += 2*(heading-mean_heading) # left
+            location_rew = (self.width / 2. - self.car.x) / (self.width / 2.)
+        else:
+            #homotopy_rew += -2*(heading-mean_heading) # right
+            location_rew = (self.car.x - self.width / 2.) / (self.width / 2.)
+
+        homotopy_rew += location_rew
+
+        homotopy_rew *= gamma**(self.step_num)
+        dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
+        return reward
+
+class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
+    def reward(self, verbose, weight=10.0):
+        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = np.pi / 2
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        if self.car.y < int(self.height*3./10.):
+            #homotopy_rew += -2*(heading-mean_heading) # right
+            location_rew = (self.car.x - self.width / 2.) / (self.width / 2.)
+        else:
+            #homotopy_rew += 2*(heading-mean_heading) # left
+            location_rew = (self.width / 2. - self.car.x) / (self.width / 2.)
+
+        homotopy_rew += location_rew
+
+        homotopy_rew *= gamma**(self.step_num)
+        dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
+        return reward

@@ -1,0 +1,39 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(tidyboot)
+library(jsonlite)
+library(ggthemes)
+```
+
+```{r}
+barriers <- read_csv('barrier_sizes_plot.csv') %>%
+  group_by(barrier_size) %>%
+  filter(training_step <= 220000) %>%
+  ggplot(aes(x = training_step,
+             y = norm_dist,
+             color = barrier_size)) + 
+  #geom_point() + 
+  #geom_line() + 
+  geom_smooth() + 
+  ylim(0,2) + 
+  theme_few() 
+barriers
+```
+```{r}
+barriers <- read_csv('barrier_sizes_plot.csv') %>%
+  filter(barrier_size=='barrier3') %>%
+ filter(training_step >= 219904) %>%
+  ggplot(aes(x = barrier_size,
+             y = norm_dist,
+             color = barrier_size)) + 
+  geom_bar(stat="identity") + 
+  theme_few() 
+barriers
+```
+
