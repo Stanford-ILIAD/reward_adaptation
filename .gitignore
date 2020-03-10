@@ -6,3 +6,6 @@ wandb/*
 reward_curriculum_expts/navigation*
 trajectories/*
 output/*
+driving/driving_envs/envs/__pycache__/*
+.ipynb_checkpoints/*
+experiments/gridworld_continuous/.ipynb_checkpoints/
