@@ -9,3 +9,7 @@ output/*
 driving/driving_envs/envs/__pycache__/*
 .ipynb_checkpoints/*
 experiments/gridworld_continuous/.ipynb_checkpoints/
+*.swp
+*.swo
+*.tar.gz
+output/gridworld_continuous/MO*
