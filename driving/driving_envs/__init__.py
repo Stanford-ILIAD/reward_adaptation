@@ -27,3 +27,7 @@ register(id="ContinuousMultiObjLL-v0", entry_point="driving_envs.envs:GridworldC
 register(id="ContinuousMultiObjRR-v0", entry_point="driving_envs.envs:GridworldContinuousMultiObjRREnv")
 register(id="ContinuousMultiObjLR-v0", entry_point="driving_envs.envs:GridworldContinuousMultiObjLREnv")
 register(id="ContinuousMultiObjRL-v0", entry_point="driving_envs.envs:GridworldContinuousMultiObjRLEnv")
+register(id="ContinuousNoneLL-v0", entry_point="driving_envs.envs:GridworldContinuousNoneLLEnv")
+register(id="ContinuousNoneRR-v0", entry_point="driving_envs.envs:GridworldContinuousNoneRREnv")
+register(id="ContinuousNoneLR-v0", entry_point="driving_envs.envs:GridworldContinuousNoneLREnv")
+register(id="ContinuousNoneRL-v0", entry_point="driving_envs.envs:GridworldContinuousNoneRLEnv")

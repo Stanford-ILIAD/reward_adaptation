@@ -60,7 +60,7 @@ class GridworldContinuousEnv(gym.Env):
         self.accelerate = PidVelPolicy(dt=self.dt)
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array([-0.06]), np.array([0.06]), dtype=np.float32
+            np.array([-0.04]), np.array([0.04]), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
         self.correct_pos = []
@@ -114,6 +114,7 @@ class GridworldContinuousEnv(gym.Env):
         """
         Get state of car
         """
+
         return self.world.state
 
     def reward(self, verbose, weight=10.0):
@@ -159,17 +160,25 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
     def __init__(self,
                  dt: float = 0.1,
                  width: int = 50,
-                 height: int = 80,
-                 time_limit: float = 250.0):
+                 height: int = 100,
+                 time_limit: float = 300.0):
         super(GridworldContinuousMultiObjLLEnv, self).__init__(dt=dt, width=width, height=height, time_limit=time_limit)
-
+        self.action_space = spaces.Box(
+            np.array([-0.06]), np.array([0.06]), dtype=np.float32
+        )
 
     def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        self.check_point3 = False
+        self.check_point4 = False
+        self.check_point5 = False
+        
         self.world.reset()
 
         self.buildings = [
-            Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(4,4), "gray80"),
-            Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(4,4), "gray80")
+            Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(9,2), "gray80"),
+            Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(9,2), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
@@ -181,11 +190,14 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
             self.world.add(building)
         self.world.add(self.car)
         self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
 
         self.step_num = 0
         return self._get_obs()
 
     def reward(self, verbose, weight=10.0):
+        checkpoint_portion = 1/4.
         dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
         coll_cost = 0
         for building in self.buildings:
@@ -194,7 +206,7 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
 
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
-            goal_rew = 10
+            goal_rew = 1000
 
         # adding preference
         heading = self.world.state[-3]
@@ -203,22 +215,39 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
         gamma = 0.9
         #dist2left = 1.5*(self.width-self.car.center.x)/self.width
         homotopy_rew = 0.0
-        #homotopy_rew += 2*(heading-mean_heading) # left
-        #homotopy_rew += -2*(heading-mean_heading) # right
+        if self.width / 3. < self.car.x < self.width / 2.:
+            homotopy_rew += 0.5
+ 
+        if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if self.width * checkpoint_portion < self.car.x < self.width / 2. and (not self.check_point1):
+                homotopy_rew += 500.
+                self.check_point1 = True
+        elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if self.width / 2. > self.car.x > self.width * checkpoint_portion and (not self.check_point2):
+                homotopy_rew += 500.
+                self.check_point2 = True
+        elif int(self.height*4./5.) < self.car.y:
+            if self.width / 2. -5. < self.car.x < self.width/2. + 5.:
+                homotopy_rew += 5.
+        
+        if abs(heading-mean_heading) > 1.:
+            homotopy_rew += -1000.
 
-        location_rew = (self.width / 2. - self.car.x) / (self.width / 2.)
-        homotopy_rew += location_rew
+        #homotopy_rew *= 0.0 # gamma**(self.step_num)
+        #dist2goal *= 0.8 #(1.0 - gamma**(self.step_num))
 
-        homotopy_rew *= gamma**(self.step_num)
-        dist2goal *= (1.0 - gamma**(self.step_num))
-
+        boundary_rew = 1.-abs(self.width/2. - self.car.x) / (self.width/2.)
+        self.last_heading = heading
         reward = np.sum(np.array([
                  #new_dist2goal,
                  dist2goal,
                  coll_cost,
                  #goal_rew,
-                 homotopy_rew
+                 homotopy_rew,
+                 boundary_rew
             ]))
+
+
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
                           "heading: ", heading,
@@ -227,6 +256,8 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
 
 class GridworldContinuousMultiObjRREnv(GridworldContinuousMultiObjLLEnv):
     def reward(self, verbose, weight=10.0):
+        checkpoint_portion = 1. / 4.        
+
         dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
         coll_cost = 0
         for building in self.buildings:
@@ -235,7 +266,7 @@ class GridworldContinuousMultiObjRREnv(GridworldContinuousMultiObjLLEnv):
 
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
-            goal_rew = 10
+            goal_rew = 1000
 
         # adding preference
         heading = self.world.state[-3]
@@ -244,31 +275,50 @@ class GridworldContinuousMultiObjRREnv(GridworldContinuousMultiObjLLEnv):
         gamma = 0.9
         #dist2left = 1.5*(self.width-self.car.center.x)/self.width
         homotopy_rew = 0.0
-        #homotopy_rew += 2*(heading-mean_heading) # left
-        #homotopy_rew += -2*(heading-mean_heading) # right
+        if self.width *2./ 3. > self.car.x > self.width / 2.:
+            homotopy_rew += 0.5
+ 
+        if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if self.width * (1-checkpoint_portion) > self.car.x > self.width / 2. and (not self.check_point1):
+                homotopy_rew += 500.
+                self.check_point1 = True
+        elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if self.width / 2. < self.car.x < self.width *(1-checkpoint_portion) and (not self.check_point2):
+                homotopy_rew += 500.
+                self.check_point2 = True
+        elif int(self.height*4./5.) < self.car.y:
+            if self.width / 2. -5. < self.car.x < self.width/2. + 5.:
+                homotopy_rew += 5.
+        
+        if abs(heading-mean_heading) > 1.:
+            homotopy_rew += -1000.
 
-        location_rew = (self.car.x - self.width / 2.) / (self.width / 2.)
-        homotopy_rew += location_rew
+        #homotopy_rew *= 0.0 # gamma**(self.step_num)
+        #dist2goal *= 0.8 #(1.0 - gamma**(self.step_num))
 
-        homotopy_rew *= gamma**(self.step_num)
-        dist2goal *= (1.0 - gamma**(self.step_num))
-
+        boundary_rew = 1.-abs(self.width/2. - self.car.x) / (self.width/2.)
+        self.last_heading = heading
         reward = np.sum(np.array([
                  #new_dist2goal,
                  dist2goal,
                  coll_cost,
                  #goal_rew,
-                 homotopy_rew
+                 homotopy_rew,
+                 boundary_rew
             ]))
+
+
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
                           "heading: ", heading,
                           "reward: ", reward)
         return reward
 
+
 class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
     def reward(self, verbose, weight=10.0):
-        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        checkpoint_portion = 1/4.
+        dist2goal = 5*(1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist))
         coll_cost = 0
         for building in self.buildings:
             if self.car.collidesWith(building):
@@ -276,7 +326,7 @@ class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
 
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
-            goal_rew = 10
+            goal_rew = 1000
 
         # adding preference
         heading = self.world.state[-3]
@@ -286,23 +336,64 @@ class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
         #dist2left = 1.5*(self.width-self.car.center.x)/self.width
         homotopy_rew = 0.0
         if self.car.y < int(self.height*3./10.):
-            #homotopy_rew += 2*(heading-mean_heading) # left
-            location_rew = (self.width / 2. - self.car.x) / (self.width / 2.)
+            homotopy_rew += 50*(heading-self.last_heading) if heading-mean_heading < 0.2 else 0.
+            homotopy_rew += -50*(heading-self.last_heading) if self.car.x < self.width / 4 or heading-mean_heading > 0.3 else 0.
+        elif int(self.height*3./10.) <= self.car.y < int(self.height*3./5.):
+            homotopy_rew += -200*(heading-self.last_heading) if mean_heading - heading < 0.8 else 0.
+            #homotopy_rew += 100*(heading-self.last_heading) if self.car.x < self.width *3./ 4 or heading-mean_heading > 0.7 else 0.
         else:
-            #homotopy_rew += -2*(heading-mean_heading) # right
-            location_rew = (self.car.x - self.width / 2.) / (self.width / 2.)
+            homotopy_rew += 200*(heading-self.last_heading) if heading-mean_heading < 0.8 else 0.
+            #homotopy_rew += -100*(heading-self.last_heading) if self.car.x < self.width / 4 or heading-mean_heading > 0.8 else 0.
 
-        homotopy_rew += location_rew
+        if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if self.width * checkpoint_portion < self.car.x < self.width / 2. and (not self.check_point1):
+                homotopy_rew += 500.
+                self.check_point1 = True
+            elif self.width / 2. < self.car.x and (not self.check_point1):
+                homotopy_rew -= 500.
+                self.check_point1 = True
+        elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if self.width / 2. < self.car.x < self.width * (1-checkpoint_portion) and (not self.check_point2):
+                homotopy_rew += 500.
+                self.check_point0 = True
+            elif self.car.x < self.width / 2. and (not self.check_point2):
+                homotopy_rew -= 1000000.
+                self.check_point0 = True
+        elif int(self.height*3./5.) < self.car.y:
+            distance = (self.car.y - self.height*3./5.)/(self.height*2./5.)*(self.width/2.-self.width*checkpoint_portion/2.)
+            distance = max(distance, 5.)
+            if self.height*7./10.-3. < self.car.y < self.height*7./10.:
+                if self.width / 2. - distance < self.car.x < self.width/2. + distance and (not self.check_point3):
+                    homotopy_rew += 500.
+                    self.check_point3 = True
+            if self.height*8./10.-3. < self.car.y < self.height*8./10.:
+                if self.width / 2. - distance < self.car.x < self.width/2. + distance and (not self.check_point4):
+                    homotopy_rew += 500.
+                    self.check_point4 = True
+            if self.height*9./10.-3. < self.car.y < self.height*9./10.:
+                if self.width / 2. - distance < self.car.x < self.width/2. + distance and (not self.check_point5):
+                    homotopy_rew += 500.
+                    self.check_point5 = True
+            #if self.width / 2. < self.car.x < self.width/2.+4.:
+            #    homotopy_rew += 5.
+        
+        if abs(heading-mean_heading) > 1.2:
+            homotopy_rew += -1000.
 
-        homotopy_rew *= gamma**(self.step_num)
-        dist2goal *= (1.0 - gamma**(self.step_num))
+        #homotopy_rew *= 0.0 # gamma**(self.step_num)
+        #dist2goal *= 0.8 #(1.0 - gamma**(self.step_num))
 
+        boundary_rew = 1.-abs(self.width/2. - self.car.x) / (self.width/2.)
+        if int(self.height*3./5.) < self.car.y:
+            boundary_rew *= 10.
+        self.last_heading = heading
         reward = np.sum(np.array([
                  #new_dist2goal,
                  dist2goal,
                  coll_cost,
                  #goal_rew,
-                 homotopy_rew
+                 homotopy_rew,
+                 boundary_rew
             ]))
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
@@ -312,6 +403,7 @@ class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
 
 class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
     def reward(self, verbose, weight=10.0):
+        checkpoint_portion = 1/4.
         dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
         coll_cost = 0
         for building in self.buildings:
@@ -320,7 +412,7 @@ class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
 
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
-            goal_rew = 10
+            goal_rew = 1000
 
         # adding preference
         heading = self.world.state[-3]
@@ -330,26 +422,154 @@ class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
         #dist2left = 1.5*(self.width-self.car.center.x)/self.width
         homotopy_rew = 0.0
         if self.car.y < int(self.height*3./10.):
-            #homotopy_rew += -2*(heading-mean_heading) # right
-            location_rew = (self.car.x - self.width / 2.) / (self.width / 2.)
+            homotopy_rew += -50*(heading-self.last_heading) if mean_heading-heading < 0.2 else 0.
+            homotopy_rew += 50*(heading-self.last_heading) if self.car.x > self.width *3. / 4. or mean_heading-heading > 0.3 else 0.
+        elif int(self.height*3./10.) <= self.car.y < int(self.height*3./5.):
+            homotopy_rew += 200*(heading-self.last_heading) if heading-mean_heading < 0.5 else 0.
+            #homotopy_rew += 100*(heading-self.last_heading) if self.car.x < self.width *3./ 4 or heading-mean_heading > 0.7 else 0.
         else:
-            #homotopy_rew += 2*(heading-mean_heading) # left
-            location_rew = (self.width / 2. - self.car.x) / (self.width / 2.)
+            homotopy_rew += -200*(heading-self.last_heading) if mean_heading-heading < 0.3 and self.car.x < self.width / 2. else 0.
+            homotopy_rew += 100*(heading-self.last_heading) if self.car.x > self.width *3./ 4. or mean_heading-heading > 0.8 else 0.
 
-        homotopy_rew += location_rew
+        if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if self.width * (1-checkpoint_portion) > self.car.x > self.width / 2. and (not self.check_point1):
+                homotopy_rew += 500.
+                self.check_point1 = True
+        elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if self.width / 2. > self.car.x > self.width * checkpoint_portion and (not self.check_point2):
+                homotopy_rew += 500.
+                self.check_point2 = True
+        elif int(self.height*4./5.) < self.car.y:
+            if self.width / 2. -5. < self.car.x < self.width/2. + 5.:
+                homotopy_rew += 10.
+        
+        if abs(heading-mean_heading) > 1.:
+            homotopy_rew += -1000.
 
-        homotopy_rew *= gamma**(self.step_num)
-        dist2goal *= (1.0 - gamma**(self.step_num))
+        #homotopy_rew *= 0.0 # gamma**(self.step_num)
+        #dist2goal *= 0.8 #(1.0 - gamma**(self.step_num))
 
+        boundary_rew = 1.-abs(self.width/2. - self.car.x) / (self.width/2.)
+        self.last_heading = heading
         reward = np.sum(np.array([
                  #new_dist2goal,
                  dist2goal,
                  coll_cost,
                  #goal_rew,
-                 homotopy_rew
+                 homotopy_rew,
+                 boundary_rew
             ]))
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
                           "heading: ", heading,
                           "reward: ", reward)
         return reward
+
+
+class GridworldContinuousNoneRLEnv(GridworldContinuousMultiObjRLEnv):
+    def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        
+        self.world.reset()
+
+        self.buildings = [
+            #Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(4,4), "gray80"),
+            #Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(4,4), "gray80")
+        ]
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
+
+        self.step_num = 0
+        return self._get_obs()
+
+class GridworldContinuousNoneLREnv(GridworldContinuousMultiObjLREnv):
+    def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        
+        self.world.reset()
+
+        self.buildings = [
+            #Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(4,4), "gray80"),
+            #Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(4,4), "gray80")
+        ]
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
+
+        self.step_num = 0
+        return self._get_obs()
+
+class GridworldContinuousNoneRREnv(GridworldContinuousMultiObjRREnv):
+    def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        
+        self.world.reset()
+
+        self.buildings = [
+            #Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(4,4), "gray80"),
+            #Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(4,4), "gray80")
+        ]
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
+
+        self.step_num = 0
+        return self._get_obs()
+
+class GridworldContinuousNoneLLEnv(GridworldContinuousMultiObjLLEnv):
+    def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        
+        self.world.reset()
+
+        self.buildings = [
+            #Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(4,4), "gray80"),
+            #Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(4,4), "gray80")
+        ]
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
+
+        self.step_num = 0
+        return self._get_obs()

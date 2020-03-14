@@ -9,3 +9,4 @@ trajectories/*
 *.swo
 *.tar.gz
 output/gridworld_continuous/MO*
+

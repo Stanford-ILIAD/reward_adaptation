@@ -7,4 +7,6 @@ ObstacleAvoidanceEnv6, ObstacleAvoidanceEnv7, ObstacleAvoidanceEnv8, ObstacleAvo
 
 from driving_envs.envs.gridworld_continuous import GridworldContinuousEnv, \
 GridworldContinuousMultiObjLLEnv, GridworldContinuousMultiObjRREnv, \
-GridworldContinuousMultiObjLREnv, GridworldContinuousMultiObjRLEnv
+GridworldContinuousMultiObjLREnv, GridworldContinuousMultiObjRLEnv, \
+GridworldContinuousNoneLLEnv, GridworldContinuousNoneRREnv, \
+GridworldContinuousNoneLREnv, GridworldContinuousNoneRLEnv
