@@ -86,7 +86,7 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        self.timesteps = 300000 # to train for longer
+        self.timesteps = 1000000 # to train for longer
         self.model = None
         env = gym.make(env_name)
         eval_env = gym.make(env_name)
@@ -162,5 +162,5 @@ if __name__ == '__main__':
     #model_dir = os.path.join(model[0], model[1], model[2])
     model_dir = None
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="ContinuousMultiObjLR-v0")
+    RC.train_single(env_name="ContinuousNoneRL-v0")
     #RC.train_curriculum(env_name="ContinuousNoneRL-v0")
