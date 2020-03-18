@@ -51,7 +51,7 @@ def evaluate(model, eval_env, render=False):
         while not ever_done:
             nsteps += 1
             action, state = model.predict(obs, state=state, deterministic=True)
-            next_obs, ret, done, _info = eval_env.step(action, verbose=True)
+            next_obs, ret, done, _info = eval_env.step(action, verbose=render)
             # print("ret: ", ret)
             if render: eval_env.render()
             if not ever_done:
@@ -76,7 +76,7 @@ if __name__ == "__main__":
     #from gridworld_policies.policies import *
     from output.gridworld_continuous.policies import *
 
-    model_info = B6B0_RL
+    model_info = B0L
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     eval_env = load_env("Continuous-v0", "PPO")
     save = True
