@@ -20,7 +20,7 @@ import csv
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("timesteps", 220000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B6B0B6_RL", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B1L", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -67,7 +67,6 @@ class RewardCurriculum(object):
         #self.timesteps = 220000 # to train for longer
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
-
             env = gym.make(lesson)
             env = DummyVecEnv([lambda: env])
             self.model.set_env(env)
@@ -149,7 +148,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
+    if FLAGS.is_save: wandb.init(project="continuous2", sync_tensorboard=True)
     #from output.gridworld_continuous.policies import *
     #model = B6B0_RL
     #model_dir = os.path.join(model[0], model[1], model[2])
