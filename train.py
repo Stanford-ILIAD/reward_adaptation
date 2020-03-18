@@ -47,7 +47,6 @@ class RewardCurriculum(object):
         self.create_eval_dir()
         self.seed = 42
         self.curriculum = [
-            "Continuous-v0"
         ]
 
     def create_eval_dir(self):
@@ -59,7 +58,10 @@ class RewardCurriculum(object):
             self.rets_path = os.path.join(self.experiment_dir, "trajs.csv")
             wandb.save(self.experiment_dir)
 
-    def train_curriculum(self):
+    def train_curriculum(self, env_name="Merging-v0"):
+        self.curriculum = [
+            env_name
+        ]
         """
         Trains reward curriculum
         """
@@ -150,9 +152,14 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous2", sync_tensorboard=True)
     #from output.gridworld_continuous.policies import *
-    #model = B6B0_RL
+    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
+    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
+    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
+    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
     #model_dir = os.path.join(model[0], model[1], model[2])
     model_dir = None
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     RC.train_single(env_name="Continuous-v0")
     #RC.train_curriculum()
+    #RC.train_single(env_name="ContinuousNoneRL-v0")
+    ##RC.train_curriculum(env_name="ContinuousNoneRL-v0")
