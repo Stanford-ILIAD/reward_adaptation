@@ -76,7 +76,7 @@ if __name__ == "__main__":
     #from gridworld_policies.policies import *
     from output.gridworld_continuous.policies import *
 
-    model_info = B0L
+    model_info = B6R
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     eval_env = load_env("Continuous-v0", "PPO")
     save = True
