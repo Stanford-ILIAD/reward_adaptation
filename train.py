@@ -20,9 +20,10 @@ import csv
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("timesteps", 220000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B6R", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B2R_B0L", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
+#flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
+flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -65,8 +66,8 @@ class RewardCurriculum(object):
         """
         Trains reward curriculum
         """
-        #curr_params = self.model.get_parameters()
-        #self.timesteps = 220000 # to train for longer
+        #self.timesteps = 1000000 # to train for longer
+        self.timesteps = 100000 # to train for shorter
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
             env = gym.make(lesson)
@@ -152,11 +153,11 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous2", sync_tensorboard=True)
     from output.gridworld_continuous.policies import *
-    model = B2L
+    model = B2R
     model_dir = os.path.join(model[0], model[1], model[2])
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="Continuous-v0")
-    #RC.train_curriculum(env_name="Continuous-v0")
+    #RC.train_single(env_name="Continuous-v0")
+    RC.train_curriculum(env_name="Continuous-v0")
 
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')

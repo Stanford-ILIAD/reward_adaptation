@@ -14,3 +14,6 @@ B4L = ["output/gridworld_continuous", "B4L", "model_199936_61.49154926270705.pkl
 
 B6R = ["output/gridworld_continuous", "B6R", "model_125952_60.65678030096842.pkl"]
 B6L = ["output/gridworld_continuous", "B6L", "model_117376_62.005943816464445.pkl"]
+
+
+B6R_B0L = ["output/gridworld_continuous", "B6R_B0L", "model_99968_58.80866890728538.pkl"]
