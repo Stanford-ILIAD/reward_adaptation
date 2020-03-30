@@ -88,6 +88,9 @@ class GridworldContinuousEnv(gym.Env):
             done = True
         if self.step_num >= self.time_limit:
             done = True
+        #if car.collidesWith(self.goal_obj):
+        #    if verbose: print("COLLIDING WITH GOAL!")
+        #    done = True
         return self._get_obs(), reward, done, {'episode': {'r': reward, 'l': self.step_num}}
 
     def reset(self):
@@ -130,10 +133,9 @@ class GridworldContinuousEnv(gym.Env):
 
         # adding preference
         heading = self.world.state[-3]
-        max_heading = 2.0
-        mean_heading = 2.0
+        #mean_heading = 2.0
+        mean_heading = np.pi/2.0
         gamma = 0.9
-        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
         homotopy_rew = 0.0
         homotopy_rew += 2*(heading-mean_heading) # left
         #homotopy_rew += -2*(heading-mean_heading) # right
@@ -141,7 +143,6 @@ class GridworldContinuousEnv(gym.Env):
         dist2goal *= (1.0 - gamma**(self.step_num))
 
         reward = np.sum(np.array([
-                 #new_dist2goal,
                  dist2goal,
                  coll_cost,
                  #goal_rew,
@@ -155,6 +156,7 @@ class GridworldContinuousEnv(gym.Env):
 
     def render(self):
         self.world.render()
+
 
 class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
     def __init__(self,

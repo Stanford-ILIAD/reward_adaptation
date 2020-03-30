@@ -18,13 +18,12 @@ from eval_model import evaluate
 import csv
 
 FLAGS = flags.FLAGS
-n_steps = 128
-flags.DEFINE_integer("timesteps", n_steps * 521, "# timesteps to train")
+flags.DEFINE_integer("timesteps", 220000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B6B0B6_RL", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B2R_B0L", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
+#flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
+flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 flags.DEFINE_string("target_env", "", "Name of target environment")
 flags.DEFINE_string("source_env", "", "Name of source environment")
@@ -194,7 +193,7 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        self.timesteps = 1000000 # to train for longer
+        #self.timesteps = 220000 # to train for longer
         self.model = None
         env = gym.make(env_name)
         eval_env = gym.make(env_name)
