@@ -344,20 +344,50 @@ class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
         else:
             homotopy_rew += 5*(heading-mean_heading) if heading-mean_heading < 0.7 else 0.
 
+        normalize_factor = np.exp(4.5)-1
+        distance = self.width * (0.5-checkpoint_portion)
         if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if not self.check_point1:
+                if self.width/2.-distance < self.car.x < self.width / 2.:
+                    factor = min(1, (np.exp(self.width / 2.-self.car.x) - 1) / normalize_factor)
+                elif self.car.x > self.width/2:
+                    factor = max(-1, (1-np.exp(self.car.x-self.width / 2.)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point1 = True
+            '''
             if self.width * checkpoint_portion < self.car.x < self.width / 2. and (not self.check_point1):
                 homotopy_rew += 500.
                 self.check_point1 = True
             elif self.width / 2. < self.car.x and (not self.check_point1):
                 homotopy_rew -= 100000.
                 self.check_point1 = True
+            '''
         elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if not self.check_point2:
+                if self.width/2.+distance > self.car.x > self.width / 2.:
+                    factor = min(1, (np.exp(self.car.x-self.width / 2.) - 1) / normalize_factor) 
+                elif self.car.x < self.width/2.:
+                    factor = max(-1, (1-np.exp(self.width / 2.-self.car.x)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point2 = True
+            '''
             if self.width / 2. < self.car.x < self.width * (1-checkpoint_portion) and (not self.check_point2):
                 homotopy_rew += 500.
                 self.check_point2 = True
             elif self.car.x < self.width / 2. and (not self.check_point2):
                 homotopy_rew -= 100000.
                 self.check_point2 = True
+            '''
         
         if abs(heading-mean_heading) > 1.5:
             homotopy_rew += -100000.
@@ -389,7 +419,7 @@ class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
 
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
-            goal_rew = 1000
+            goal_rew = 100
 
         # adding preference
         heading = self.world.state[-3]
@@ -405,20 +435,50 @@ class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
         else:
             homotopy_rew += -5*(heading-mean_heading) if mean_heading-heading < 0.7 else 0.
 
+        normalize_factor = np.exp(4.5)-1
+        distance = self.width * (0.5-checkpoint_portion)
         if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if not self.check_point1:
+                if self.width/2.+distance > self.car.x > self.width / 2.:
+                    factor = min(1, (np.exp(self.car.x - self.width / 2.) - 1) / normalize_factor)
+                elif self.car.x < self.width/2:
+                    factor = max(-1, (1-np.exp(self.width / 2.-self.car.x)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point1 = True
+            '''
             if self.width * (1-checkpoint_portion) > self.car.x > self.width / 2. and (not self.check_point1):
                 homotopy_rew += 500.
                 self.check_point1 = True
             elif self.width / 2. > self.car.x and (not self.check_point1):
                 homotopy_rew -= 100000.
                 self.check_point1 = True
+            '''
         elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if not self.check_point2:
+                if self.width/2.-distance < self.car.x < self.width / 2.:
+                    factor = min(1, (np.exp(self.width / 2.-self.car.x) - 1) / normalize_factor) 
+                elif self.car.x > self.width/2.:
+                    factor = max(-1, (1-np.exp(self.car.x-self.width / 2.)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point2 = True
+            '''
             if self.width / 2. > self.car.x > self.width * checkpoint_portion and (not self.check_point2):
                 homotopy_rew += 500.
                 self.check_point2 = True
             elif self.car.x > self.width / 2. and (not self.check_point2):
                 homotopy_rew -= 100000.
                 self.check_point2 = True
+            '''
         
         if abs(heading-mean_heading) > 1.5:
             homotopy_rew += -100000.
@@ -468,7 +528,7 @@ class GridworldContinuousNoneRLEnv(GridworldContinuousMultiObjRLEnv):
 
         self.step_num = 0
         return self._get_obs()
-
+    '''
     def reward(self, verbose, weight=10.0):
         checkpoint_portion = 1/4.
         dist2goal = 5*(1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist))
@@ -528,6 +588,7 @@ class GridworldContinuousNoneRLEnv(GridworldContinuousMultiObjRLEnv):
                           "heading: ", heading,
                           "reward: ", reward)
         return reward
+    '''
 
 
 class GridworldContinuousNoneLREnv(GridworldContinuousMultiObjLREnv):
@@ -616,3 +677,94 @@ class GridworldContinuousNoneLLEnv(GridworldContinuousMultiObjLLEnv):
 
         self.step_num = 0
         return self._get_obs()
+
+class GridworldContinuousAdjustLREnv(GridworldContinuousMultiObjLREnv):
+    def __init__(self,
+                 dt: float = 0.1,
+                 width: int = 50,
+                 height: int = 100,
+                 time_limit: float = 300.0):
+        super(GridworldContinuousAdjustLREnv, self).__init__(dt, width, height, time_limit)
+        self.obstacle_size1 = 0
+        self.obstacle_size2 = 0
+
+    def set_obs_size(self, obs_size1, obs_size2):
+        self.obstacle_size1 = obs_size1
+        self.obstacle_size2 = obs_size2
+        
+    def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        
+        self.world.reset()
+ 
+        self.buildings = [
+            Building(Point(int(self.width-2), int(self.height*3./10.)), Point(4,int(self.height*3./5.)), "gray80"),
+            Building(Point(int(2), int(self.height*3./10.)), Point(4,int(self.height*3./5.)), "gray80"),
+        ]
+
+        if self.obstacle_size1 > 0:
+            self.buildings.append(Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(self.obstacle_size1,4), "gray80"))
+        if self.obstacle_size2 > 0:
+            self.buildings.append(Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(self.obstacle_size2,4), "gray80"))
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
+
+        self.step_num = 0
+        return self._get_obs()
+
+class GridworldContinuousAdjustRLEnv(GridworldContinuousMultiObjRLEnv):
+    def __init__(self,
+                 dt: float = 0.1,
+                 width: int = 50,
+                 height: int = 100,
+                 time_limit: float = 300.0):
+        super(GridworldContinuousAdjustRLEnv, self).__init__(dt, width, height, time_limit)
+        self.obstacle_size1 = 0
+        self.obstacle_size2 = 0
+
+    def set_obs_size(self, obs_size1, obs_size2):
+        self.obstacle_size1 = obs_size1
+        self.obstacle_size2 = obs_size2
+        
+    def reset(self):
+        self.check_point1 = False
+        self.check_point2 = False
+        
+        self.world.reset()
+ 
+        self.buildings = [
+            Building(Point(int(self.width-2), int(self.height*3./10.)), Point(4,int(self.height*3./5.)), "gray80"),
+            Building(Point(int(2), int(self.height*3./10.)), Point(4,int(self.height*3./5.)), "gray80"),
+        ]
+
+        if self.obstacle_size1 > 0:
+            self.buildings.append(Building(Point(int(self.width/2.), int(self.height*3./5.)), Point(self.obstacle_size1,4), "gray80"))
+        if self.obstacle_size2 > 0:
+            self.buildings.append(Building(Point(int(self.width/2.), int(self.height*3./10.)), Point(self.obstacle_size2,4), "gray80"))
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car.velocity = Point(0, 5)
+
+        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+        
+        self.last_heading = np.pi / 2
+
+        self.step_num = 0
+        return self._get_obs()
+

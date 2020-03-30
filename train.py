@@ -26,7 +26,79 @@ flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
 #flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
+flags.DEFINE_string("target_env", "", "Name of target environment")
+flags.DEFINE_string("source_env", "", "Name of source environment")
 
+
+def find_best(dir_name):
+    def compare(item):
+        return item[0]
+    model_list = []
+    for file_name in os.listdir(dir_name):
+        if '.pkl' in file_name and ('final' not in file_name) and ('best_model' not in file_name):
+            model_list.append([float(file_name.split('_')[2].split('.')[0]), int(file_name.split('_')[1]), file_name])
+    best_model = max(model_list, key=compare)
+    return os.path.join(dir_name, best_model[2]), best_model[1]
+
+class RewardCurriculum(object):
+    """
+    Code related to training reward curriculum or single domain
+    """
+
+    def __init__(self, model_type, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+        self.model_type = "PPO"
+        
+
+
+def find_best(dir_name):
+    def compare(item):
+        return item[0]
+    model_list = []
+    for file_name in os.listdir(dir_name):
+        if '.pkl' in file_name and ('final' not in file_name) and ('best_model' not in file_name):
+            model_list.append([float(file_name.split('_')[2].split('.')[0]), int(file_name.split('_')[1]), file_name])
+    best_model = max(model_list, key=compare)
+    return os.path.join(dir_name, best_model[2]), best_model[1]
+
+class RewardCurriculum(object):
+    """
+    Code related to training reward curriculum or single domain
+    """
+
+    def __init__(self, model_type, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+        self.model_type = "PPO"
+        
+
+
+def find_best(dir_name):
+    def compare(item):
+        return item[0]
+    model_list = []
+    for file_name in os.listdir(dir_name):
+        if '.pkl' in file_name and ('final' not in file_name) and ('best_model' not in file_name):
+            model_list.append([float(file_name.split('_')[2].split('.')[0]), int(file_name.split('_')[1]), file_name])
+    best_model = max(model_list, key=compare)
+    return os.path.join(dir_name, best_model[2]), best_model[1]
+
+class RewardCurriculum(object):
+    """
+    Code related to training reward curriculum or single domain
+    """
+
+    def __init__(self, model_type, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+        self.model_type = "PPO"
+        
+
+
+def find_best(dir_name):
+    def compare(item):
+        return item[0]
+    model_list = []
+    for file_name in os.listdir(dir_name):
+        if '.pkl' in file_name and ('final' not in file_name) and ('best_model' not in file_name):
+            model_list.append([float(file_name.split('_')[2].split('.')[0]), int(file_name.split('_')[1]), file_name])
+    best_model = max(model_list, key=compare)
+    return os.path.join(dir_name, best_model[2]), best_model[1]
 
 class RewardCurriculum(object):
     """
@@ -59,8 +131,16 @@ class RewardCurriculum(object):
             os.makedirs(self.experiment_dir)
             self.rets_path = os.path.join(self.experiment_dir, "trajs.csv")
             wandb.save(self.experiment_dir)
+    def create_eval_dir1(self, experiment_dir):
+        if self.is_save:
+            print(experiment_dir)
+            if os.path.exists(experiment_dir):
+                shutil.rmtree(experiment_dir)
+            os.makedirs(experiment_dir)
+            self.rets_path = os.path.join(experiment_dir, "trajs.csv")
+            wandb.save(experiment_dir)
 
-    def train_curriculum(self, env_name="Merging-v0"):
+    def train_curriculum(self, env_name="Merging-v0", size_list=[]):
         self.curriculum = [
             env_name
         ]
@@ -68,18 +148,46 @@ class RewardCurriculum(object):
         Trains reward curriculum
         """
         #curr_params = self.model.get_parameters()
-        self.timesteps = 300000 # to train for longer
+        self.timesteps = 300000 if len(size_list) == 0 else 60000 # to train for longer
         for l, lesson in enumerate(self.curriculum):
-            print("\ntraining on ", lesson)
+            if len(size_list) > 0:
+                jj = 0
+                iter_nums = 0
+                for obs_size in size_list:
+                    print("\ntraining on ", lesson)
 
-            env = gym.make(lesson)
-            env = DummyVecEnv([lambda: env])
-            self.model.set_env(env)
-            #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
-            #self.model.full_tensorboard_log = True
-            eval_env = gym.make(lesson)
-            self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
+                    env = gym.make(lesson)
+                    env.set_obs_size(obs_size[0], obs_size[1])
+                    env = DummyVecEnv([lambda: env])
+                    self.model.set_env(env)
+                    #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
+                    #self.model.full_tensorboard_log = True
+                    eval_env = gym.make(lesson)
+                    eval_env.set_obs_size(obs_size[0], obs_size[1])
+                    self.create_eval_dir1(self.experiment_dir+'_step_{:02d}'.format(jj))
+                    ret, _, _, _ = evaluate(self.model, eval_env, render=False)
+                    self.model.save(os.path.join(self.experiment_dir+'_step_{:02d}'.format(jj), 'model_{}_{}.pkl'.format(0, ret)))
+                    self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir+'_step_{:02d}'.format(jj),
                                self.is_save, self.eval_save_period, self.rets_path, l)
+                    best_model, iter_num = find_best(self.experiment_dir+'_step_{:02d}'.format(jj))
+                    if self.model_type == "PPO":
+                        self.model = PPO2.load(best_model)
+                    elif self.model_type == "DQN":
+                        self.model = DQN.load(best_model)
+                    iter_nums += iter_num
+                    jj += 1
+            else:
+                print("\ntraining on ", lesson)
+
+                env = gym.make(lesson)
+                env = DummyVecEnv([lambda: env])
+                self.model.set_env(env)
+                #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
+                #self.model.full_tensorboard_log = True
+                eval_env = gym.make(lesson)
+                self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
+                               self.is_save, self.eval_save_period, self.rets_path, l)
+
 
 
     def train_single(self, env_name="Merging-v0"):
@@ -155,12 +263,31 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
     #from output.gridworld_continuous.policies import *
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
+    if 'LL' in FLAGS.source_env and 'None' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
+    elif 'RL' in FLAGS.source_env and 'None' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
+    elif 'LR' in FLAGS.source_env and 'None' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
+    elif 'RR' in FLAGS.source_env and 'None' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
+    if 'LL' in FLAGS.source_env and 'LR' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_lr_none1_256.pkl')
+    elif 'LL' in FLAGS.source_env and 'RL' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_rl_none1_24448.pkl')
+    elif 'RR' in FLAGS.source_env and 'LR' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_lr_none1_4864.pkl')
+    elif 'RR' in FLAGS.source_env and 'RL' in FLAGS.target_env:
+        model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_rl_none1_896.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
-    #model_dir = os.path.join(model[0], model[1], model[2])
-    model_dir = None
+    model_dir = os.path.join(model[0], model[1], model[2])
+    #model_dir = None
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="ContinuousNoneRL-v0")
-    #RC.train_curriculum(env_name="ContinuousNoneRL-v0")
+    #RC.train_single(env_name="ContinuousMultiObjLR-v0")
+    if 'forward' in FLAGS.experiment_name:
+        RC.train_curriculum(env_name=FLAGS.target_env, size_list=[[0.2,0],[0.5,0],[1,0],[3,0],[6,0],[9,0],[9,0.2],[9,0.5],[9,1.],[9,3.],[9,6.],[9,8.],[9,8.25],[9,8.5],[9,8.75],[9,9.]])
+    elif 'backward' in FLAGS.experiment_name:
+        RC.train_curriculum(env_name=FLAGS.target_env, size_list=[[0,0.2],[0,0.5],[0,1.],[0,3.],[0,6.],[0,9.],[0.01,9],[0.05,9],[0.1,9],[0.2,9.],[0.5,9.],[1.,9.],[3.,9.],[6.,9.],[9.,9.]])
+    #RC.train_curriculum(env_name=FLAGS.target_env)
