@@ -97,7 +97,7 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-            Building(Point(self.width/2., self.height/2.), Point(1,1), "gray80")
+        #    Building(Point(self.width/2., self.height/2.), Point(6,6), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
@@ -156,6 +156,7 @@ class GridworldContinuousEnv(gym.Env):
 
     def render(self):
         self.world.render()
+
 
 class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
     def __init__(self,
