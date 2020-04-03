@@ -1,6 +1,0 @@
-Loading a model without an environment, this model cannot be trained until it has a valid environment.
-output/gridworld_continuous/MO_LL2RL_ppn
-Traceback (most recent call last):
-  File "train.py", line 139, in <module>
-    RC.train_ppn(env_name=args.target_env)
-NameError: name 'args' is not defined
