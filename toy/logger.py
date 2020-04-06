@@ -59,8 +59,10 @@ class Logger:
         #self.tb_output_dir = os.path.join(self.output_dir, "tb_"+dt_string)
         self.tb_output_dir = os.path.join(self.output_dir, "tb")
         self.writer = tf.summary.FileWriter(self.tb_output_dir)
-        if not os.path.exists(self.output_dir):
-            os.mkdir(self.output_dir)
+
+        if os.path.exists(self.output_dir):
+            shutil.rmtree(self.output_dir)
+        os.mkdir(self.output_dir)
         #self.output_file = open(osp.join(self.output_dir, 'progress.txt'), 'w')
         #atexit.register(self.output_file.close)
         self.first_row=True
