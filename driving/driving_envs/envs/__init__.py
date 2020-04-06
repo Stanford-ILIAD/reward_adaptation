@@ -9,4 +9,4 @@ from driving_envs.envs.gridworld_continuous import GridworldContinuousEnv, \
 GridworldContinuousMultiObjLLEnv, GridworldContinuousMultiObjRREnv, \
 GridworldContinuousMultiObjLREnv, GridworldContinuousMultiObjRLEnv, \
 GridworldContinuousNoneLLEnv, GridworldContinuousNoneRREnv, \
-GridworldContinuousNoneLREnv, GridworldContinuousNoneRLEnv
+GridworldContinuousNoneLREnv, GridworldContinuousNoneRLEnv, GridworldToyEnv

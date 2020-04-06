@@ -165,19 +165,21 @@ class GridworldToyEnv(GridworldContinuousEnv):
                  dt: float = 0.1,
                  width: int = 50,
                  height: int = 50,
-                 time_limit: float = 150.0):
+                 time_limit: float = 90.0):
         super(GridworldToyEnv, self).__init__(dt=dt, width=width, height=height, time_limit=time_limit)
         self.action_space = spaces.Box(
-            np.array([-0.04]), np.array([0.04]), dtype=np.float32
+            #np.array([-0.04]), np.array([0.04]), dtype=np.float32
+            np.array([-0.06]), np.array([0.06]), dtype=np.float32
         )
         self.goal = np.array([self.width / 2., self.height])
+        #self.goal = np.array([self.width / 2., self.height-5])
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(2,))
 
     def reset(self):
         self.world.reset()
 
         self.buildings = [
-                Building(Point(self.width/2., self.height/2.), Point(2,2), "gray80")
+                Building(Point(self.width/2., self.height/2.), Point(4,4), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi / 2., "blue")
@@ -197,7 +199,6 @@ class GridworldToyEnv(GridworldContinuousEnv):
     def step(self, action: np.ndarray, verbose: bool = False):
         self.step_num += 1
 
-        if verbose: print("a: ", action)
         car = self.world.dynamic_agents[0]
         acc = self.accelerate.action(self._get_state())
         action = np.append(action, acc)
@@ -205,7 +206,6 @@ class GridworldToyEnv(GridworldContinuousEnv):
         self.world.tick()
 
         reward = self.reward(verbose)
-        if verbose: print("x,y: ", self.car.center.x, self.car.center.y)
 
         done = False
         # for building in self.buildings:
@@ -218,7 +218,6 @@ class GridworldToyEnv(GridworldContinuousEnv):
         # if car.collidesWith(self.goal_obj):
         #    if verbose: print("COLLIDING WITH GOAL!")
         #    done = True
-        if verbose: print("obs: ", self._get_obs())
         return self._get_obs(), reward, done, {'episode': {'r': reward, 'l': self.step_num}}
 
     def _get_state(self):
@@ -232,7 +231,8 @@ class GridworldToyEnv(GridworldContinuousEnv):
         return self.world.state[:2]
 
     def reward(self, verbose, weight=10.0):
-        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj) / self.max_dist)
+        #dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj) / self.max_dist)
+        dist2goal = self.car.y/self.height
         coll_cost = 0
         for building in self.buildings:
             if self.car.collidesWith(building):
@@ -246,17 +246,17 @@ class GridworldToyEnv(GridworldContinuousEnv):
         heading = self.world.state[-3]
         # mean_heading = 2.0
         mean_heading = np.pi / 2.0
-        gamma = 0.9
+        gamma = 0.99
         homotopy_rew = 0.0
         homotopy_rew += 2 * (heading - mean_heading)  # left
-        # homotopy_rew += -2*(heading-mean_heading) # right
-        homotopy_rew *= gamma ** (self.step_num)
+        #homotopy_rew += -2*(heading-mean_heading) # right
+        #homotopy_rew *= gamma ** (self.step_num)
         dist2goal *= (1.0 - gamma ** (self.step_num))
 
         reward = np.sum(np.array([
             dist2goal,
             coll_cost,
-            # goal_rew,
+            #goal_rew,
             homotopy_rew
         ]))
         if verbose: print("dist to goal: ", dist2goal,
