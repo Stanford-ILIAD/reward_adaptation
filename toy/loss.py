@@ -11,8 +11,10 @@ from toy.mpi_tools import mpi_fork, mpi_avg, proc_id, mpi_statistics_scalar, num
 import driving.driving_envs
 import torch.nn as nn
 import ipdb
+import pickle
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from toy.utils import *
 from mpl_toolkits.mplot3d import Axes3D
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
@@ -140,8 +142,8 @@ class VPG():
         self.vf_optimizer = Adam(self.ac.v.parameters(), lr=self.vf_lr)
 
         # Set up model saving and logging
-        self.logger = EpochLogger(**logger_kwargs)
         if self.save:
+            self.logger = EpochLogger(**logger_kwargs)
             self.logger.save_config(locals())
             self.logger.setup_pytorch_saver(self.ac)
             # Count variables
@@ -201,17 +203,19 @@ class VPG():
 
         # Log changes from update
         kl, ent = pi_info['kl'], pi_info_old['ent']
-        self.logger.store(LossPi=pi_l_old, LossV=v_l_old,
-                     KL=kl, Entropy=ent,
-                     DeltaLossPi=(loss_pi.item() - pi_l_old),
-                     DeltaLossV=(loss_v.item() - v_l_old))
+        if self.save:
+            self.logger.store(LossPi=pi_l_old, LossV=v_l_old,
+                         KL=kl, Entropy=ent,
+                         DeltaLossPi=(loss_pi.item() - pi_l_old),
+                         DeltaLossV=(loss_v.item() - v_l_old))
 
         if self.save:
             self.logger.scalar_summary("loss_pi", loss_pi.item(), epoch + 1)
             self.logger.scalar_summary("loss_v", loss_v.item(), epoch + 1)
             for tag, value in self.ac.pi.named_parameters():
                 self.logger.histo_summary(tag, value.data.cpu().numpy(), epoch + 1)
-                self.logger.histo_summary(tag + '/grad', value.grad.data.cpu().numpy(), epoch + 1)
+                if value.grad != None:
+                    self.logger.histo_summary(tag + '/grad', value.grad.data.cpu().numpy(), epoch + 1)
 
         self._anneal_exploration()
 
@@ -224,7 +228,7 @@ class VPG():
     def _eval(self, epoch):
         #self.eval_logger = EpochLogger()
         num_episodes = 1
-        render = False
+        render = False if self.save else True
         o, r, d, ep_ret, ep_len, n = self.eval_env.reset(), 0, False, 0, 0, 0
         while n < num_episodes:
             if render:
@@ -243,7 +247,7 @@ class VPG():
                 if self.save: self.logger.scalar_summary("eval_ret", ep_ret, epoch + 1)
                 print('Episode %d \t EpRet %.3f \t EpLen %d'%(n, ep_ret, ep_len))
                 if ep_ret >0:
-                    self.logger.save_state({'env': self.env}, epoch, ep_ret)
+                    if self.save: self.logger.save_state({'env': self.env}, epoch, ep_ret)
                 o, r, d, ep_ret, ep_len = self.eval_env.reset(), 0, False, 0, 0
                 n += 1
 
@@ -274,7 +278,7 @@ class VPG():
 
                 # save and log
                 self.buf.store(o, a, r, v, logp)
-                self.logger.store(VVals=v)
+                if self.save: self.logger.store(VVals=v)
 
                 # Update obs (critical!)
                 o = next_o
@@ -294,7 +298,7 @@ class VPG():
                     self.buf.finish_path(v)
                     if terminal:
                         # only save EpRet / EpLen if trajectory finished
-                        self.logger.store(EpRet=ep_ret, EpLen=ep_len)
+                        if self.save: self.logger.store(EpRet=ep_ret, EpLen=ep_len)
                     print("EP RET: ", ep_ret, "Len: ", ep_len)
                     o, ep_ret, ep_len = self.env.reset(), 0, 0
                 self.train_iteration += 1
@@ -307,25 +311,72 @@ class VPG():
             self._update(epoch)
 
             # Log info about epoch
-            self.logger.log_tabular('Epoch', epoch)
-            self.logger.log_tabular('EpRet', with_min_and_max=True)
-            self.logger.log_tabular('EpLen', average_only=True)
-            self.logger.log_tabular('VVals', with_min_and_max=True)
-            self.logger.log_tabular('TotalEnvInteracts', (epoch + 1) * self.steps_per_epoch)
-            self.logger.log_tabular('LossPi', average_only=True)
-            self.logger.log_tabular('LossV', average_only=True)
-            self.logger.log_tabular('DeltaLossPi', average_only=True)
-            self.logger.log_tabular('DeltaLossV', average_only=True)
-            self.logger.log_tabular('Entropy', average_only=True)
-            self.logger.log_tabular('KL', average_only=True)
-            self.logger.log_tabular('Time', time.time() - start_time)
-            self.logger.dump_tabular()
+            if self.save:
+                self.logger.log_tabular('Epoch', epoch)
+                self.logger.log_tabular('EpRet', with_min_and_max=True)
+                self.logger.log_tabular('EpLen', average_only=True)
+                self.logger.log_tabular('VVals', with_min_and_max=True)
+                self.logger.log_tabular('TotalEnvInteracts', (epoch + 1) * self.steps_per_epoch)
+                self.logger.log_tabular('LossPi', average_only=True)
+                self.logger.log_tabular('LossV', average_only=True)
+                self.logger.log_tabular('DeltaLossPi', average_only=True)
+                self.logger.log_tabular('DeltaLossV', average_only=True)
+                self.logger.log_tabular('Entropy', average_only=True)
+                self.logger.log_tabular('KL', average_only=True)
+                self.logger.log_tabular('Time', time.time() - start_time)
+                self.logger.dump_tabular()
 
             # Evaluate model
             self._eval(epoch)
+
+        self.get_mesh_grid()
         ipdb.set_trace()
 
-    def get_loss_value(self):
+    def fine_tune(self, source_model_file):
+        print("loading source model params..")
+        self.ac = torch.load(source_model_file)
+        print("fine-tuning")
+        self.train()
+
+    def get_loss_value(self, weight):
+        self.ac.pi.mu_net[0].weight[0] = torch.Tensor(weight)
+        o, ep_ret, ep_len = self.env.reset(), 0, 0
+        for t in range(self.local_steps_per_epoch):
+            #self.env.render()
+            a, v, logp = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
+            a = np.clip(a, self.env.action_space.low, self.env.action_space.high)
+            # print("action alter: ", a)
+
+            next_o, r, d, _ = self.env.step(a, verbose=False)
+            ep_ret += r
+            ep_len += 1
+
+            # save
+            self.buf.store(o, a, r, v, logp)
+
+            # Update obs (critical!)
+            o = next_o
+
+            timeout = ep_len == self.max_ep_len
+            terminal = d or timeout
+            epoch_ended = t == self.local_steps_per_epoch - 1
+
+            if terminal or epoch_ended:
+                #if epoch_ended and not (terminal):
+                #    print('Warning: trajectory cut off by epoch at %d steps.' % ep_len, flush=True)
+                # if trajectory didn't reach terminal state, bootstrap value target
+                if timeout or epoch_ended:
+                    _, v, _ = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
+                else:
+                    v = 0
+                self.buf.finish_path(v)
+                o, ep_ret, ep_len = self.env.reset(), 0, 0
+
+        # Perform VPG update!
+        loss_pi = self._update(epoch=None, train=False)
+        return loss_pi
+
+    def get_mesh_grid(self):
         #ipdb.set_trace()
         X, Y = np.meshgrid(np.arange(-1,1,0.1), np.arange(-1,1,0.1))
         Z = np.zeros(X.shape)
@@ -334,46 +385,51 @@ class VPG():
             for j in range(X.shape[1]):
                 x, y = X[i][j], Y[i][j]
                 weight = np.array([x,y])
-                #print("weight: ", self.ac.pi.mu_net[0].weight[0])
-                self.ac.pi.mu_net[0].weight[0] = torch.Tensor(weight)
 
-                o, ep_ret, ep_len = self.env.reset(), 0, 0
-                for t in range(self.local_steps_per_epoch):
-                    #self.env.render()
-                    a, v, logp = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
-                    a = np.clip(a, self.env.action_space.low, self.env.action_space.high)
-                    # print("action alter: ", a)
+                ##print("weight: ", self.ac.pi.mu_net[0].weight[0])
+                #self.ac.pi.mu_net[0].weight[0] = torch.Tensor(weight)
 
-                    next_o, r, d, _ = self.env.step(a, verbose=False)
-                    ep_ret += r
-                    ep_len += 1
+                #o, ep_ret, ep_len = self.env.reset(), 0, 0
+                #for t in range(self.local_steps_per_epoch):
+                #    #self.env.render()
+                #    a, v, logp = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
+                #    a = np.clip(a, self.env.action_space.low, self.env.action_space.high)
+                #    # print("action alter: ", a)
 
-                    # save
-                    self.buf.store(o, a, r, v, logp)
+                #    next_o, r, d, _ = self.env.step(a, verbose=False)
+                #    ep_ret += r
+                #    ep_len += 1
 
-                    # Update obs (critical!)
-                    o = next_o
+                #    # save
+                #    self.buf.store(o, a, r, v, logp)
 
-                    timeout = ep_len == self.max_ep_len
-                    terminal = d or timeout
-                    epoch_ended = t == self.local_steps_per_epoch - 1
+                #    # Update obs (critical!)
+                #    o = next_o
 
-                    if terminal or epoch_ended:
-                        #if epoch_ended and not (terminal):
-                        #    print('Warning: trajectory cut off by epoch at %d steps.' % ep_len, flush=True)
-                        # if trajectory didn't reach terminal state, bootstrap value target
-                        if timeout or epoch_ended:
-                            _, v, _ = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
-                        else:
-                            v = 0
-                        self.buf.finish_path(v)
-                        o, ep_ret, ep_len = self.env.reset(), 0, 0
+                #    timeout = ep_len == self.max_ep_len
+                #    terminal = d or timeout
+                #    epoch_ended = t == self.local_steps_per_epoch - 1
 
-                # Perform VPG update!
-                loss_pi = self._update(epoch=None, train=False)
+                #    if terminal or epoch_ended:
+                #        #if epoch_ended and not (terminal):
+                #        #    print('Warning: trajectory cut off by epoch at %d steps.' % ep_len, flush=True)
+                #        # if trajectory didn't reach terminal state, bootstrap value target
+                #        if timeout or epoch_ended:
+                #            _, v, _ = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
+                #        else:
+                #            v = 0
+                #        self.buf.finish_path(v)
+                #        o, ep_ret, ep_len = self.env.reset(), 0, 0
+
+                ## Perform VPG update!
+                #loss_pi = self._update(epoch=None, train=False)
+                loss_pi = self.get_loss_value(weight)
                 Z[i][j] = loss_pi
 
+        loss_plot = {'X': X, 'Y': Y, 'Z': Z}
+        pickle.dump(loss_plot, open("toy/loss_plot_B4L_{}_{}_{}_after_training.pkl".format(-1, 1, 0.1), "wb"))
         return X, Y, Z
+
 
     def plot(self, x, y, z):
         fig = plt.figure(figsize=(12, 6))
@@ -382,14 +438,13 @@ class VPG():
                         cmap=cm.coolwarm,
                         linewidth=0,
                         antialiased=True)
-        ax.scatter3D([0], [0.2], [10], c="blue")
+        wx,wy,wz = get_weights_from_csv("toy/output/weight_loss.csv")
+        ax.scatter3D(wx, wy, wz, c="black", s=5)
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
         plt.show()
         ipdb.set_trace()
-
-
 
 
 if __name__ == '__main__':
@@ -403,8 +458,7 @@ if __name__ == '__main__':
     parser.add_argument('--seed', '-s', type=int, default=0)
     parser.add_argument('--cpu', type=int, default=1)
     parser.add_argument('--steps', type=int, default=1000)
-    parser.add_argument('--epochs', type=int, default=1000)
-    #parser.add_argument('--epochs', type=int, default=1)
+    parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--exp_name', type=str, default='vpg')
     parser.add_argument('--save_freq', type=int, default=1)
     parser.add_argument('--save', action='store_true')
@@ -425,10 +479,19 @@ if __name__ == '__main__':
         ac_kwargs=dict(hidden_sizes=[args.hid]*args.l, activation=nn.Identity),
         gamma=args.gamma, pi_lr=args.pi_lr, seed=args.seed, steps_per_epoch=args.steps, epochs=args.epochs,
         logger_kwargs=logger_kwargs, save_freq=args.save_freq, save=args.save)
-    vpg.train()
-    #x,y,z = vpg.get_loss_value()
-    #print("plotting")
-    #vpg.plot(x,y,z)
+
+    # Train
+    #vpg.train()
+
+    # Get mesh grid
+    #x,y,z = vpg.get_mesh_grid()
+
+    # Plot
+    print("plotting")
+    with open("toy/loss_plot_B4L_{}_{}_{}_after_training.pkl".format(-1,1,0.1), "rb") as f:
+        loss_plot_dict = pickle.load(f)
+    x,y,z = loss_plot_dict['X'], loss_plot_dict['Y'], loss_plot_dict['Z']
+    vpg.plot(x,y,z)
 
 
 

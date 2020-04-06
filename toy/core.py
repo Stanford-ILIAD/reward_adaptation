@@ -95,11 +95,11 @@ class MLPGaussianActor(Actor):
 
     def _distribution(self, obs):
         mu = self.mu_net(obs)
-        print("\nmu: ", mu, "obs: ", obs)
+        #print("\nmu: ", mu, "obs: ", obs)
         #print([x for x in self.mu_net.named_parameters()])
         std = torch.exp(self.log_std)
         std = torch.Tensor([0.01])
-        print("std: ", std)
+        #print("std: ", std)
         return Normal(mu, std)
 
     def _log_prob_from_distribution(self, pi, act):
@@ -139,15 +139,10 @@ class MLPActorCritic(nn.Module):
         # normalize obs
         mean_obs = 25 # max inp: 50, min inp: 0
         obs = (obs - mean_obs)/mean_obs
-        #for o in range(len(obs)):
-        #    if obs[o] == 0.0:
-        #        obs[o]+= 1e-4
         assert (obs <= 1.5).all() and (obs >=-1.5).all()
 
         # scale obs in range of action space
-        #print("old obs: ", obs)
         obs *= torch.Tensor(self.action_space.high)
-        #print("new obs: ", obs)
         assert (obs <= 0.08).all() and (obs >= -0.08).all()
 
         if is_exp and random.random() < self.exploration:
