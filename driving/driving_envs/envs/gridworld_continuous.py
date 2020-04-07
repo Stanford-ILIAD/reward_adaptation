@@ -7,7 +7,7 @@ import numpy as np
 import scipy.special
 from driving_envs.world import World
 from driving_envs.entities import TextEntity, Entity
-from driving_envs.agents import Car, Building, Goal
+from driving_envs.agents import Car, Building, Goal, Goal2
 from driving_envs.geometry import Point
 from typing import Tuple
 
@@ -66,7 +66,8 @@ class GridworldContinuousEnv(gym.Env):
         self.correct_pos = []
         self.next_pos = []
         self.start = np.array([self.width/2.,5])
-        self.goal = np.array([self.width/2., self.height-5.])
+        #self.goal = np.array([self.width/2., self.height-5.])
+        self.goal = np.array([self.width/2., self.height])
         self.max_dist = np.linalg.norm(self.goal-self.start,2)
 
     def step(self, action: np.ndarray, verbose: bool = False):
@@ -97,13 +98,14 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-        #    Building(Point(self.width/2., self.height/2.), Point(6,6), "gray80")
+            Building(Point(self.width/2., self.height/2.), Point(6,6), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
         self.car.velocity = Point(0, 5)
 
-        self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+        #self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+        self.goal_obj = Goal2(Point(self.goal[0], self.goal[1]), Point(self.width, self.height / 8.))
 
         for building in self.buildings:
             self.world.add(building)
@@ -121,7 +123,8 @@ class GridworldContinuousEnv(gym.Env):
         return self.world.state
 
     def reward(self, verbose, weight=10.0):
-        dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        #dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
+        dist2goal = self.car.y/self.height
         coll_cost = 0
         for building in self.buildings:
             if self.car.collidesWith(building):
