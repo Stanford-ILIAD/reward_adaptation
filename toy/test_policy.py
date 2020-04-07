@@ -69,7 +69,7 @@ def load_pytorch_policy(fpath, itr, ep_ret, deterministic=False):
     print('\n\nLoading from %s.\n\n'%fname)
 
     model = torch.load(fname)
-    #model.pi.mu_net[0].weight[0] = torch.Tensor([-0.5810, -0.5194])
+    model.pi.mu_net[0].weight[0] = torch.Tensor([0.99, 0.99])
     #model.pi.log_std[0] = torch.Tensor([-0.4990])
     #model.v.v_net[0].weight[0] = torch.Tensor([-0.0940,  0.4807])
 

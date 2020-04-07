@@ -97,7 +97,7 @@ class VPGBuffer:
 
 
 class VPG():
-    def __init__(self, env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(),  seed=0,
+    def __init__(self, env_fn, exp_name, actor_critic=core.MLPActorCritic, ac_kwargs=dict(),  seed=0,
         steps_per_epoch=4000, epochs=50, gamma=0.99, pi_lr=3e-4,
         vf_lr=1e-3, train_v_iters=80, lam=0.97, max_ep_len=1000,
         logger_kwargs=dict(), save_freq=1, save=False):
@@ -109,6 +109,7 @@ class VPG():
         self.save_freq = save_freq
         self.steps_per_epoch = steps_per_epoch
         self.save = save
+        self.output_dir = "toy/output/" + exp_name
 
         # random seed
         self.seed = seed + 10000 * proc_id()
@@ -385,64 +386,28 @@ class VPG():
             for j in range(X.shape[1]):
                 x, y = X[i][j], Y[i][j]
                 weight = np.array([x,y])
-
-                ##print("weight: ", self.ac.pi.mu_net[0].weight[0])
-                #self.ac.pi.mu_net[0].weight[0] = torch.Tensor(weight)
-
-                #o, ep_ret, ep_len = self.env.reset(), 0, 0
-                #for t in range(self.local_steps_per_epoch):
-                #    #self.env.render()
-                #    a, v, logp = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
-                #    a = np.clip(a, self.env.action_space.low, self.env.action_space.high)
-                #    # print("action alter: ", a)
-
-                #    next_o, r, d, _ = self.env.step(a, verbose=False)
-                #    ep_ret += r
-                #    ep_len += 1
-
-                #    # save
-                #    self.buf.store(o, a, r, v, logp)
-
-                #    # Update obs (critical!)
-                #    o = next_o
-
-                #    timeout = ep_len == self.max_ep_len
-                #    terminal = d or timeout
-                #    epoch_ended = t == self.local_steps_per_epoch - 1
-
-                #    if terminal or epoch_ended:
-                #        #if epoch_ended and not (terminal):
-                #        #    print('Warning: trajectory cut off by epoch at %d steps.' % ep_len, flush=True)
-                #        # if trajectory didn't reach terminal state, bootstrap value target
-                #        if timeout or epoch_ended:
-                #            _, v, _ = self.ac.step(torch.as_tensor(o, dtype=torch.float32), is_exp=False)
-                #        else:
-                #            v = 0
-                #        self.buf.finish_path(v)
-                #        o, ep_ret, ep_len = self.env.reset(), 0, 0
-
-                ## Perform VPG update!
-                #loss_pi = self._update(epoch=None, train=False)
                 loss_pi = self.get_loss_value(weight)
                 Z[i][j] = loss_pi
 
         loss_plot = {'X': X, 'Y': Y, 'Z': Z}
-        pickle.dump(loss_plot, open("toy/loss_plot_B4L_{}_{}_{}_after_training.pkl".format(-1, 1, 0.1), "wb"))
+        pickle.dump(loss_plot, open(self.output_dir+"/grid_{}_{}_{}.pkl".format(-1, 1, 0.1), "wb"))
         return X, Y, Z
 
 
     def plot(self, x, y, z):
         fig = plt.figure(figsize=(12, 6))
         ax = fig.gca(projection='3d')
-        ax.plot_surface(x, y, z,
+        surf = ax.plot_surface(x, y, z,
                         cmap=cm.coolwarm,
                         linewidth=0,
                         antialiased=True)
-        wx,wy,wz = get_weights_from_csv("toy/output/weight_loss.csv")
+        wx,wy,wz = get_weights_from_csv(self.output_dir+"/weight_loss.csv")
         ax.scatter3D(wx, wy, wz, c="black", s=5)
         ax.set_xlabel('x')
         ax.set_ylabel('y')
         ax.set_zlabel('z')
+        # Add a color bar which maps values to colors.
+        fig.colorbar(surf, shrink=0.5, aspect=5)
         plt.show()
         ipdb.set_trace()
 
@@ -459,23 +424,27 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', type=int, default=1)
     parser.add_argument('--steps', type=int, default=1000)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--exp_name', type=str, default='vpg')
+    parser.add_argument('--exp_name', type=str, default='test')
     parser.add_argument('--save_freq', type=int, default=1)
     parser.add_argument('--save', action='store_true')
+
+    parser.add_argument('--itr', '-i', type=int, default=-1)
+    parser.add_argument('--epret', type=float, default=1.0)
+    parser.add_argument('--fpath', type=str)
     args = parser.parse_args()
 
     mpi_fork(args.cpu)  # run parallel code with mpi
 
     from toy.run_utils import setup_logger_kwargs
     #logger_kwargs = setup_logger_kwargs(args.exp_name, args.seed)
-    logger_kwargs = {"output_dir": "./output", "exp_name": args.exp_name}
+    logger_kwargs = {"output_dir": "toy/output", "exp_name": args.exp_name}
 
     gym.register(
         id=args.env,
         entry_point="driving_envs.envs:GridworldToyEnv",
     )
 
-    vpg = VPG(lambda : gym.make(args.env), actor_critic=core.MLPActorCritic,
+    vpg = VPG(lambda : gym.make(args.env), args.exp_name, actor_critic=core.MLPActorCritic,
         ac_kwargs=dict(hidden_sizes=[args.hid]*args.l, activation=nn.Identity),
         gamma=args.gamma, pi_lr=args.pi_lr, seed=args.seed, steps_per_epoch=args.steps, epochs=args.epochs,
         logger_kwargs=logger_kwargs, save_freq=args.save_freq, save=args.save)
@@ -483,12 +452,19 @@ if __name__ == '__main__':
     # Train
     #vpg.train()
 
+    # Fine-Tune
+    #import os.path as osp
+    #fname = osp.join(args.fpath, 'pyt_save', 'model' + str(args.itr) + '_' + str(args.epret) + '.pt')
+    #print("args exp name", args.exp_name)
+    #print('\n\nLoading from %s\n\n' % fname)
+    #vpg.fine_tune(fname)
+
     # Get mesh grid
     #x,y,z = vpg.get_mesh_grid()
 
     # Plot
     print("plotting")
-    with open("toy/loss_plot_B4L_{}_{}_{}_after_training.pkl".format(-1,1,0.1), "rb") as f:
+    with open("toy/output/"+args.exp_name+"/grid_{}_{}_{}.pkl".format(-1,1,0.1), "rb") as f:
         loss_plot_dict = pickle.load(f)
     x,y,z = loss_plot_dict['X'], loss_plot_dict['Y'], loss_plot_dict['Z']
     vpg.plot(x,y,z)

@@ -53,7 +53,7 @@ class Logger:
     def __init__(self, output_dir=None, exp_name=None):
         """Create a summary writer logging to log_dir."""
         self.exp_name = None
-        self.output_dir = "toy/output"
+        self.output_dir = "toy/output/" + exp_name
         now = datetime.now()
         dt_string = now.strftime("%d_%m_%H:%M:%S")
         #self.tb_output_dir = os.path.join(self.output_dir, "tb_"+dt_string)
