@@ -17,9 +17,10 @@ from eval_model import evaluate
 import csv
 
 FLAGS = flags.FLAGS
-flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
+#flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
+flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B6R_B6L", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B1R_B0L_B1L", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 #flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
@@ -66,7 +67,7 @@ class RewardCurriculum(object):
         Trains reward curriculum
         """
         #self.timesteps = 1000000 # to train for longer
-        self.timesteps = 100000 # to train for shorter
+        #self.timesteps = 100000 # to train for shorter
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
             env = gym.make(lesson)
@@ -138,8 +139,13 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                 with open(rets_path, "a", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(line)
+                #if ret >= 60.0:  # stop training when hit a threshold
+                #    print("STOPPING TRAININGGGGGGGGGGGGGGGGGGGGGGGG")
+                #    return False
             else:
                 ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
+                #if ret >= 60.0:  # stop training when hit a threshold
+                #    return False
             #print("eval ret: ", ret)
         #print("training steps: ", model.num_timesteps)
         return True
@@ -152,7 +158,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous_updated", sync_tensorboard=True)
     from output.updated_gridworld_continuous.policies import *
-    model = B6R
+    model = B1R_B0L
     model_dir = os.path.join(model[0], model[1], model[2])
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_single(env_name="Continuous-v0")
