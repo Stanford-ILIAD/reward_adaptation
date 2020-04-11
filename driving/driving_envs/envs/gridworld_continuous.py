@@ -98,7 +98,7 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-            Building(Point(self.width/2., self.height/2.), Point(6,6), "gray80")
+           Building(Point(self.width/2., self.height/2.), Point(1,1), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
@@ -145,6 +145,9 @@ class GridworldContinuousEnv(gym.Env):
         homotopy_rew *= gamma**(self.step_num)
         dist2goal *= (1.0 - gamma**(self.step_num))
 
+        #homotopy_rew = 0.0
+        #for building in self.buildings:
+        #    homotopy_rew += 1 if self.car.x > building.center.x + building.size.x/2. and self.car.y < self.width/2. else 0
         reward = np.sum(np.array([
                  dist2goal,
                  coll_cost,
@@ -153,7 +156,7 @@ class GridworldContinuousEnv(gym.Env):
             ]))
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
-                          "heading: ", heading,
+                          #"heading: ", heading,
                           "reward: ", reward)
         return reward
 
