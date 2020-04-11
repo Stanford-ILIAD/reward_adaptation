@@ -175,6 +175,8 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
         self.check_point3 = False
         self.check_point4 = False
         self.check_point5 = False
+
+        self.goal_count = 0
         
         self.world.reset()
 
@@ -209,8 +211,10 @@ class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
                 coll_cost = -1000
 
         goal_rew = 0.0
-        if self.car.collidesWith(self.goal_obj):
+        #if self.car.collidesWith(self.goal_obj):
+        if self.car.y > self.height-5 and self.goal_count < 2:
             goal_rew = 1000
+            self.goal_count += 1
 
         # adding preference
         heading = self.world.state[-3]
@@ -269,8 +273,10 @@ class GridworldContinuousMultiObjRREnv(GridworldContinuousMultiObjLLEnv):
                 coll_cost = -1000
 
         goal_rew = 0.0
-        if self.car.collidesWith(self.goal_obj):
+        #if self.car.collidesWith(self.goal_obj):
+        if self.car.y > self.height-5 and self.goal_count < 2:
             goal_rew = 1000
+            self.goal_count += 1
 
         # adding preference
         heading = self.world.state[-3]
@@ -329,8 +335,10 @@ class GridworldContinuousMultiObjLREnv(GridworldContinuousMultiObjLLEnv):
                 coll_cost = -1000.
 
         goal_rew = 0.0
-        if self.car.collidesWith(self.goal_obj):
-            goal_rew = 100.
+        #if self.car.collidesWith(self.goal_obj):
+        if self.car.y > self.height-5 and self.goal_count < 2:
+            goal_rew = 1000
+            self.goal_count += 1
 
         # adding preference
         heading = self.world.state[-3]
@@ -420,8 +428,10 @@ class GridworldContinuousMultiObjRLEnv(GridworldContinuousMultiObjLLEnv):
                 coll_cost -= 1000.
 
         goal_rew = 0.0
-        if self.car.collidesWith(self.goal_obj):
-            goal_rew = 100
+        #if self.car.collidesWith(self.goal_obj):
+        if self.car.y > self.height-5 and self.goal_count < 2:
+            goal_rew = 1000
+            self.goal_count += 1
 
         # adding preference
         heading = self.world.state[-3]
@@ -506,6 +516,8 @@ class GridworldContinuousNoneRLEnv(GridworldContinuousMultiObjRLEnv):
     def reset(self):
         self.check_point1 = False
         self.check_point2 = False
+
+        self.goal_count = 0
         
         self.world.reset()
 
@@ -597,6 +609,8 @@ class GridworldContinuousNoneLREnv(GridworldContinuousMultiObjLREnv):
     def reset(self):
         self.check_point1 = False
         self.check_point2 = False
+
+        self.goal_count = 0
         
         self.world.reset()
 
@@ -626,6 +640,8 @@ class GridworldContinuousNoneRREnv(GridworldContinuousMultiObjRREnv):
     def reset(self):
         self.check_point1 = False
         self.check_point2 = False
+
+        self.goal_count = 0
         
         self.world.reset()
 
@@ -655,6 +671,8 @@ class GridworldContinuousNoneLLEnv(GridworldContinuousMultiObjLLEnv):
     def reset(self):
         self.check_point1 = False
         self.check_point2 = False
+
+        self.goal_count = 0
         
         self.world.reset()
 
@@ -697,6 +715,8 @@ class GridworldContinuousAdjustLREnv(GridworldContinuousMultiObjLREnv):
     def reset(self):
         self.check_point1 = False
         self.check_point2 = False
+
+        self.goal_count = 0
         
         self.world.reset()
  
@@ -742,6 +762,8 @@ class GridworldContinuousAdjustRLEnv(GridworldContinuousMultiObjRLEnv):
     def reset(self):
         self.check_point1 = False
         self.check_point2 = False
+
+        self.goal_count = 0
         
         self.world.reset()
  
@@ -769,4 +791,212 @@ class GridworldContinuousAdjustRLEnv(GridworldContinuousMultiObjRLEnv):
 
         self.step_num = 0
         return self._get_obs()
+
+class GridworldContinuousAdjustRLREnv(GridworldContinuousMultiObjLREnv):
+    def __init__(self,
+                 dt: float = 0.1,
+                 width: int = 50,
+                 height: int = 100,
+                 time_limit: float = 300.0):
+        super(GridworldContinuousAdjustRLREnv, self).__init__(dt, width, height, time_limit)
+        self.reward_w = 0
+
+    def set_weight(self, w):
+        self.reward_w = w
+
+    def reward(self, verbose, weight=10.0):
+        checkpoint_portion = 1/4.
+        dist2goal = 5*(1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist))
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000. * self.reward_w
+
+        goal_rew = 0.0
+        #if self.car.collidesWith(self.goal_obj):
+        if self.car.y > self.height-5 and self.goal_count < 2:
+            goal_rew = 1000
+            self.goal_count += 1
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = np.pi / 2
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        if self.car.y < int(self.height*3./10.):
+            homotopy_rew += 5*(heading-mean_heading) if heading-mean_heading < 0.5 else 0.
+        elif int(self.height*3./10.) <= self.car.y < int(self.height*3./5.):
+            homotopy_rew += -5*(heading-mean_heading) if mean_heading - heading < 0.7 else 0.
+        else:
+            homotopy_rew += 5*(heading-mean_heading) if heading-mean_heading < 0.7 else 0.
+
+        normalize_factor = np.exp(4.5)-1
+        distance = self.width * (0.5-checkpoint_portion)
+        if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if not self.check_point1:
+                if self.width/2.-distance < self.car.x < self.width / 2.:
+                    factor = min(1, (np.exp(self.width / 2.-self.car.x) - 1) / normalize_factor)
+                elif self.car.x > self.width/2:
+                    factor = max(-1, (1-np.exp(self.car.x-self.width / 2.)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point1 = True
+            '''
+            if self.width * checkpoint_portion < self.car.x < self.width / 2. and (not self.check_point1):
+                homotopy_rew += 500.
+                self.check_point1 = True
+            elif self.width / 2. < self.car.x and (not self.check_point1):
+                homotopy_rew -= 100000.
+                self.check_point1 = True
+            '''
+        elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if not self.check_point2:
+                if self.width/2.+distance > self.car.x > self.width / 2.:
+                    factor = min(1, (np.exp(self.car.x-self.width / 2.) - 1) / normalize_factor) 
+                elif self.car.x < self.width/2.:
+                    factor = max(-1, (1-np.exp(self.width / 2.-self.car.x)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point2 = True
+            '''
+            if self.width / 2. < self.car.x < self.width * (1-checkpoint_portion) and (not self.check_point2):
+                homotopy_rew += 500.
+                self.check_point2 = True
+            elif self.car.x < self.width / 2. and (not self.check_point2):
+                homotopy_rew -= 100000.
+                self.check_point2 = True
+            '''
+        
+        if abs(heading-mean_heading) > 1.5:
+            homotopy_rew += -100000.
+
+        boundary_rew = 5*(1.-abs(self.width/2. - self.car.x) / (self.width/2.))
+        self.last_heading = heading
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 goal_rew,
+                 homotopy_rew,
+                 boundary_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
+        return reward
+
+class GridworldContinuousAdjustRRLEnv(GridworldContinuousMultiObjRLEnv):
+    def __init__(self,
+                 dt: float = 0.1,
+                 width: int = 50,
+                 height: int = 100,
+                 time_limit: float = 300.0):
+        super(GridworldContinuousAdjustRRLEnv, self).__init__(dt, width, height, time_limit)
+        self.reward_w = 0
+
+    def set_weight(self, w):
+        self.reward_w = w
+
+    def reward(self, verbose, weight=10.0):
+        checkpoint_portion = 1/4.
+        dist2goal = 5*(1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist))
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost -= 1000. * self.reward_w
+
+        goal_rew = 0.0
+        #if self.car.collidesWith(self.goal_obj):
+        if self.car.y > self.height-5 and self.goal_count < 2:
+            goal_rew = 1000
+            self.goal_count += 1
+
+        # adding preference
+        heading = self.world.state[-3]
+        max_heading = 2.0
+        mean_heading = np.pi / 2
+        gamma = 0.9
+        #dist2left = 1.5*(self.width-self.car.center.x)/self.width
+        homotopy_rew = 0.0
+        if self.car.y < int(self.height*3./10.):
+            homotopy_rew += -5*(heading-mean_heading) if mean_heading-heading < 0.5 else 0.
+        elif int(self.height*3./10.) <= self.car.y < int(self.height*3./5.):
+            homotopy_rew += 5*(heading-mean_heading) if heading - mean_heading < 0.7 else 0.
+        else:
+            homotopy_rew += -5*(heading-mean_heading) if mean_heading-heading < 0.7 else 0.
+
+        normalize_factor = np.exp(4.5)-1
+        distance = self.width * (0.5-checkpoint_portion)
+        if int(self.height*3./10.) -4. < self.car.y < int(self.height*3./10.):
+            if not self.check_point1:
+                if self.width/2.+distance > self.car.x > self.width / 2.:
+                    factor = min(1, (np.exp(self.car.x - self.width / 2.) - 1) / normalize_factor)
+                elif self.car.x < self.width/2:
+                    factor = max(-1, (1-np.exp(self.width / 2.-self.car.x)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point1 = True
+            '''
+            if self.width * (1-checkpoint_portion) > self.car.x > self.width / 2. and (not self.check_point1):
+                homotopy_rew += 500.
+                self.check_point1 = True
+            elif self.width / 2. > self.car.x and (not self.check_point1):
+                homotopy_rew -= 100000.
+                self.check_point1 = True
+            '''
+        elif int(self.height*3./5.) -4. < self.car.y < int(self.height*3./5.):
+            if not self.check_point2:
+                if self.width/2.-distance < self.car.x < self.width / 2.:
+                    factor = min(1, (np.exp(self.width / 2.-self.car.x) - 1) / normalize_factor) 
+                elif self.car.x > self.width/2.:
+                    factor = max(-1, (1-np.exp(self.car.x-self.width / 2.)) / normalize_factor)
+                else:
+                    factor = 0.
+                if factor > 0:
+                    homotopy_rew += 500*factor
+                else:
+                    homotopy_rew += 10000*factor
+                self.check_point2 = True
+            '''
+            if self.width / 2. > self.car.x > self.width * checkpoint_portion and (not self.check_point2):
+                homotopy_rew += 500.
+                self.check_point2 = True
+            elif self.car.x > self.width / 2. and (not self.check_point2):
+                homotopy_rew -= 100000.
+                self.check_point2 = True
+            '''
+        
+        if abs(heading-mean_heading) > 1.5:
+            homotopy_rew += -100000.
+
+        boundary_rew = 5*(1.-abs(self.width/2. - self.car.x) / (self.width/2.))
+        self.last_heading = heading
+        reward = np.sum(np.array([
+                 #new_dist2goal,
+                 dist2goal,
+                 coll_cost,
+                 goal_rew,
+                 homotopy_rew,
+                 boundary_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "heading: ", heading,
+                          "reward: ", reward)
+        return reward
 

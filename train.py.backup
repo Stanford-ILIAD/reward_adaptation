@@ -38,12 +38,7 @@ def find_best(dir_name):
         if '.pkl' in file_name and ('final' not in file_name) and ('best_model' not in file_name):
             model_list.append([float(file_name.split('_')[2].split('.')[0]), int(file_name.split('_')[1]), file_name])
     best_model = max(model_list, key=compare)
-    return_item = best_model
-    #for item in best_model:
-    #    return_item = item
-    #    if item[1] >= 3500:
-    #        break
-    return os.path.join(dir_name, return_item[2]), return_item[1]
+    return os.path.join(dir_name, best_model[2]), best_model[1]
 
 class RewardCurriculum(object):
     """
@@ -85,7 +80,7 @@ class RewardCurriculum(object):
             self.rets_path = os.path.join(experiment_dir, "trajs.csv")
             wandb.save(experiment_dir)
 
-    def train_curriculum(self, env_name="Merging-v0", size_list=[], r_list=[]):
+    def train_curriculum(self, env_name="Merging-v0", size_list=[]):
         self.curriculum = [
             env_name
         ]
@@ -93,34 +88,8 @@ class RewardCurriculum(object):
         Trains reward curriculum
         """
         #curr_params = self.model.get_parameters()
-        self.timesteps = 300000 if len(size_list) == 0 else 100000 # to train for longer
+        self.timesteps = 300000 if len(size_list) == 0 else 60000 # to train for longer
         for l, lesson in enumerate(self.curriculum):
-            if len(r_list) > 0:
-                jj = 0
-                iter_nums = 0
-                for r_weight in r_list:
-                    print("\ntraining on ", lesson)
-
-                    env = gym.make(lesson)
-                    env.set_weight(r_weight)
-                    env = DummyVecEnv([lambda: env])
-                    self.model.set_env(env)
-                    #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
-                    #self.model.full_tensorboard_log = True
-                    eval_env = gym.make(lesson)
-                    eval_env.set_weight(r_weight)
-                    self.create_eval_dir1(self.experiment_dir+'_step_{:02d}'.format(jj))
-                    ret, _, _, _ = evaluate(self.model, eval_env, render=False)
-                    self.model.save(os.path.join(self.experiment_dir+'_step_{:02d}'.format(jj), 'model_{}_{}.pkl'.format(0, ret)))
-                    self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir+'_step_{:02d}'.format(jj),
-                               self.is_save, self.eval_save_period, self.rets_path, l)
-                    best_model, iter_num = find_best(self.experiment_dir+'_step_{:02d}'.format(jj))
-                    if self.model_type == "PPO":
-                        self.model = PPO2.load(best_model)
-                    elif self.model_type == "DQN":
-                        self.model = DQN.load(best_model)
-                    iter_nums += iter_num
-                    jj += 1
             if len(size_list) > 0:
                 jj = 0
                 iter_nums = 0
@@ -243,13 +212,13 @@ if __name__ == '__main__':
         model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_policy.pkl')
     else:
         if 'LL' in FLAGS.source_env and 'LR' in FLAGS.target_env:
-            model = ('output/gridworld_continuous', 'multi_obj_policies1', 'll_lr_none.pkl')
+            model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_lr_none1_256.pkl')
         elif 'LL' in FLAGS.source_env and 'RL' in FLAGS.target_env:
-            model = ('output/gridworld_continuous', 'multi_obj_policies1', 'll_rl_none.pkl')
+            model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_rl_none1_24448.pkl')
         elif 'RR' in FLAGS.source_env and 'LR' in FLAGS.target_env:
-            model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_lr_none.pkl')
+            model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_lr_none1_4864.pkl')
         elif 'RR' in FLAGS.source_env and 'RL' in FLAGS.target_env:
-            model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_rl_none.pkl')
+            model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_rl_none1_896.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
@@ -261,6 +230,4 @@ if __name__ == '__main__':
     #    RC.train_curriculum(env_name=FLAGS.target_env, size_list=[[0.2,0],[0.5,0],[1,0],[3,0],[6,0],[9,0],[9,0.2],[9,0.5],[9,1.],[9,3.],[9,6.],[9,8.],[9,8.25],[9,8.5],[9,8.75],[9,9.]])
     #elif 'backward' in FLAGS.experiment_name:
     #    RC.train_curriculum(env_name=FLAGS.target_env, size_list=[[0,0.2],[0,0.5],[0,1.],[0,3.],[0,6.],[0,9.],[0.01,9],[0.05,9],[0.1,9],[0.2,9.],[0.5,9.],[1.,9.],[3.,9.],[6.,9.],[9.,9.]])
-
-    RC.train_curriculum(env_name=FLAGS.target_env, r_list=[0.001,0.003,0.01,0.03,0.1,0.3,1.0])
-    #RC.train_curriculum(env_name=FLAGS.target_env)
+    RC.train_curriculum(env_name=FLAGS.target_env)

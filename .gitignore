@@ -12,5 +12,6 @@ experiments/gridworld_continuous/.ipynb_checkpoints/
 *.swo
 *.tar.gz
 output/gridworld_continuous/MO*
-baselines/*/output/gridworld_continuous/*
+output/gridworld_continuous_full_goal/MO*
+baselines/*/output/*
 baselines/*/wandb

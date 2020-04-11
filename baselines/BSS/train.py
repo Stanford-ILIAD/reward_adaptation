@@ -16,7 +16,8 @@ import csv
 
 import utils
 
-from model import PPO2L2SP
+from model import PPO2BSS
+from stable_baselines import PPO2
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("timesteps", 220000, "# timesteps to train")
@@ -46,9 +47,9 @@ class RewardCurriculum(object):
     Code related to training reward curriculum or single domain
     """
 
-    def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
-        data, params = utils.load_from_file(model_dir)
-        self.model = PPO2L2SP.load(model_dir, original_params=params)
+    def __init__(self, model_dir, output_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+        utils.resave_params_for_BSS(model_dir, output_dir)
+        self.model = PPO2BSS.load(output_dir, bss_coef=0.001, l2_coef=0.0005)
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
@@ -69,7 +70,7 @@ class RewardCurriculum(object):
             wandb.save(self.experiment_dir)
 
 
-    def train_l2sp(self, env_name="Merging-v0"):
+    def train_bss(self, env_name="Merging-v0"):
         """
         Directly trains on env_name
         """
@@ -137,5 +138,6 @@ if __name__ == '__main__':
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
     model_dir = os.path.join(model[0], model[1], model[2])
-    RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_l2sp(env_name=FLAGS.target_env)
+    output_dir = os.path.join(model[0], 'resave', model[2])
+    RC = RewardCurriculum(model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+    RC.train_bss(env_name=FLAGS.target_env)

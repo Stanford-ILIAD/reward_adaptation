@@ -125,13 +125,13 @@ if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
     #from output.gridworld_continuous.policies import *
     if 'LL' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
+        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'll_policy.pkl')
     elif 'RL' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
+        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rl_policy.pkl')
     elif 'LR' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
+        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'lr_policy.pkl')
     elif 'RR' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
+        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')

@@ -33,3 +33,5 @@ register(id="ContinuousNoneLR-v0", entry_point="driving_envs.envs:GridworldConti
 register(id="ContinuousNoneRL-v0", entry_point="driving_envs.envs:GridworldContinuousNoneRLEnv")
 register(id="ContinuousAdjustLR-v0", entry_point="driving_envs.envs:GridworldContinuousAdjustLREnv")
 register(id="ContinuousAdjustRL-v0", entry_point="driving_envs.envs:GridworldContinuousAdjustRLEnv")
+register(id="ContinuousAdjustRLR-v0", entry_point="driving_envs.envs:GridworldContinuousAdjustRLREnv")
+register(id="ContinuousAdjustRRL-v0", entry_point="driving_envs.envs:GridworldContinuousAdjustRRLEnv")

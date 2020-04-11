@@ -10,4 +10,5 @@ GridworldContinuousMultiObjLLEnv, GridworldContinuousMultiObjRREnv, \
 GridworldContinuousMultiObjLREnv, GridworldContinuousMultiObjRLEnv, \
 GridworldContinuousNoneLLEnv, GridworldContinuousNoneRREnv, \
 GridworldContinuousNoneLREnv, GridworldContinuousNoneRLEnv, \
-GridworldContinuousAdjustLREnv, GridworldContinuousAdjustRLEnv 
+GridworldContinuousAdjustLREnv, GridworldContinuousAdjustRLEnv, \
+GridworldContinuousAdjustRLREnv, GridworldContinuousAdjustRRLEnv
