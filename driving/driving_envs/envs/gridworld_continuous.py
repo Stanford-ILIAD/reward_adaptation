@@ -169,7 +169,7 @@ class GridworldToyEnv(GridworldContinuousEnv):
         super(GridworldToyEnv, self).__init__(dt=dt, width=width, height=height, time_limit=time_limit)
         self.action_space = spaces.Box(
             #np.array([-0.04]), np.array([0.04]), dtype=np.float32
-            np.array([-0.06]), np.array([0.06]), dtype=np.float32
+            np.array([-0.07]), np.array([0.07]), dtype=np.float32
         )
         self.goal = np.array([self.width / 2., self.height])
         #self.goal = np.array([self.width / 2., self.height-5])
@@ -179,7 +179,7 @@ class GridworldToyEnv(GridworldContinuousEnv):
         self.world.reset()
 
         self.buildings = [
-        #        Building(Point(self.width/2., self.height/2.), Point(4,4), "gray80")
+               Building(Point(self.width/2., self.height/2.), Point(7,7), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi / 2., "blue")
@@ -236,7 +236,7 @@ class GridworldToyEnv(GridworldContinuousEnv):
         coll_cost = 0
         for building in self.buildings:
             if self.car.collidesWith(building):
-                coll_cost = -1000
+                coll_cost = -100
 
         goal_rew = 0.0
         if self.car.collidesWith(self.goal_obj):
@@ -248,8 +248,8 @@ class GridworldToyEnv(GridworldContinuousEnv):
         mean_heading = np.pi / 2.0
         gamma = 0.99
         homotopy_rew = 0.0
-        #homotopy_rew += 2 * (heading - mean_heading)  # left
-        homotopy_rew += -2*(heading-mean_heading) # right
+        homotopy_rew += 2 * (heading - mean_heading)  # left
+        #homotopy_rew += -2*(heading-mean_heading) # right
         #homotopy_rew *= gamma ** (self.step_num)
         dist2goal *= (1.0 - gamma ** (self.step_num))
 
