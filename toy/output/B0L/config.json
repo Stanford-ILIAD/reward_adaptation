@@ -1,0 +1,560 @@
+{
+    "ac_kwargs":	{
+        "activation":	"Identity",
+        "hidden_sizes":	[]
+    },
+    "actor_critic":	"MLPActorCritic",
+    "env_fn":	"<function <lambda> at 0x141177e60>",
+    "epochs":	100,
+    "exp_name":	"B0L",
+    "gamma":	0.99,
+    "lam":	0.97,
+    "logger_kwargs":	{
+        "exp_name":	"B0L",
+        "output_dir":	"toy/output"
+    },
+    "max_ep_len":	1000,
+    "pi_lr":	0.001,
+    "save":	true,
+    "save_freq":	1,
+    "seed":	0,
+    "self":	{
+        "<__main__.VPG object at 0x14117c190>":	{
+            "ac":	{
+                "MLPActorCritic(\n  (pi): MLPGaussianActor(\n    (mu_net): Sequential(\n      (0): Linear(in_features=2, out_features=1, bias=False)\n      (1): Identity()\n    )\n  )\n  (v): MLPCritic(\n    (v_net): Sequential(\n      (0): Linear(in_features=2, out_features=1, bias=False)\n      (1): Identity()\n    )\n  )\n)":	{
+                    "_backward_hooks":	{},
+                    "_buffers":	{},
+                    "_forward_hooks":	{},
+                    "_forward_pre_hooks":	{},
+                    "_load_state_dict_pre_hooks":	{},
+                    "_modules":	{
+                        "pi":	{
+                            "MLPGaussianActor(\n  (mu_net): Sequential(\n    (0): Linear(in_features=2, out_features=1, bias=False)\n    (1): Identity()\n  )\n)":	{
+                                "_backward_hooks":	{},
+                                "_buffers":	{},
+                                "_forward_hooks":	{},
+                                "_forward_pre_hooks":	{},
+                                "_load_state_dict_pre_hooks":	{},
+                                "_modules":	{
+                                    "mu_net":	{
+                                        "Sequential(\n  (0): Linear(in_features=2, out_features=1, bias=False)\n  (1): Identity()\n)":	{
+                                            "_backward_hooks":	{},
+                                            "_buffers":	{},
+                                            "_forward_hooks":	{},
+                                            "_forward_pre_hooks":	{},
+                                            "_load_state_dict_pre_hooks":	{},
+                                            "_modules":	{
+                                                "0":	{
+                                                    "Linear(in_features=2, out_features=1, bias=False)":	{
+                                                        "_backward_hooks":	{},
+                                                        "_buffers":	{},
+                                                        "_forward_hooks":	{},
+                                                        "_forward_pre_hooks":	{},
+                                                        "_load_state_dict_pre_hooks":	{},
+                                                        "_modules":	{},
+                                                        "_parameters":	{
+                                                            "bias":	null,
+                                                            "weight":	"Parameter containing:\ntensor([[-0.5820, -0.5204]], requires_grad=True)"
+                                                        },
+                                                        "_state_dict_hooks":	{},
+                                                        "in_features":	2,
+                                                        "out_features":	1,
+                                                        "training":	true
+                                                    }
+                                                },
+                                                "1":	{
+                                                    "Identity()":	{
+                                                        "_backward_hooks":	{},
+                                                        "_buffers":	{},
+                                                        "_forward_hooks":	{},
+                                                        "_forward_pre_hooks":	{},
+                                                        "_load_state_dict_pre_hooks":	{},
+                                                        "_modules":	{},
+                                                        "_parameters":	{},
+                                                        "_state_dict_hooks":	{},
+                                                        "training":	true
+                                                    }
+                                                }
+                                            },
+                                            "_parameters":	{},
+                                            "_state_dict_hooks":	{},
+                                            "training":	true
+                                        }
+                                    }
+                                },
+                                "_parameters":	{
+                                    "log_std":	"Parameter containing:\ntensor([-0.5000], requires_grad=True)"
+                                },
+                                "_state_dict_hooks":	{},
+                                "training":	true
+                            }
+                        },
+                        "v":	{
+                            "MLPCritic(\n  (v_net): Sequential(\n    (0): Linear(in_features=2, out_features=1, bias=False)\n    (1): Identity()\n  )\n)":	{
+                                "_backward_hooks":	{},
+                                "_buffers":	{},
+                                "_forward_hooks":	{},
+                                "_forward_pre_hooks":	{},
+                                "_load_state_dict_pre_hooks":	{},
+                                "_modules":	{
+                                    "v_net":	{
+                                        "Sequential(\n  (0): Linear(in_features=2, out_features=1, bias=False)\n  (1): Identity()\n)":	{
+                                            "_backward_hooks":	{},
+                                            "_buffers":	{},
+                                            "_forward_hooks":	{},
+                                            "_forward_pre_hooks":	{},
+                                            "_load_state_dict_pre_hooks":	{},
+                                            "_modules":	{
+                                                "0":	{
+                                                    "Linear(in_features=2, out_features=1, bias=False)":	{
+                                                        "_backward_hooks":	{},
+                                                        "_buffers":	{},
+                                                        "_forward_hooks":	{},
+                                                        "_forward_pre_hooks":	{},
+                                                        "_load_state_dict_pre_hooks":	{},
+                                                        "_modules":	{},
+                                                        "_parameters":	{
+                                                            "bias":	null,
+                                                            "weight":	"Parameter containing:\ntensor([[-0.0140,  0.5607]], requires_grad=True)"
+                                                        },
+                                                        "_state_dict_hooks":	{},
+                                                        "in_features":	2,
+                                                        "out_features":	1,
+                                                        "training":	true
+                                                    }
+                                                },
+                                                "1":	{
+                                                    "Identity()":	{
+                                                        "_backward_hooks":	{},
+                                                        "_buffers":	{},
+                                                        "_forward_hooks":	{},
+                                                        "_forward_pre_hooks":	{},
+                                                        "_load_state_dict_pre_hooks":	{},
+                                                        "_modules":	{},
+                                                        "_parameters":	{},
+                                                        "_state_dict_hooks":	{},
+                                                        "training":	true
+                                                    }
+                                                }
+                                            },
+                                            "_parameters":	{},
+                                            "_state_dict_hooks":	{},
+                                            "training":	true
+                                        }
+                                    }
+                                },
+                                "_parameters":	{},
+                                "_state_dict_hooks":	{},
+                                "training":	true
+                            }
+                        }
+                    },
+                    "_parameters":	{},
+                    "_state_dict_hooks":	{},
+                    "action_space":	{
+                        "Box(1,)":	{
+                            "bounded_above":	"[ True]",
+                            "bounded_below":	"[ True]",
+                            "dtype":	"float32",
+                            "high":	"[0.07]",
+                            "low":	"[-0.07]",
+                            "np_random":	"RandomState(MT19937)",
+                            "shape":	[
+                                1
+                            ]
+                        }
+                    },
+                    "exploration":	0.5,
+                    "training":	true
+                }
+            },
+            "act_dim":	[
+                1
+            ],
+            "anneal_steps":	4000,
+            "env":	{
+                "<GridworldToyEnv<Toy-v0>>":	{
+                    "accelerate":	{
+                        "PidVelPolicy(0.1)":	{
+                            "Kd":	6.0,
+                            "Ki":	1.0,
+                            "Kp":	3.0,
+                            "_target_vel":	null,
+                            "dt":	0.1,
+                            "errors":	[],
+                            "integral":	0,
+                            "previous_error":	0
+                        }
+                    },
+                    "action_space":	{
+                        "Box(1,)":	{
+                            "bounded_above":	"[ True]",
+                            "bounded_below":	"[ True]",
+                            "dtype":	"float32",
+                            "high":	"[0.07]",
+                            "low":	"[-0.07]",
+                            "np_random":	"RandomState(MT19937)",
+                            "shape":	[
+                                1
+                            ]
+                        }
+                    },
+                    "buildings":	[],
+                    "cars":	{},
+                    "correct_pos":	[],
+                    "dt":	0.1,
+                    "goal":	"[25. 50.]",
+                    "height":	50,
+                    "max_dist":	40.0,
+                    "next_pos":	[],
+                    "observation_space":	{
+                        "Box(2,)":	{
+                            "bounded_above":	"[False False]",
+                            "bounded_below":	"[False False]",
+                            "dtype":	"float32",
+                            "high":	"[inf inf]",
+                            "low":	"[-inf -inf]",
+                            "np_random":	"RandomState(MT19937)",
+                            "shape":	[
+                                2
+                            ]
+                        }
+                    },
+                    "spec":	{
+                        "EnvSpec(Toy-v0)":	{
+                            "_env_name":	"Toy",
+                            "_kwargs":	{},
+                            "entry_point":	"driving_envs.envs:GridworldToyEnv",
+                            "id":	"Toy-v0",
+                            "max_episode_steps":	null,
+                            "nondeterministic":	false,
+                            "reward_threshold":	null
+                        }
+                    },
+                    "start":	"[25.  5.]",
+                    "step_num":	0,
+                    "time_limit":	90.0,
+                    "width":	50,
+                    "world":	{
+                        "<driving_envs.world.World object at 0x1411872d0>":	{
+                            "dt":	0.1,
+                            "dynamic_agents":	[],
+                            "static_agents":	[],
+                            "t":	0,
+                            "visualizer":	{
+                                "<driving_envs.visualizer.Visualizer object at 0x141194ad0>":	{
+                                    "display_height":	300,
+                                    "display_width":	300,
+                                    "ppm":	6,
+                                    "visualized_imgs":	[],
+                                    "win":	null,
+                                    "window_created":	false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "epochs":	100,
+            "eval_env":	{
+                "<GridworldToyEnv<Toy-v0>>":	{
+                    "accelerate":	{
+                        "PidVelPolicy(0.1)":	{
+                            "Kd":	6.0,
+                            "Ki":	1.0,
+                            "Kp":	3.0,
+                            "_target_vel":	null,
+                            "dt":	0.1,
+                            "errors":	[],
+                            "integral":	0,
+                            "previous_error":	0
+                        }
+                    },
+                    "action_space":	{
+                        "Box(1,)":	{
+                            "bounded_above":	"[ True]",
+                            "bounded_below":	"[ True]",
+                            "dtype":	"float32",
+                            "high":	"[0.07]",
+                            "low":	"[-0.07]",
+                            "np_random":	"RandomState(MT19937)",
+                            "shape":	[
+                                1
+                            ]
+                        }
+                    },
+                    "buildings":	[],
+                    "cars":	{},
+                    "correct_pos":	[],
+                    "dt":	0.1,
+                    "goal":	"[25. 50.]",
+                    "height":	50,
+                    "max_dist":	40.0,
+                    "next_pos":	[],
+                    "observation_space":	{
+                        "Box(2,)":	{
+                            "bounded_above":	"[False False]",
+                            "bounded_below":	"[False False]",
+                            "dtype":	"float32",
+                            "high":	"[inf inf]",
+                            "low":	"[-inf -inf]",
+                            "np_random":	"RandomState(MT19937)",
+                            "shape":	[
+                                2
+                            ]
+                        }
+                    },
+                    "spec":	{
+                        "EnvSpec(Toy-v0)":	{
+                            "_env_name":	"Toy",
+                            "_kwargs":	{},
+                            "entry_point":	"driving_envs.envs:GridworldToyEnv",
+                            "id":	"Toy-v0",
+                            "max_episode_steps":	null,
+                            "nondeterministic":	false,
+                            "reward_threshold":	null
+                        }
+                    },
+                    "start":	"[25.  5.]",
+                    "step_num":	0,
+                    "time_limit":	90.0,
+                    "width":	50,
+                    "world":	{
+                        "<driving_envs.world.World object at 0x1410511d0>":	{
+                            "dt":	0.1,
+                            "dynamic_agents":	[],
+                            "static_agents":	[],
+                            "t":	0,
+                            "visualizer":	{
+                                "<driving_envs.visualizer.Visualizer object at 0x14127cf10>":	{
+                                    "display_height":	300,
+                                    "display_width":	300,
+                                    "ppm":	6,
+                                    "visualized_imgs":	[],
+                                    "win":	null,
+                                    "window_created":	false
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "exploration":	0.5,
+            "final_exp":	0.0,
+            "init_exp":	0.5,
+            "local_steps_per_epoch":	1000,
+            "logger":	{
+                "<toy.logger.EpochLogger object at 0x145710390>":	{
+                    "epoch_dict":	{},
+                    "exp_name":	null,
+                    "first_row":	true,
+                    "log_current_row":	{},
+                    "log_headers":	[],
+                    "output_dir":	"toy/output/B0L",
+                    "tb_output_dir":	"toy/output/B0L/tb",
+                    "weight_loss_file":	"toy/output/B0L/weight_loss.csv",
+                    "writer":	{
+                        "<tensorflow.python.summary.writer.writer.FileWriter object at 0x145710350>":	{
+                            "_closed":	false,
+                            "_seen_summary_tags":	"set()",
+                            "_session_run_tags":	{},
+                            "event_writer":	{
+                                "<tensorflow.python.summary.writer.event_file_writer.EventFileWriter object at 0x1457103d0>":	{
+                                    "_closed":	false,
+                                    "_ev_writer":	{
+                                        "<tensorflow.python.pywrap_tensorflow_internal.EventsWriter; proxy of <Swig Object of type 'tensorflow::EventsWriter *' at 0x1411a4240> >":	{
+                                            "this":	"<Swig Object of type 'tensorflow::EventsWriter *' at 0x1411a4240>"
+                                        }
+                                    },
+                                    "_event_queue":	{
+                                        "<queue.Queue object at 0x145710410>":	{
+                                            "all_tasks_done":	{
+                                                "<Condition(<unlocked _thread.lock object at 0x1411a4870>, 0)>":	{
+                                                    "_lock":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                    "_waiters":	"deque([])",
+                                                    "acquire":	"acquire",
+                                                    "release":	"release"
+                                                }
+                                            },
+                                            "maxsize":	10,
+                                            "mutex":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                            "not_empty":	{
+                                                "<Condition(<unlocked _thread.lock object at 0x1411a4870>, 1)>":	{
+                                                    "_lock":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                    "_waiters":	"deque([<locked _thread.lock object at 0x141203d80>])",
+                                                    "acquire":	"acquire",
+                                                    "release":	"release"
+                                                }
+                                            },
+                                            "not_full":	{
+                                                "<Condition(<unlocked _thread.lock object at 0x1411a4870>, 0)>":	{
+                                                    "_lock":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                    "_waiters":	"deque([])",
+                                                    "acquire":	"acquire",
+                                                    "release":	"release"
+                                                }
+                                            },
+                                            "queue":	"deque([])",
+                                            "unfinished_tasks":	0
+                                        }
+                                    },
+                                    "_flush_secs":	120,
+                                    "_logdir":	"toy/output/B0L/tb",
+                                    "_sentinel_event":	"",
+                                    "_worker":	{
+                                        "<_EventLoggerThread(Thread-1, started daemon 123145434161152)>":	{
+                                            "_args":	[],
+                                            "_daemonic":	true,
+                                            "_ev_writer":	{
+                                                "<tensorflow.python.pywrap_tensorflow_internal.EventsWriter; proxy of <Swig Object of type 'tensorflow::EventsWriter *' at 0x1411a4240> >":	{
+                                                    "this":	"<Swig Object of type 'tensorflow::EventsWriter *' at 0x1411a4240>"
+                                                }
+                                            },
+                                            "_flush_secs":	120,
+                                            "_ident":	123145434161152,
+                                            "_initialized":	true,
+                                            "_is_stopped":	false,
+                                            "_kwargs":	{},
+                                            "_name":	"Thread-1",
+                                            "_next_event_flush_time":	0,
+                                            "_queue":	{
+                                                "<queue.Queue object at 0x145710410>":	{
+                                                    "all_tasks_done":	{
+                                                        "<Condition(<unlocked _thread.lock object at 0x1411a4870>, 0)>":	{
+                                                            "_lock":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                            "_waiters":	"deque([])",
+                                                            "acquire":	"acquire",
+                                                            "release":	"release"
+                                                        }
+                                                    },
+                                                    "maxsize":	10,
+                                                    "mutex":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                    "not_empty":	{
+                                                        "<Condition(<unlocked _thread.lock object at 0x1411a4870>, 1)>":	{
+                                                            "_lock":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                            "_waiters":	"deque([<locked _thread.lock object at 0x141203d80>])",
+                                                            "acquire":	"acquire",
+                                                            "release":	"release"
+                                                        }
+                                                    },
+                                                    "not_full":	{
+                                                        "<Condition(<unlocked _thread.lock object at 0x1411a4870>, 0)>":	{
+                                                            "_lock":	"<unlocked _thread.lock object at 0x1411a4870>",
+                                                            "_waiters":	"deque([])",
+                                                            "acquire":	"acquire",
+                                                            "release":	"release"
+                                                        }
+                                                    },
+                                                    "queue":	"deque([])",
+                                                    "unfinished_tasks":	0
+                                                }
+                                            },
+                                            "_sentinel_event":	"",
+                                            "_started":	{
+                                                "<threading.Event object at 0x1457105d0>":	{
+                                                    "_cond":	{
+                                                        "<Condition(<unlocked _thread.lock object at 0x1411a4930>, 0)>":	{
+                                                            "_lock":	"<unlocked _thread.lock object at 0x1411a4930>",
+                                                            "_waiters":	"deque([])",
+                                                            "acquire":	"acquire",
+                                                            "release":	"release"
+                                                        }
+                                                    },
+                                                    "_flag":	true
+                                                }
+                                            },
+                                            "_stderr":	{
+                                                "<_io.TextIOWrapper name='<stderr>' mode='w' encoding='UTF-8'>":	{
+                                                    "mode":	"w"
+                                                }
+                                            },
+                                            "_target":	null,
+                                            "_tstate_lock":	"<locked _thread.lock object at 0x141203d50>"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "max_ep_len":	90.0,
+            "obs_dim":	[
+                2
+            ],
+            "output_dir":	"toy/output/B0L",
+            "pi_lr":	0.001,
+            "pi_optimizer":	{
+                "Adam (\nParameter Group 0\n    amsgrad: False\n    betas: (0.9, 0.999)\n    eps: 1e-08\n    lr: 0.001\n    weight_decay: 0\n)":	{
+                    "defaults":	{
+                        "amsgrad":	false,
+                        "betas":	[
+                            0.9,
+                            0.999
+                        ],
+                        "eps":	1e-08,
+                        "lr":	0.001,
+                        "weight_decay":	0
+                    },
+                    "param_groups":	[
+                        {
+                            "amsgrad":	false,
+                            "betas":	[
+                                0.9,
+                                0.999
+                            ],
+                            "eps":	1e-08,
+                            "lr":	0.001,
+                            "params":	[
+                                "Parameter containing:\ntensor([-0.5000], requires_grad=True)",
+                                "Parameter containing:\ntensor([[-0.5820, -0.5204]], requires_grad=True)"
+                            ],
+                            "weight_decay":	0
+                        }
+                    ],
+                    "state":	{}
+                }
+            },
+            "save":	true,
+            "save_freq":	1,
+            "seed":	0,
+            "steps_per_epoch":	1000,
+            "train_iteration":	0,
+            "train_v_iters":	80,
+            "vf_lr":	0.001,
+            "vf_optimizer":	{
+                "Adam (\nParameter Group 0\n    amsgrad: False\n    betas: (0.9, 0.999)\n    eps: 1e-08\n    lr: 0.001\n    weight_decay: 0\n)":	{
+                    "defaults":	{
+                        "amsgrad":	false,
+                        "betas":	[
+                            0.9,
+                            0.999
+                        ],
+                        "eps":	1e-08,
+                        "lr":	0.001,
+                        "weight_decay":	0
+                    },
+                    "param_groups":	[
+                        {
+                            "amsgrad":	false,
+                            "betas":	[
+                                0.9,
+                                0.999
+                            ],
+                            "eps":	1e-08,
+                            "lr":	0.001,
+                            "params":	[
+                                "Parameter containing:\ntensor([[-0.0140,  0.5607]], requires_grad=True)"
+                            ],
+                            "weight_decay":	0
+                        }
+                    ],
+                    "state":	{}
+                }
+            }
+        }
+    },
+    "steps_per_epoch":	1000,
+    "train_v_iters":	80,
+    "vf_lr":	0.001
+}

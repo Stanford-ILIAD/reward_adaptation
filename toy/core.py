@@ -98,6 +98,7 @@ class MLPGaussianActor(Actor):
         #print("\nmu: ", mu, "obs: ", obs)
         #print([x for x in self.mu_net.named_parameters()])
         std = torch.exp(self.log_std)
+        #std = torch.Tensor([0.01])
         std = torch.Tensor([0.01])
         #print("std: ", std)
         return Normal(mu, std)
@@ -137,35 +138,39 @@ class MLPActorCritic(nn.Module):
 
     def step(self, obs, is_exp=True):
         # normalize obs
-        mean_obs = 25 # max inp: 50, min inp: 0
-        obs = (obs - mean_obs)/mean_obs
-        assert (obs <= 1.5).all() and (obs >=-1.5).all()
+        #mean_obs = 25 # max inp: 50, min inp: 0
+        #obs = (obs - mean_obs)/mean_obs
+        #assert (obs <= 1.5).all() and (obs >=-1.5).all()
 
-        # scale obs in range of action space
-        obs *= torch.Tensor(self.action_space.high)
-        assert (obs <= 0.08).all() and (obs >= -0.08).all()
+        ## scale obs in range of action space
+        #obs *= torch.Tensor(self.action_space.high)
+        #assert (obs <= 0.08).all() and (obs >= -0.08).all()
 
-        if is_exp and random.random() < self.exploration:
-            with torch.no_grad():
-                pi = self.pi._distribution(obs)
-                #a = pi.sample()
-                a = torch.Tensor(self.action_space.sample())
-                logp_a = self.pi._log_prob_from_distribution(pi, a)
-                v = self.v(obs)
+        #max_obs = 50
+        #obs /= max_obs
+        #obs *= torch.Tensor(self.action_space.high)
 
-        else:
-            with torch.no_grad():
-                pi = self.pi._distribution(obs)
-                a = pi.sample()
-                logp_a = self.pi._log_prob_from_distribution(pi, a)
-                #print("sampled a: ", a, torch.exp(logp_a))
-                v = self.v(obs)
+        #if is_exp and random.random() < self.exploration:
+        #    with torch.no_grad():
+        #        pi = self.pi._distribution(obs)
+        #        #a = pi.sample()
+        #        a = torch.Tensor(self.action_space.sample())
+        #        logp_a = self.pi._log_prob_from_distribution(pi, a)
+        #        v = self.v(obs)
 
-        #with torch.no_grad():
-        #    pi = self.pi._distribution(obs)
-        #    a = pi.sample()
-        #    logp_a = self.pi._log_prob_from_distribution(pi, a)
-        #    v = self.v(obs)
+        #else:
+        #    with torch.no_grad():
+        #        pi = self.pi._distribution(obs)
+        #        a = pi.sample()
+        #        logp_a = self.pi._log_prob_from_distribution(pi, a)
+        #        #print("sampled a: ", a, torch.exp(logp_a))
+        #        v = self.v(obs)
+
+        with torch.no_grad():
+            pi = self.pi._distribution(obs)
+            a = pi.sample()
+            logp_a = self.pi._log_prob_from_distribution(pi, a)
+            v = self.v(obs)
 
         return a.numpy(), v.numpy(), logp_a.numpy()
 

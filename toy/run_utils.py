@@ -1,6 +1,6 @@
 from toy.user_config import DEFAULT_DATA_DIR, FORCE_DATESTAMP, \
                                DEFAULT_SHORTHAND, WAIT_BEFORE_LAUNCH
-from toy.logx import colorize
+from toy.logger import colorize
 from toy.mpi_tools import mpi_fork, msg
 from toy.serialization_utils import convert_json
 import base64
