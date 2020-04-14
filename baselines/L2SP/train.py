@@ -19,9 +19,9 @@ import utils
 from model import PPO2L2SP
 
 FLAGS = flags.FLAGS
-flags.DEFINE_integer("timesteps", 220000, "# timesteps to train")
-flags.DEFINE_string("experiment_dir", "output/gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B2R_B0L", "Name of experiment")
+flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
+flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous_L2SP", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B0R_B0L_L2SP", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 #flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
@@ -123,19 +123,26 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
-    #from output.gridworld_continuous.policies import *
-    if 'LL' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'll_policy.pkl')
-    elif 'RL' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rl_policy.pkl')
-    elif 'LR' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'lr_policy.pkl')
-    elif 'RR' in FLAGS.source_env:
-        model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_policy.pkl')
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
+    if FLAGS.is_save: wandb.init(project="continuous_updated", sync_tensorboard=True)
+    from output.updated_gridworld_continuous.policies import *
+    model = B0R
     model_dir = os.path.join(model[0], model[1], model[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_l2sp(env_name=FLAGS.target_env)
+    RC.train_l2sp(env_name="Continuous-v0")
+
+    #if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
+    ##from output.gridworld_continuous.policies import *
+    #if 'LL' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'll_policy.pkl')
+    #elif 'RL' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rl_policy.pkl')
+    #elif 'LR' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'lr_policy.pkl')
+    #elif 'RR' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_policy.pkl')
+    ##model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
+    ##model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
+    ##model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
+    #model_dir = os.path.join(model[0], model[1], model[2])
+    #RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+    #RC.train_l2sp(env_name=FLAGS.target_env)
