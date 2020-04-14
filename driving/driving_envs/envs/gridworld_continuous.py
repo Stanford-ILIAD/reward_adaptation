@@ -140,8 +140,8 @@ class GridworldContinuousEnv(gym.Env):
         mean_heading = np.pi/2.0
         gamma = 0.9
         homotopy_rew = 0.0
-        homotopy_rew += 2*(heading-mean_heading) # left
-        #homotopy_rew += -2*(heading-mean_heading) # right
+        #homotopy_rew += 2*(heading-mean_heading) # left
+        homotopy_rew += -2*(heading-mean_heading) # right
         homotopy_rew *= gamma**(self.step_num)
         dist2goal *= (1.0 - gamma**(self.step_num))
 
