@@ -98,7 +98,7 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-           Building(Point(self.width/2., self.height/2.), Point(1,1), "gray80")
+           Building(Point(self.width/2., self.height/2.), Point(3,3), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
@@ -140,8 +140,8 @@ class GridworldContinuousEnv(gym.Env):
         mean_heading = np.pi/2.0
         gamma = 0.9
         homotopy_rew = 0.0
-        #homotopy_rew += 2*(heading-mean_heading) # left
-        homotopy_rew += -2*(heading-mean_heading) # right
+        homotopy_rew += 2*(heading-mean_heading) # left
+        #homotopy_rew += -2*(heading-mean_heading) # right
         homotopy_rew *= gamma**(self.step_num)
         dist2goal *= (1.0 - gamma**(self.step_num))
 

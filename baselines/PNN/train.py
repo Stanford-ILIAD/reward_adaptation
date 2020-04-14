@@ -21,7 +21,7 @@ FLAGS = flags.FLAGS
 flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous_PNN", "Name of experiment")
 flags.DEFINE_string("experiment_name", "B3R_B3L_PNN", "Name of experiment")
-flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
 #flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
 flags.DEFINE_integer("num_envs", 1, "number of envs")
