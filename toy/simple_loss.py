@@ -149,19 +149,19 @@ class VPG():
         batch_old_logps = []
         o, d, ep_rews = self.env.reset(), False, []
         while True:
-            #self.env.render()
+            self.env.render()
             # save obs
             o = self._normalize_obs(o)
-            #print("normalized o: ", o)
+            print("normalized o: ", o)
             batch_obs.append(o.copy())
 
             # act
             a_unclipped, v, logp = self.ac.step(torch.as_tensor(o, dtype=torch.float32))
             a = np.clip(a_unclipped, self.env.action_space.low, self.env.action_space.high)
-            o, r, d, _ = self.env.step(a, verbose=False)
+            o, r, d, _ = self.env.step(a, verbose=True)
 
             # save action, reward
-            #print("a: ,", a_unclipped,a)
+            print("a: ,", a_unclipped,a)
             batch_acts.append(a)
             batch_old_logps.append(logp.item())
             ep_rews.append(r)
@@ -242,7 +242,7 @@ class VPG():
         return np.mean(loss_pis)
 
     def get_mesh_grid(self):
-        X, Y = np.meshgrid(np.arange(-1,1,0.1), np.arange(-1,1,0.1))
+        X, Y = np.meshgrid(np.arange(-1,1.3,0.1), np.arange(-1,1.3,0.1))
         Z = np.zeros(X.shape)
         for i in range(X.shape[0]):
             print("row: ", i)
@@ -253,7 +253,7 @@ class VPG():
                 Z[i][j] = loss_pi
 
         loss_plot = {'X': X, 'Y': Y, 'Z': Z}
-        pickle.dump(loss_plot, open(self.output_dir+"/grid_{}_{}_{}.pkl".format(-1, 1, 0.1), "wb"))
+        pickle.dump(loss_plot, open(self.output_dir+"/grid_{}_{}_{}.pkl".format(-1, 1.3, 0.1), "wb"))
         return X, Y, Z
 
 
@@ -263,25 +263,69 @@ class VPG():
         matplotlib.rcParams['font.family'] = 'STIXGeneral'
         matplotlib.rcParams["font.weight"] = "bold"
         matplotlib.rcParams["axes.labelweight"] = "bold"
-        fig = plt.figure(figsize=(10, 8))
+        fig = plt.figure(figsize=(10, 11))
         ax = fig.gca(projection='3d')
         surf = ax.plot_surface(x, y, z,
                         cmap=cm.coolwarm,
                         linewidth=0,
                         antialiased=True)
         #wx,wy,wz = get_weights_from_csv(self.output_dir+"/weight_loss.csv")
-        #wx,wy,wz = get_weights_from_csv("toy/output/B0R_B0L/weight_loss.csv")
+        #wx,wy,wz = get_weights_from_csv("toy/output/B7R_B7L/weight_loss.csv")
         #ax.scatter3D(wx, wy, wz+120, c="black", s=20)
         ax.set_xlabel('x')
         ax.set_ylabel('y')
+        ax.axes.xaxis.set_ticklabels([])
+        ax.axes.yaxis.set_ticklabels([])
+        ax.axes.zaxis.set_ticklabels([])
         #ax.set_zlabel('z')
         # Add a color bar which maps values to colors.
         fig.colorbar(surf, shrink=0.5, orientation='horizontal')
         #fig.colorbar(surf, shrink=0.5, aspect=5, orientation='horizontal')
+        plt.savefig(self.output_dir+"/plot.pdf", bbox_inches='tight', pad_inches=0)
         plt.show()
-        plt.savefig(self.output_dir+"/plot.pdf", bbox_inches='tight')
         ipdb.set_trace()
 
+    def plot2d(self, x, y, z):
+        import matplotlib
+        from matplotlib.ticker import MaxNLocator
+        matplotlib.rcParams['mathtext.fontset'] = 'stix'
+        matplotlib.rcParams['font.family'] = 'STIXGeneral'
+        matplotlib.rcParams["font.weight"] = "bold"
+        matplotlib.rcParams["axes.labelweight"] = "bold"
+        fig, ax = plt.subplots(figsize=(6,6))
+        cf = ax.contourf(x, y, z,
+                               cmap=cm.coolwarm,
+                               #linewidth=0,
+                               #antialiased=True,
+                               #levels=levels,
+                          )
+        #wx,wy,wz = get_weights_from_csv(self.output_dir+"/weight_loss.csv")
+        wx,wy,wz = get_weights_from_csv("toy/output/B7R_B7L/weight_loss.csv")
+        indices = np.linspace(0, len(wx)-1, num=13, dtype=int) # for B7L
+        #indices = np.linspace(0, len(wx)-1, num=10, dtype=int)
+
+        wx = np.take(wx,indices)
+        wy = np.take(wy, indices)
+
+        # for B7L
+        indices2 = np.where(wy<=1.0)
+        wx = np.take(wx, indices2)
+        wy = np.take(wy, indices2)
+        ax.set_xlim(-0.98,0.98)
+        ax.set_ylim(-0.98,0.98)
+        # for B7L
+
+        ax.scatter(wx, wy, c="black",s=100)
+        ax.axes.xaxis.set_ticklabels([])
+        ax.axes.yaxis.set_ticklabels([])
+        ax.xaxis.set_ticks_position('none')
+        ax.yaxis.set_ticks_position('none')
+
+        # Add a color bar which maps values to colors.
+        #fig.colorbar(cf, ax=ax, shrink=0.5, orientation='horizontal')
+        plt.savefig(self.output_dir+"/plot_2d.pdf", bbox_inches='tight', pad_inches=0)
+        plt.show()
+        ipdb.set_trace()
 
 if __name__ == '__main__':
     import argparse
@@ -322,7 +366,7 @@ if __name__ == '__main__':
 
     # Train
     #vpg.train()
-    #vpg.get_loss_value(np.array([0,-1]))
+    #vpg.get_loss_value(np.array([1.0,-1.0]))
 
     # Fine-Tune
     #import os.path as osp
@@ -336,10 +380,11 @@ if __name__ == '__main__':
 
     # Plot
     print("plotting")
-    with open("toy/output/"+args.exp_name+"/grid_{}_{}_{}.pkl".format(-1,1,0.1), "rb") as f:
+    with open("toy/output/"+args.exp_name+"/grid_{}_{}_{}.pkl".format(-1,1.3,0.1), "rb") as f:  # for B7L 2d
+    #with open("toy/output/"+args.exp_name+"/grid_{}_{}_{}.pkl".format(-1,1,0.1), "rb") as f:
         loss_plot_dict = pickle.load(f)
     x,y,z = loss_plot_dict['X'], loss_plot_dict['Y'], loss_plot_dict['Z']
-    vpg.plot(x,y,z)
+    vpg.plot2d(x,y,z)
 
 
 
