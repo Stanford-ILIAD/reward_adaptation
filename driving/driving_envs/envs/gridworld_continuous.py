@@ -261,7 +261,8 @@ class GridworldToyEnv(GridworldContinuousEnv):
         ]))
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
-                          "heading: ", heading,
+                          #"heading: ", heading,
+                          "pos: ", self.car.center,
                           "reward: ", reward)
         return reward
 
