@@ -20,8 +20,8 @@ FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
 flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B1R_B0L_B1L", "Name of experiment")
-flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_string("experiment_name", "B9R", "Name of experiment")
+flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
 #flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -147,7 +147,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                 #if ret >= 60.0:  # stop training when hit a threshold
                 #    return False
             #print("eval ret: ", ret)
-        #print("training steps: ", model.num_timesteps)
+        #print("training steps: ", model.num_timesteps)#
         return True
     best_ret, n_callbacks = -np.infty, 0
     model.learn(total_timesteps=timesteps, callback=callback)

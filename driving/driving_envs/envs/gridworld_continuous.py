@@ -60,7 +60,7 @@ class GridworldContinuousEnv(gym.Env):
         self.accelerate = PidVelPolicy(dt=self.dt)
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array([-0.04]), np.array([0.04]), dtype=np.float32
+            np.array([-0.05]), np.array([0.05]), dtype=np.float32
         )
         self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
         self.correct_pos = []
@@ -74,6 +74,7 @@ class GridworldContinuousEnv(gym.Env):
         self.step_num += 1
 
         car = self.world.dynamic_agents[0]
+        if verbose: print("a: ", action)
         acc = self.accelerate.action(self._get_obs())
         action = np.append(action, acc)
         car.set_control(*action)
@@ -98,7 +99,7 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-           Building(Point(self.width/2., self.height/2.), Point(3,3), "gray80")
+           Building(Point(self.width/2., self.height/2.), Point(9,9), "gray80")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
@@ -140,8 +141,8 @@ class GridworldContinuousEnv(gym.Env):
         mean_heading = np.pi/2.0
         gamma = 0.9
         homotopy_rew = 0.0
-        homotopy_rew += 2*(heading-mean_heading) # left
-        #homotopy_rew += -2*(heading-mean_heading) # right
+        #homotopy_rew += 2*(heading-mean_heading) # left
+        homotopy_rew += -2*(heading-mean_heading) # right
         homotopy_rew *= gamma**(self.step_num)
         dist2goal *= (1.0 - gamma**(self.step_num))
 
