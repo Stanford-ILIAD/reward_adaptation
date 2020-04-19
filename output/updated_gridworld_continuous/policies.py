@@ -6,6 +6,7 @@ B4R = ["output/updated_gridworld_continuous", "B4R", "best_model_24064_55.268307
 B6R = ["output/updated_gridworld_continuous", "B6R", "best_model_23936_54.54799440976602.pkl"]
 B5R = ["output/updated_gridworld_continuous", "B5R", "best_model_135168_62.205550367107705.pkl"]
 B7R = ["output/updated_gridworld_continuous", "B7R", "best_model_160128_53.80273751182808.pkl"]
+B9R = ["output/updated_gridworld_continuous", "B9R", "best_model_121600_72.42990690191905.pkl"]
 
 
 B0L = ["output/updated_gridworld_continuous", "B0L", "best_model_31744_60.553682401862304.pkl"]
