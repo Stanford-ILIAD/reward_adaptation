@@ -6,7 +6,7 @@ import csv
 import gym
 import numpy as np
 import time
-from stable_baselines import DQN, PPO2
+from stable_baselines import DQN, PPO2, HER, DDPG
 from stable_baselines.common.policies import MlpPolicy
 import wandb
 from tensorflow import flags
@@ -14,6 +14,7 @@ import minigrid.gym_minigrid
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import driving_envs
+import ipdb
 
 
 
@@ -41,24 +42,34 @@ def evaluate(model, eval_env, render=False):
     Returns mean episode reward and standard deviation.
     """
     total_rets = []
+    ipdb.set_trace()
     nsteps = 0
     state_history = []
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        state_history.append(obs[:2])
+        if isinstance(eval_env.env, gym.wrappers.time_limit.TimeLimit):
+            print("FETCH REACH")
+            state_history.append(obs)
+        else:  # eval env is driving environment
+            state_history.append(obs[:2])
         state, ever_done = None, False
         while not ever_done:
             nsteps += 1
             action, state = model.predict(obs, state=state, deterministic=True)
-            next_obs, ret, done, _info = eval_env.step(action, verbose=render)
+            #next_obs, ret, done, _info = eval_env.step(action, verbose=render)
+            print("action: ", action)
+            next_obs, ret, done, _info = eval_env.step(action)
             # print("ret: ", ret)
             if render: eval_env.render()
             if not ever_done:
                 rets += ret
             # print("rets: ", rets)
             obs = next_obs
-            state_history.append(obs[:2])
+            if isinstance(eval_env.env, gym.wrappers.time_limit.TimeLimit):
+                state_history.append(obs)
+            else:  # eval env is driving environment
+                state_history.append(obs[:2])
             if render: time.sleep(.1)
             ever_done = done
         total_rets.append(rets)
@@ -76,7 +87,7 @@ if __name__ == "__main__":
     #from gridworld_policies.policies import *
     from output.updated_gridworld_continuous.policies import *
 
-    model_info = B5L
+    model_info = B9R
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     eval_env = load_env("Continuous-v0", "PPO")
     save = True
