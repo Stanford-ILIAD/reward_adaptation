@@ -6,8 +6,8 @@ import numpy as np
 from stable_baselines import PPO2, DQN, HER, DDPG
 from stable_baselines.her.utils import HERGoalEnvWrapper
 import wandb
-#import minigrid.gym_minigrid
-import driving_envs
+import driving.driving_envs
+import fetch.fetch_envs
 import utils
 from tensorflow import flags
 import stable_baselines
@@ -21,11 +21,11 @@ import ipdb
 FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
 flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
-flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "testfetch", "Name of experiment")
-flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
-#flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
-flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
+flags.DEFINE_string("experiment_dir", "output/fetch", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B0", "Name of experiment")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -114,7 +114,7 @@ class RewardCurriculum(object):
             env = HERGoalEnvWrapper(env)
             eval_env = HERGoalEnvWrapper(eval_env)
             self.HER = HER('MlpPolicy', env, DDPG, n_sampled_goal=4, goal_selection_strategy="future",
-                                                verbose=1)
+                                                seed=self.seed, verbose=1)
             self.model = train(self.HER, eval_env, self.timesteps, self.experiment_dir,
                                self.is_save, self.eval_save_period, self.rets_path, 0)
 
@@ -133,7 +133,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
         if (total_steps) % eval_save_period == 0:
             if is_save:
                 ret, std, total_rets, state_history = evaluate(model, eval_env, render=False)
-                model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
+                #model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
@@ -145,7 +145,9 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer = csv.writer(f)
                     writer.writerow(line)
             else:
-                ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
+                print("total steps: ", total_steps)
+                #ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
+                ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
         return True
     best_ret, n_callbacks = -np.infty, 0
     model.learn(total_timesteps=timesteps, callback=callback)
@@ -154,14 +156,14 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    #if FLAGS.is_save: wandb.init(project="continuous_updated", sync_tensorboard=True)
+    if FLAGS.is_save: wandb.init(project="fetch", sync_tensorboard=True)
     from output.updated_gridworld_continuous.policies import *
     model = B1R
     model_dir = os.path.join(model[0], model[1], model[2])
     model_dir = None
     RC = RewardCurriculum("HER", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_single(env_name="Continuous-v0")
-    RC.train_single(env_name="FetchReach-v1")
+    RC.train_single(env_name="Fetch-v0")
     #RC.train_curriculum(env_name="Continuous-v0")
 
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
