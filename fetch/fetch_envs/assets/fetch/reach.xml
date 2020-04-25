@@ -19,10 +19,11 @@
 			<geom size="0.25 0.35 0.2" type="box" mass="2000" material="table_mat"></geom>
 		</body>
 
-		<geom conaffinity="0" fromto="-.3 -.3 .01 .3 -.3 .01" name="sideS" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
-		<geom conaffinity="0" fromto=" .3 -.3 .01 .3  .3 .01" name="sideE" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
-		<geom conaffinity="0" fromto="-.3  .3 .01 .3  .3 .01" name="sideN" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
-		<geom conaffinity="0" fromto="-.3 -.3 .01 -.3 .3 .01" name="sideW" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+        <geom conaffinity="0" fromto="1.5  0   .5   1.5   0 .8" name="sideS" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+		<geom conaffinity="0" fromto="1.5  0   .5   1.5  .3 .5" name="sideE" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+		<geom conaffinity="0" fromto="1.5  .3  .5   1.5  .3 .8" name="sideN" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+		<geom conaffinity="0" fromto="1.5  0   .8   1.5  .3 .8" name="sideW" rgba="0.9 0.4 0.6 1" size=".02" type="capsule"/>
+
 
 		<light directional="true" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 4" dir="0 0 -1" name="light0"></light>
 	</worldbody>

@@ -1,6 +1,7 @@
 import os
 import copy
 import numpy as np
+import ipdb
 
 import gym
 from gym import error, spaces
@@ -44,7 +45,8 @@ class RobotEnv(gym.GoalEnv):
             achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
             observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
         ))
-        self.max_steps = 50
+        #self.max_steps = 50
+        self.max_steps = 30
 
     @property
     def dt(self):
@@ -63,17 +65,17 @@ class RobotEnv(gym.GoalEnv):
         self._set_action(action)
         self.sim.step()
         self._step_callback()
-        obs = self._get_obs()
+        obs = self._get_obs(verbose)
         #print("obs: ", obs)
 
         done = False
         info = {
             'is_success': self._is_success(obs['achieved_goal'], self.goal),
         }
-        reward = self.compute_reward(obs['achieved_goal'], self.goal, info)
+        reward = self.compute_reward(obs['achieved_goal'], self.goal, info, verbose)
         if info['is_success']: done = True
         if self.steps >= self.max_steps: done = True
-        if verbose: print("reward: ", reward, "info: ", info)
+        #if verbose: print("reward: ", reward, "info: ", info)
         return obs, reward, done, info
 
     def reset(self):

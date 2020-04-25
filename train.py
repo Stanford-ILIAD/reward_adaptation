@@ -22,10 +22,10 @@ FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
 flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/fetch", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B0", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B0L", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
+#flags.DEFINE_integer("eval_save_period", 10, "how often we save state for eval")  # fine
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -146,8 +146,8 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer.writerow(line)
             else:
                 print("total steps: ", total_steps)
-                #ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
-                ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
+                ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
+                #ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
         return True
     best_ret, n_callbacks = -np.infty, 0
     model.learn(total_timesteps=timesteps, callback=callback)
