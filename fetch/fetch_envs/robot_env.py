@@ -12,7 +12,8 @@ try:
 except ImportError as e:
     raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
 
-DEFAULT_SIZE = 500
+#DEFAULT_SIZE = 500
+DEFAULT_SIZE = 300
 
 class RobotEnv(gym.GoalEnv):
     def __init__(self, model_path, initial_qpos, n_actions, n_substeps):
@@ -60,6 +61,7 @@ class RobotEnv(gym.GoalEnv):
         return [seed]
 
     def step(self, action, verbose=False):
+        #if verbose: ipdb.set_trace()
         self.steps += 1
         action = np.clip(action, self.action_space.low, self.action_space.high)
         self._set_action(action)
@@ -88,7 +90,7 @@ class RobotEnv(gym.GoalEnv):
         did_reset_sim = False
         while not did_reset_sim:
             did_reset_sim = self._reset_sim()
-        self.goal = self._sample_goal().copy()
+        #self.goal = self._sample_goal().copy()
         obs = self._get_obs()
         self.steps = 0
         return obs
@@ -115,6 +117,7 @@ class RobotEnv(gym.GoalEnv):
         if self.viewer is None:
             if mode == 'human':
                 self.viewer = mujoco_py.MjViewer(self.sim)
+                self.viewer._paused = True
             elif mode == 'rgb_array':
                 self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, device_id=-1)
             self._viewer_setup()

@@ -1,4 +1,5 @@
 import numpy as np
+import ipdb
 
 from gym import error
 try:
@@ -94,3 +95,27 @@ def reset_mocap2body_xpos(sim):
         assert (mocap_id != -1)
         sim.data.mocap_pos[mocap_id][:] = sim.data.body_xpos[body_idx]
         sim.data.mocap_quat[mocap_id][:] = sim.data.body_xquat[body_idx]
+
+
+def print_contacts(sim):
+    print('\nnumber of contacts', sim.data.ncon)
+    for i in range(sim.data.ncon):
+        # Note that the contact array has more than `ncon` entries,
+        # so be careful to only read the valid entries.
+        contact = sim.data.contact[i]
+        print('contact', i)
+        print('dist', contact.dist)
+        print('geom1', contact.geom1, sim.model.geom_id2name(contact.geom1))
+        print('geom2', contact.geom2, sim.model.geom_id2name(contact.geom2))
+        # There's more stuff in the data structure
+        # See the mujoco documentation for more info!
+        geom2_body = sim.model.geom_bodyid[sim.data.contact[i].geom2]
+        print(' Contact force on geom2 body', sim.data.cfrc_ext[geom2_body])
+        print('norm', np.sqrt(np.sum(np.square(sim.data.cfrc_ext[geom2_body]))))
+        # Use internal functions to read out mj_contactForce
+        c_array = np.zeros(6, dtype=np.float64)
+        print('c_array', c_array)
+        mujoco_py.functions.mj_contactForce(sim.model, sim.data, i, c_array)
+        print('c_array', c_array)
+
+    print('done')

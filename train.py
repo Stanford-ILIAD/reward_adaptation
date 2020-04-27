@@ -20,9 +20,9 @@ import ipdb
 
 FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
-flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
+flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
 flags.DEFINE_string("experiment_dir", "output/fetch", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B0L", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B002", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
 #flags.DEFINE_integer("eval_save_period", 10, "how often we save state for eval")  # fine
@@ -145,6 +145,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer = csv.writer(f)
                     writer.writerow(line)
             else:
+                print("\neval")
                 print("total steps: ", total_steps)
                 ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
                 #ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
