@@ -72,36 +72,33 @@ class FetchEnv(robot_env.RobotEnv):
         return False
 
     def compute_reward(self, achieved_goal, goal, info, verbose=False):
-        #if verbose: print("achieved goal: ", achieved_goal, goal)
         # Compute distance between goal and the achieved goal.
-
-        #if verbose: print("init gripper xpos rew: ", self.initial_gripper_xpos)
         d = goal_distance(achieved_goal, goal)
         if self.reward_type == 'sparse':
             return -(d > self.distance_threshold).astype(np.float32)
         else:
+            rew = 0.0
             # distance to goal
-            #dist2goal = -d
             initial_x = self.initial_gripper_xpos[0]
-            dist2goal = (achieved_goal[0]-initial_x)/(self.max_x-initial_x) # move away from robot, normalized
-            rew = dist2goal
+            dist2goal = (achieved_goal[0]-initial_x)/(self.goal[0]-initial_x) # move away from robot, normalized
+            rew += dist2goal
 
             # homotopy reward
-            gamma = 0.9
-            #homotopy_rew = achieved_goal[1] - goal[1]  # R
-            homotopy_rew = -(achieved_goal[1] - goal[1])  # L
-            #discounted_homotopy_rew = homotopy_rew * gamma**(self.steps-1)  # t starts from 1, we want it to start from 0
-            discounted_homotopy_rew = homotopy_rew   # t starts from 1, we want it to start from 0
-            #rew += discounted_homotopy_rew
-            #ipdb.set_trace()
+            gamma = 0.98
+            barrier_id = self.sim.model.geom_name2id('sideN')
+            barrier_y = self.sim.model.geom_pos[barrier_id][1]
+            homotopy_rew = -(barrier_y - achieved_goal[1] ) # L
+            #homotopy_rew = barrier_y-achieved_goal[1]  # R
+            rew += homotopy_rew
 
             # barrier collision cost
             barrier_cost = 0.0
             if self.detect_barrier_collision(verbose):
-                barrier_cost = -1000
+                #barrier_cost = -1000
+                barrier_cost = -10
             rew += barrier_cost
 
-            if verbose: print("d2g: ", dist2goal, "dhrew: ", discounted_homotopy_rew, "barrier: ", barrier_cost)
+            if verbose: print("d2g: ", dist2goal, "hrew: ", homotopy_rew, "barrier: ", barrier_cost)
             return rew
 
     # RobotEnv methods
@@ -178,12 +175,20 @@ class FetchEnv(robot_env.RobotEnv):
         self.viewer.cam.azimuth = 132.
         self.viewer.cam.elevation = -14.
 
-    def _render_callback(self):
-        # Visualize target.
+    def _goal_site_pos(self):
         sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
         site_id = self.sim.model.site_name2id('target0')
         self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
-        self.sim.forward()
+        self.goal_site_pos = self.sim.model.site_pos[site_id]
+
+    #def _render_callback(self):
+    #    # Visualize target.
+    #    #sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
+    #    #site_id = self.sim.model.site_name2id('target0')
+    #    #self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
+    #    #self.goal_site_pos = self.sim.model.site_pos[site_id]
+    #    self._goal_site_pos()
+    #    self.sim.forward()
 
     def _reset_sim(self):
         self.sim.set_state(self.initial_state)
@@ -225,13 +230,14 @@ class FetchEnv(robot_env.RobotEnv):
         else:
             site_id = self.sim.model.site_name2id('target0')
             goal = self.sim.model.site_pos[site_id]
-            self.max_x = goal[0]
         return goal.copy()
 
-    def _is_success(self, achieved_goal, desired_goal):
+    def _is_success(self, achieved_goal, desired_goal, verbose=False):
         #d = goal_distance(achieved_goal, desired_goal)
         #return (d < self.distance_threshold).astype(np.float32)
-        return np.abs(achieved_goal[0] - self.max_x) <= 1e-3
+        x_dist2goal = self.goal[0] - achieved_goal[0]
+        if verbose: print("is success: ", achieved_goal[0], x_dist2goal <= 1e-3)
+        return x_dist2goal <= 1e-2
 
     def _env_setup(self, initial_qpos):
         #ipdb.set_trace()
