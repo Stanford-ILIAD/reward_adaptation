@@ -20,14 +20,15 @@ import ipdb
 
 FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
-flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
+#flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
+flags.DEFINE_integer("timesteps", 160000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/fetch", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B002", "Name of experiment")
+flags.DEFINE_string("experiment_name", "BR_B0L_BL", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 10, "how often we save state for eval")  # fine
+#flags.DEFINE_integer("eval_save_period", 50, "how often we save state for eval")  # fine
 flags.DEFINE_integer("num_envs", 1, "number of envs")
-
+#
 
 class RewardCurriculum(object):
     """
@@ -40,6 +41,8 @@ class RewardCurriculum(object):
             self.model = PPO2.load(model_dir) if model_dir else None  # loads pre-trained model
         elif self.model_type == "DQN":
             self.model = DQN.load(model_dir) if model_dir else None  # loads pre-trained model
+        elif self.model_type == "HER":
+            self.model = HER.load(model_dir) if model_dir else None  # loads pre-trained model
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
@@ -68,16 +71,17 @@ class RewardCurriculum(object):
         """
         Trains reward curriculum
         """
-        #self.timesteps = 1000000 # to train for longer
-        #self.timesteps = 100000 # to train for shorter
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
             env = gym.make(lesson)
-            env = DummyVecEnv([lambda: env])
+            #env = DummyVecEnv([lambda: env])
+            eval_env = gym.make(lesson)
+            if self.model_type == "HER":
+                env = HERGoalEnvWrapper(env)
+                eval_env = HERGoalEnvWrapper(eval_env)
             self.model.set_env(env)
             #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
             #self.model.full_tensorboard_log = True
-            eval_env = gym.make(lesson)
             self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
                                self.is_save, self.eval_save_period, self.rets_path, l)
 
@@ -158,14 +162,15 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="fetch", sync_tensorboard=True)
-    from output.updated_gridworld_continuous.policies import *
-    model = B1R
-    model_dir = os.path.join(model[0], model[1], model[2])
-    model_dir = None
+    #from output.updated_gridworld_continuous.policies import *
+    from output.fetch.policies import *
+
+    model_info = BR_B0L
+    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     RC = RewardCurriculum("HER", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
     #RC.train_single(env_name="Continuous-v0")
-    RC.train_single(env_name="Fetch-v0")
-    #RC.train_curriculum(env_name="Continuous-v0")
+    #RC.train_single(env_name="Fetch-v0")
+    RC.train_curriculum(env_name="Fetch-v0")
 
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')

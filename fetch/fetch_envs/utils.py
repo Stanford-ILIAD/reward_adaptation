@@ -80,6 +80,7 @@ def reset_mocap2body_xpos(sim):
     for eq_type, obj1_id, obj2_id in zip(sim.model.eq_type,
                                          sim.model.eq_obj1id,
                                          sim.model.eq_obj2id):
+
         if eq_type != mujoco_py.const.EQ_WELD:
             continue
 

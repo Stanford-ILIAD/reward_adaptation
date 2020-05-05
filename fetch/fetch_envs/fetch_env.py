@@ -71,32 +71,55 @@ class FetchEnv(robot_env.RobotEnv):
                 return True
         return False
 
-    def compute_reward(self, achieved_goal, goal, info, verbose=False):
+    def detect_goal_collision(self, verbose=False):
+        for i in range(self.sim.data.ncon):
+            # Note that the contact array has more than `ncon` entries,
+            # so be careful to only read the valid entries.
+            contact = self.sim.data.contact[i]
+            contact_geom1_name = self.sim.model.geom_id2name(contact.geom1)
+            contact_geom2_name = self.sim.model.geom_id2name(contact.geom2)
+            if contact_geom2_name==None or contact_geom1_name==None:
+                continue
+            if 'target0' in contact_geom1_name or 'target0' in contact_geom2_name:
+                if verbose: print('COLLISION!', contact_geom1_name, contact.geom1, contact_geom2_name, contact.geom2)
+                return True
+        return False
+
+    def compute_reward(self, achieved_goal, desired_goal, info, verbose=False):
+        desired_goal = self.goal
         # Compute distance between goal and the achieved goal.
-        d = goal_distance(achieved_goal, goal)
         if self.reward_type == 'sparse':
+            d = goal_distance(achieved_goal, desired_goal)
             return -(d > self.distance_threshold).astype(np.float32)
         else:
             rew = 0.0
+
             # distance to goal
-            initial_x = self.initial_gripper_xpos[0]
-            dist2goal = (achieved_goal[0]-initial_x)/(self.goal[0]-initial_x) # move away from robot, normalized
+            dist2goal = -(desired_goal[0]-achieved_goal[0])#/(self.goal[0]-initial_x) # move toward goal, normalized
             rew += dist2goal
 
             # homotopy reward
-            gamma = 0.98
+            gamma = 0.97
             barrier_id = self.sim.model.geom_name2id('sideN')
             barrier_y = self.sim.model.geom_pos[barrier_id][1]
-            homotopy_rew = -(barrier_y - achieved_goal[1] ) # L
-            #homotopy_rew = barrier_y-achieved_goal[1]  # R
+            homotopy_rew = 0.0
+            if self.homotopy_class=='left':
+                homotopy_rew = -(barrier_y - achieved_goal[1]) # L
+            elif self.homotopy_class == 'right':
+                homotopy_rew = barrier_y-achieved_goal[1]  # R
+            homotopy_rew *= gamma**(self.steps-1)
             rew += homotopy_rew
 
             # barrier collision cost
             barrier_cost = 0.0
             if self.detect_barrier_collision(verbose):
-                #barrier_cost = -1000
                 barrier_cost = -10
+                #barrier_cost = 0.0
             rew += barrier_cost
+
+            # success rew
+            if self._is_success(achieved_goal):
+                rew += 10
 
             if verbose: print("d2g: ", dist2goal, "hrew: ", homotopy_rew, "barrier: ", barrier_cost)
             return rew
@@ -132,6 +155,7 @@ class FetchEnv(robot_env.RobotEnv):
     def _get_obs(self, verbose=False):
         # positions
         grip_pos = self.sim.data.get_site_xpos('robot0:grip')
+        #grip_pos = self.sim.data.body_xpos[19]
         dt = self.sim.nsubsteps * self.sim.model.opt.timestep
         grip_velp = self.sim.data.get_site_xvelp('robot0:grip') * dt
         robot_qpos, robot_qvel = utils.robot_get_obs(self.sim)
@@ -174,12 +198,6 @@ class FetchEnv(robot_env.RobotEnv):
         self.viewer.cam.distance = 2.5
         self.viewer.cam.azimuth = 132.
         self.viewer.cam.elevation = -14.
-
-    def _goal_site_pos(self):
-        sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
-        site_id = self.sim.model.site_name2id('target0')
-        self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
-        self.goal_site_pos = self.sim.model.site_pos[site_id]
 
     #def _render_callback(self):
     #    # Visualize target.
@@ -228,16 +246,27 @@ class FetchEnv(robot_env.RobotEnv):
             if self.target_in_the_air and self.np_random.uniform() < 0.5:
                 goal[2] += self.np_random.uniform(0, 0.45)
         else:
-            site_id = self.sim.model.site_name2id('target0')
-            goal = self.sim.model.site_pos[site_id]
+            #site_id = self.sim.model.site_name2id('target0')
+            #goal = self.sim.model.site_pos[site_id]
+            #goal = self.sim.data.get_site_xpos('target0')
+            goal = self.sim.data.get_geom_xpos('target0')
         return goal.copy()
 
-    def _is_success(self, achieved_goal, desired_goal, verbose=False):
+    def _is_success(self, achieved_goal, verbose=False):
         #d = goal_distance(achieved_goal, desired_goal)
         #return (d < self.distance_threshold).astype(np.float32)
+        #ipdb.set_trace()
         x_dist2goal = self.goal[0] - achieved_goal[0]
-        if verbose: print("is success: ", achieved_goal[0], x_dist2goal <= 1e-3)
-        return x_dist2goal <= 1e-2
+        barrier_id = self.sim.model.geom_name2id('sideN')
+        barrier_y = self.sim.model.geom_pos[barrier_id][1]
+        if self.homotopy_class == 'left':
+            homotopy_rew = -(barrier_y - achieved_goal[1]) # L
+        elif self.homotopy_class == 'right':
+            homotopy_rew = barrier_y-achieved_goal[1]  # R
+        if verbose: print("is success: ", achieved_goal[0], homotopy_rew, x_dist2goal <= 5e-2 and homotopy_rew>=0, self.goal[0])
+        return x_dist2goal <= 5e-2 and homotopy_rew >= 0
+        #if verbose: print("is success: ", self.detect_goal_collision(verbose=verbose))
+        #return self.detect_goal_collision()
 
     def _env_setup(self, initial_qpos):
         #ipdb.set_trace()
@@ -249,10 +278,10 @@ class FetchEnv(robot_env.RobotEnv):
 
         ## Move end effector into position.
         ##gripper_target = np.array([-0.498, 0.005, -0.431 + self.gripper_extra_height]) + self.sim.data.get_site_xpos('robot0:grip')
-        #gripper_target = self.sim.data.get_site_xpos('robot0:grip')
+        gripper_target = self.sim.data.get_site_xpos('robot0:grip')
         ##gripper_rotation = np.array([1., 0., 1., 0.])
-        #gripper_rotation = self.sim.data.get_body_xquat('robot0:mocap')
-        #self.sim.data.set_mocap_pos('robot0:mocap', gripper_target)
+        gripper_rotation = self.sim.data.get_body_xquat('robot0:mocap')
+        self.sim.data.set_mocap_pos('robot0:mocap', gripper_target)
         #self.sim.data.set_mocap_quat('robot0:mocap', gripper_rotation)
         #for _ in range(10):
         #    self.sim.step()
@@ -262,7 +291,6 @@ class FetchEnv(robot_env.RobotEnv):
         self.initial_gripper_xpos = self.sim.data.get_site_xpos('robot0:grip').copy()
         if self.has_object:
             self.height_offset = self.sim.data.get_site_xpos('object0')[2]
-        #ipdb.set_trace()
 
     def render(self, mode='human', width=500, height=500):
         return super(FetchEnv, self).render(mode, width, height)

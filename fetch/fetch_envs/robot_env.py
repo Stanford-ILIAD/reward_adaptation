@@ -39,7 +39,6 @@ class RobotEnv(gym.GoalEnv):
         self.initial_state = copy.deepcopy(self.sim.get_state())
 
         self.goal = self._sample_goal()
-        self._goal_site_pos()
         obs = self._get_obs()
         self.action_space = spaces.Box(-1., 1., shape=(n_actions,), dtype='float32')
         self.observation_space = spaces.Dict(dict(
@@ -48,7 +47,8 @@ class RobotEnv(gym.GoalEnv):
             observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
         ))
         #self.max_steps = 50
-        self.max_steps = 30
+        self.max_steps = 10
+        self.homotopy_class = "left"
 
     @property
     def dt(self):
@@ -62,23 +62,22 @@ class RobotEnv(gym.GoalEnv):
         return [seed]
 
     def step(self, action, verbose=False):
-        #if verbose: ipdb.set_trace()
         self.steps += 1
         action = np.clip(action, self.action_space.low, self.action_space.high)
         self._set_action(action)
         self.sim.step()
         self._step_callback()
         obs = self._get_obs(verbose)
-        #print("obs: ", obs)
+        if verbose: print("")
+        if verbose: print("mocap, sitexpos: ", self.sim.data.mocap_pos, self.sim.data.get_site_xpos('robot0:grip'))
 
         done = False
         info = {
-            'is_success': self._is_success(obs['achieved_goal'], self.goal, verbose),
+            'is_success': self._is_success(obs['achieved_goal'], verbose),
         }
         reward = self.compute_reward(obs['achieved_goal'], self.goal, info, verbose)
         if info['is_success']: done = True
         if self.steps >= self.max_steps: done = True
-        #if verbose: print("reward: ", reward, "info: ", info)
         return obs, reward, done, info
 
     def reset(self):
@@ -118,7 +117,7 @@ class RobotEnv(gym.GoalEnv):
         if self.viewer is None:
             if mode == 'human':
                 self.viewer = mujoco_py.MjViewer(self.sim)
-                self.viewer._paused = True
+                #self.viewer._paused = True
                 self.viewer._hide_overlay = True
             elif mode == 'rgb_array':
                 self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, device_id=-1)
@@ -169,9 +168,6 @@ class RobotEnv(gym.GoalEnv):
         """Initial configuration of the viewer. Can be used to set the camera position,
         for example.
         """
-        pass
-
-    def _goal_site_pos(self):
         pass
 
     def _render_callback(self):
