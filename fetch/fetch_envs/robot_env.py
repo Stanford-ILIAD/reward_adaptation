@@ -76,6 +76,7 @@ class RobotEnv(gym.GoalEnv):
             'is_success': self._is_success(obs['achieved_goal'], verbose),
         }
         reward = self.compute_reward(obs['achieved_goal'], self.goal, info, verbose)
+        print("achieved goal: ", obs['achieved_goal'])
         if info['is_success']: done = True
         if self.steps >= self.max_steps: done = True
         return obs, reward, done, info
@@ -117,7 +118,7 @@ class RobotEnv(gym.GoalEnv):
         if self.viewer is None:
             if mode == 'human':
                 self.viewer = mujoco_py.MjViewer(self.sim)
-                #self.viewer._paused = True
+                self.viewer._paused = True
                 self.viewer._hide_overlay = True
             elif mode == 'rgb_array':
                 self.viewer = mujoco_py.MjRenderContextOffscreen(self.sim, device_id=-1)
