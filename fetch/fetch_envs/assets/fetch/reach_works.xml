@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+	<compiler angle="radian" coordinate="local" meshdir="../stls/fetch" texturedir="../textures"></compiler>
+	<option timestep="0.002">
+		<flag warmstart="enable"></flag>
+	</option>
+
+	<include file="shared.xml"></include>
+	
+	<worldbody>
+		<geom name="floor0" pos="0.8 0.75 0" size="0.85 0.7 1" type="plane" condim="3" material="floor_mat"></geom>
+		<body name="floor0" pos="0.8 0.75 0">
+			<!--<site name="target0" pos="0 0 0.5" size="0.02 0.02 0.02" rgba="1 0 0 1" type="sphere"></site>-->
+            <!--<site name="target0" fromto="1.45   -10.     .8   1.45   10    .8" size="0.02" rgba="1 0 0 1" type="capsule"></site>-->
+            <!--<geom name="target0" fromto="0.65   -10.     .0   0.65   10    .8" size="0.02" rgba="1 0 0 1" type="capsule"></geom>-->
+            <!--<geom name="target0" pos="0.65 0 1.0" rgba=".64 .87 .81 0.7" size="0.01 0.7 1.0" type="box"></geom>-->
+		</body>
+
+		<include file="robot.xml"></include>
+		
+		<!--<body pos="0.65 0.75 0.2" name="table0">
+			<geom size="0.25 0.35 0.2" type="box" mass="2000" material="table_mat" name="target0"></geom>
+		</body>-->
+		<geom size="0.2 0.35 0.2" pos="1.7 0.4 0.2" type="box" mass="2000" rgba="1.0 0.0 0.0 1.0" name="target0"></geom>
+		<geom size="0.2 0.35 0.2" pos="1.7 1.1 0.2" type="box" mass="2000" rgba="0.0 0.0 1.0 1.0" name="target1"></geom>
+
+        <!-- far/near, right/left, up/down -->
+        <!--<geom conaffinity="0" fromto="1.4   0.     .5   1.4   0.      2." name="sideS" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->  <!-- left -->
+		<!--<geom conaffinity="0" fromto="1.4   0.     .5   1.4   .735    .5" name="sideE" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/> --> <!-- bottom -->
+		<!--<geom conaffinity="0" fromto="1.4   .735   .5   1.4   .735    2." name="sideN" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/> --> <!-- right -->
+		<!--<geom conaffinity="0" fromto="1.4   0.     2.   1.4   .735    2." name="sideW" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/> --> <!-- top -->
+
+        <!--<geom conaffinity="0" fromto="1.4   0.035     0.   1.4   0.035   2." name="sideS" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+        <!--<geom conaffinity="0" fromto="1.4   0.035     0.   1.4   .735    0." name="sideE" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+        <geom conaffinity="0" fromto="1.4   .745      0.   1.4   .745    2." name="sideN" material="table_mat" size=".12" type="capsule"/>
+		<!--<geom conaffinity="0" fromto="1.4   .735      0.   1.4   .735    2." name="sideN" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+        <!--<geom conaffinity="0" fromto="1.4   0.035     2.   1.4   .735    2." name="sideW" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+
+
+		<light directional="true" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 4" dir="0 0 -1" name="light0"></light>
+	</worldbody>
+	
+	<actuator></actuator>
+</mujoco>

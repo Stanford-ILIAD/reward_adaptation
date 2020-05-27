@@ -107,19 +107,22 @@ class FetchEnv(robot_env.RobotEnv):
                 homotopy_rew = -(barrier_y - achieved_goal[1]) # L
             elif self.homotopy_class == 'right':
                 homotopy_rew = barrier_y-achieved_goal[1]  # R
-            homotopy_rew *= gamma**(self.steps-1)
+            homotopy_rew *= gamma**((self.steps-1))
             rew += homotopy_rew
 
             # barrier collision cost
             barrier_cost = 0.0
             if self.detect_barrier_collision(verbose):
                 barrier_cost = -10
+                #barrier_cost = -5
                 #barrier_cost = 0.0
             rew += barrier_cost
 
             # success rew
+            succ = 0.0
             if self._is_success(achieved_goal):
-                rew += 10
+                succ = 10.
+            rew += succ
 
             if verbose: print("d2g: ", dist2goal, "hrew: ", homotopy_rew, "barrier: ", barrier_cost)
             return rew
@@ -250,6 +253,7 @@ class FetchEnv(robot_env.RobotEnv):
             #goal = self.sim.model.site_pos[site_id]
             #goal = self.sim.data.get_site_xpos('target0')
             goal = self.sim.data.get_geom_xpos('target0')
+            goal[0] = goal[0]-0.2  # subtracting the width
         return goal.copy()
 
     def _is_success(self, achieved_goal, verbose=False):
@@ -263,8 +267,8 @@ class FetchEnv(robot_env.RobotEnv):
             homotopy_rew = -(barrier_y - achieved_goal[1]) # L
         elif self.homotopy_class == 'right':
             homotopy_rew = barrier_y-achieved_goal[1]  # R
-        if verbose: print("is success: ", achieved_goal[0], homotopy_rew, x_dist2goal <= 5e-2 and homotopy_rew>=0, self.goal[0])
-        return x_dist2goal <= 5e-2 and homotopy_rew >= 0
+        if verbose: print("is success: ", achieved_goal[0], homotopy_rew, x_dist2goal <= 1e-2 and homotopy_rew>=0, self.goal[0])
+        return x_dist2goal <= 1e-2 and homotopy_rew >= 0
         #if verbose: print("is success: ", self.detect_goal_collision(verbose=verbose))
         #return self.detect_goal_collision()
 

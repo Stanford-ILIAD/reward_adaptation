@@ -57,12 +57,12 @@ def evaluate(model, eval_env, render=False):
             state_history.append(obs[:2])
         state, ever_done = None, False
         while not ever_done:
-            nsteps += 1
             if render: eval_env.render()
+            nsteps += 1
             action, state = model.predict(obs, state=state, deterministic=True)
             #print("action: ", action)
             next_obs, ret, done, _info = eval_env.step(action, verbose=render)
-            # print("ret: ", ret)
+            print("ret: ", ret)
             if not ever_done:
                 rets += ret
             # print("rets: ", rets)
@@ -73,9 +73,10 @@ def evaluate(model, eval_env, render=False):
                 state_history.append(obs[:2])
             if render: time.sleep(.1)
             ever_done = done
+        if render: eval_env.render()
         total_rets.append(rets)
-        print("total mean ep return: ", np.mean(total_rets), total_rets)
-        print("nsteps: ", nsteps)
+        #print("total mean ep return: ", np.mean(total_rets), total_rets)
+        #print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets, np.array(state_history)
 
 def save_traj(model, state_history):
@@ -87,9 +88,9 @@ def save_traj(model, state_history):
 if __name__ == "__main__":
     #from gridworld_policies.policies import *
     #from output.updated_gridworld_continuous.policies import *
-    from output.fetch.policies import *
+    from output.fetch2.policies import *
 
-    model_info = B0R
+    model_info = BR_BL0_BL1_BL5
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     #eval_env = load_env("Continuous-v0", "PPO")
     eval_env = HERGoalEnvWrapper(load_env("Fetch-v0"))

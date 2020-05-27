@@ -130,9 +130,9 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="fetch", sync_tensorboard=True)
-    from output.fetch.policies import *
-    model_info = BL_v3
+    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
+    from output.fetch2.policies import *
+    model_info = BR_v3
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     output_dir = os.path.join("output/fetch_PNN", 'resave', model_info[2])
     RC = RewardCurriculum(model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,

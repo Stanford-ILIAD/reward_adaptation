@@ -47,7 +47,7 @@ class RobotEnv(gym.GoalEnv):
             observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
         ))
         #self.max_steps = 50
-        self.max_steps = 10
+        self.max_steps = 12
         self.homotopy_class = "left"
 
     @property
@@ -69,7 +69,7 @@ class RobotEnv(gym.GoalEnv):
         self._step_callback()
         obs = self._get_obs(verbose)
         if verbose: print("")
-        if verbose: print("mocap, sitexpos: ", self.sim.data.mocap_pos, self.sim.data.get_site_xpos('robot0:grip'))
+        #if verbose: print("mocap, sitexpos: ", self.sim.data.mocap_pos, self.sim.data.get_site_xpos('robot0:grip'))
 
         done = False
         info = {

@@ -786,7 +786,8 @@ class DDPG2L2SP(DDPG):
 
         normalized_critic_target_tf = tf.clip_by_value(normalize(self.critic_target, self.ret_rms),
                                                        self.return_range[0], self.return_range[1])
-        self.critic_loss = tf.reduce_mean(tf.square(self.normalized_critic_tf - normalized_critic_target_tf))
+        self.critic_loss = tf.reduce_mean(tf.square(self.normalized_critic_tf - normalized_critic_target_tf)) + \
+                           self.l2sp_coef * self.l2sp_loss + self.l2_coef * self.l2_loss
         if self.critic_l2_reg > 0.:
             critic_reg_vars = [var for var in tf_util.get_trainable_vars('model/qf/')
                                if 'bias' not in var.name and 'qf_output' not in var.name and 'b' not in var.name]

@@ -33,7 +33,7 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
 flags.DEFINE_string("experiment_dir", "output/fetch_L2SP", "Name of experiment")
-flags.DEFINE_string("experiment_name", "BL_BR_L2SP", "Name of experiment")
+flags.DEFINE_string("experiment_name", "BR_BL_L2SP", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
@@ -135,9 +135,9 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="fetch", sync_tensorboard=True)
-    from output.fetch.policies import *
-    model_info = BL_v3
+    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
+    from output.fetch2.policies import *
+    model_info = BR_v3
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
                           FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
