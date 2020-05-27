@@ -13,14 +13,41 @@
 			<!--<site name="target0" pos="0 0 0.5" size="0.02 0.02 0.02" rgba="1 0 0 1" type="sphere"></site>-->
             <!--<site name="target0" fromto="1.45   -10.     .8   1.45   10    .8" size="0.02" rgba="1 0 0 1" type="capsule"></site>-->
             <!--<geom name="target0" fromto="0.65   -10.     .0   0.65   10    .8" size="0.02" rgba="1 0 0 1" type="capsule"></geom>-->
-            <geom name="target0" pos="0.65 0 1.0" rgba=".64 .87 .81 0.7" size="0.01 0.7 1.0" type="box"></geom>
+            <!--<geom name="target0" pos="0.65 0 1.0" rgba=".64 .87 .81 0.7" size="0.01 0.7 1.0" type="box"></geom>-->
 		</body>
 
 		<include file="robot.xml"></include>
 		
-		<!--<body pos="1.3 0.75 0.2" name="table0">
-			<geom size="0.25 0.35 0.2" type="box" mass="2000" material="table_mat"></geom>
+		<!--<body pos="0.65 0.75 0.2" name="table0">
+			<geom size="0.25 0.35 0.2" type="box" mass="2000" material="table_mat" name="target0"></geom>
 		</body>-->
+		<geom size="0.2 0.35 0.2" pos="1.7 0.4 0.2" type="box" mass="2000" rgba="1.0 0.498 0.313 1.0" name="target0"></geom>
+		<geom size="0.2 0.35 0.2" pos="1.7 1.1 0.2" type="box" mass="2000" rgba="0.0 0.0 1.0 1.0" name="target1"></geom>
+
+		<!-- DISPLAYING LEFT TRAJECTORY-->
+        <!--<geom pos="1.17204173 0.74789315 0.55890028" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.22782506 0.80113815 0.59877422" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.26698067 0.84547706 0.63573934" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.30372648 0.89033811 0.66630136" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.34138841 0.93695865 0.69512417" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.38012876 0.98464092 0.72381996" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.41979723 1.0329258  0.75296106" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.46026974 1.08157833 0.78275491" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>
+        <geom pos="1.50146435 1.13047947 0.81327669" type="sphere" size="0.01" rgba="0.0 0.0 1.0 1.0"></geom>-->
+
+        <!-- DISPLAYING RIGHT TRAJECTORY-->
+       <!-- <geom pos="1.17204173 0.74789315 0.55890028" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.22534439 0.70797854 0.64532965" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.27330536 0.66089619 0.66406051" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.36685195 0.56912411 0.76431144" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.3915022  0.53539099 0.84688787" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.40547019 0.52444419 0.86131396" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.41406054 0.49244841 0.9415629" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.47502525 0.44512172 0.97946238" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.46804817 0.39197709 1.04757186" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.50386523 0.37437415 1.0908113" type="sphere" size="0.01" rgba="1.0 0.498 0.313 1.0"></geom>-->
+        <!--<geom pos="1.46169584 0.34053576 1.13737589" type="sphere" size="0.02" rgba="1.0 0.498 0.313 1.0"></geom>
+        <geom pos="1.46177529 0.35248524 1.17319235" type="sphere" size="0.02" rgba="1.0 0.498 0.313 1.0"></geom>-->
 
         <!-- far/near, right/left, up/down -->
         <!--<geom conaffinity="0" fromto="1.4   0.     .5   1.4   0.      2." name="sideS" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->  <!-- left -->
@@ -28,11 +55,11 @@
 		<!--<geom conaffinity="0" fromto="1.4   .735   .5   1.4   .735    2." name="sideN" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/> --> <!-- right -->
 		<!--<geom conaffinity="0" fromto="1.4   0.     2.   1.4   .735    2." name="sideW" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/> --> <!-- top -->
 
-        <geom conaffinity="0" fromto="1.4   0.035     0.   1.4   0.035   2." name="sideS" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>
-        <geom conaffinity="0" fromto="1.4   0.035     0.   1.4   .735    0." name="sideE" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>
-        <!--<geom conaffinity="0" fromto="1.4   .735      0.   1.4   .735    2." name="sideN" rgba="0.9 0.4 0.7 1" size=".12" type="capsule"/>-->
-		<geom conaffinity="0" fromto="1.4   .735      0.   1.4   .735    2." name="sideN" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>
-        <geom conaffinity="0" fromto="1.4   0.035     2.   1.4   .735    2." name="sideW" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>
+        <!--<geom conaffinity="0" fromto="1.4   0.035     0.   1.4   0.035   2." name="sideS" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+        <!--<geom conaffinity="0" fromto="1.4   0.035     0.   1.4   .735    0." name="sideE" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+        <geom conaffinity="0" fromto="1.4   .745      0.   1.4   .745    2." name="sideN" material="table_mat" size=".12" type="capsule"/>
+		<!--<geom conaffinity="0" fromto="1.4   .735      0.   1.4   .735    2." name="sideN" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
+        <!--<geom conaffinity="0" fromto="1.4   0.035     2.   1.4   .735    2." name="sideW" rgba="0.9 0.4 0.7 1" size=".02" type="capsule"/>-->
 
 
 		<light directional="true" ambient="0.2 0.2 0.2" diffuse="0.8 0.8 0.8" specular="0.3 0.3 0.3" castshadow="false" pos="0 0 4" dir="0 0 -1" name="light0"></light>

@@ -51,8 +51,8 @@ def evaluate(model, eval_env, render=False):
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        if isinstance(eval_env.env, gym.wrappers.time_limit.TimeLimit):
-            state_history.append(obs)
+        if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):  # fetch reach env, saving xyz of end effector
+            state_history.append(obs[:3])
         else:  # eval env is driving environment
             state_history.append(obs[:2])
         state, ever_done = None, False
@@ -62,13 +62,12 @@ def evaluate(model, eval_env, render=False):
             action, state = model.predict(obs, state=state, deterministic=True)
             #print("action: ", action)
             next_obs, ret, done, _info = eval_env.step(action, verbose=render)
-            print("ret: ", ret)
             if not ever_done:
                 rets += ret
             # print("rets: ", rets)
             obs = next_obs
-            if isinstance(eval_env.env, gym.wrappers.time_limit.TimeLimit):
-                state_history.append(obs)
+            if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):
+                state_history.append(obs[:3])
             else:  # eval env is driving environment
                 state_history.append(obs[:2])
             if render: time.sleep(.1)
@@ -81,7 +80,7 @@ def evaluate(model, eval_env, render=False):
 
 def save_traj(model, state_history):
     state_history = list(state_history)
-    with open("output/fetch/single_trajs/{}.csv".format(model[1]), "w", newline="") as f:
+    with open("output/fetch/single_trajs/{}.csv".format(model[1]), "w") as f:
         writer = csv.writer(f)
         writer.writerow(state_history)
 
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     #from output.updated_gridworld_continuous.policies import *
     from output.fetch2.policies import *
 
-    model_info = BR_BL0_BL1_BL5
+    model_info = BR_v3
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     #eval_env = load_env("Continuous-v0", "PPO")
     eval_env = HERGoalEnvWrapper(load_env("Fetch-v0"))
@@ -98,7 +97,7 @@ if __name__ == "__main__":
 
     model = load_model(model_dir, "HER")
     sum_reward = 0.0
-    num_episode = 200
+    num_episode = 1
     for ne in range(num_episode):
         mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=True)
         save_traj(model_info, state_history)
