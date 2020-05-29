@@ -28,4 +28,5 @@ B7R_B0L = ["output/updated_gridworld_continuous", "B7R_B0L", "best_model_14336_6
 
 
 B5R_B5L = ["output/updated_gridworld_continuous", "B5R_B5L", "best_model_9984_59.27201191236718.pkl"]
+B5R_B0L_B5L = ["output/updated_gridworld_continuous", "B5R_B0L_B5L", "best_model_48128_56.34691048530898.pkl"]
 

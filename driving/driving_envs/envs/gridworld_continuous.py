@@ -7,7 +7,7 @@ import numpy as np
 import scipy.special
 from driving_envs.world import World
 from driving_envs.entities import TextEntity, Entity
-from driving_envs.agents import Car, Building, Goal, Goal2
+from driving_envs.agents import Car, Building, Goal, Goal2, Waypoint
 from driving_envs.geometry import Point
 from typing import Tuple
 
@@ -99,19 +99,46 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-           Building(Point(self.width/2., self.height/2.), Point(9,9), "gray80")
+           Building(Point(self.width/2., self.height/2.), Point(5,5), "#B22222")
         ]
 
-        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "blue")
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "grey80")
         self.car.velocity = Point(0, 5)
 
         #self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
-        self.goal_obj = Goal2(Point(self.goal[0], self.goal[1]), Point(self.width, self.height / 8.))
+        self.goal_obj = Goal2(Point(self.goal[0], self.goal[1]), Point(self.width, self.height / 8.), color='#007600')
 
         for building in self.buildings:
             self.world.add(building)
         self.world.add(self.car)
         self.world.add(self.goal_obj)
+
+        self.left_waypoints = [
+            Waypoint(Point(24.97763344,  6.49506554), 'blue'),
+            Waypoint(Point(22.82250067, 15.70518498), 'blue'),
+            Waypoint(Point(20.74403936, 23.77848768), 'blue'),
+            Waypoint(Point(18.81342004, 35.15174814), 'blue'),
+            Waypoint(Point(13.69422607, 43.08956743), 'blue'),
+            Waypoint(Point(9.64661255, 46.54991709),  'blue'),
+            Waypoint(Point(2.3459517, 50.04638585),  'blue'),
+        ]
+        self.right_waypoints = [
+            Waypoint(Point(25.00747225, 5.99810455), 'orange'),
+            #Waypoint(Point(25.40014368,  9.93517617), 'orange'),
+            Waypoint(Point(26.77891927, 14.75295797), 'orange'),
+            Waypoint(Point(28.38167054, 19.71457118), 'orange'),
+            Waypoint(Point(28.86268052, 26.81082929), 'orange'),
+            Waypoint(Point(26.76418647, 35.11340546),  'orange'),
+            Waypoint(Point(22.13190007, 42.10567368),  'orange'),
+            Waypoint(Point(16.91899745, 46.39322666),  'orange'),
+            Waypoint(Point(10.07441797, 49.38522158),  'orange'),
+            #Waypoint(Point(6.3640775,  50.11094359),  'orange'),
+        ]
+
+        for l_wp in self.left_waypoints:
+            self.world.add(l_wp)
+        for r_wp in self.right_waypoints:
+            self.world.add(r_wp)
 
         self.step_num = 0
         return self._get_obs()

@@ -69,3 +69,14 @@ class Goal2(RectangleEntity):
         super(Goal2, self).__init__(center, heading, size, movable, friction)
         self.color = color
         self.collidable = True
+
+
+class Waypoint(CircleEntity):
+    def __init__(self, center: Point, color: str = "LightSalmon2"):
+        heading = 0.0
+        radius = 0.5
+        movable = False
+        friction = 0.0
+        super(Waypoint, self).__init__(center, heading, radius, movable, friction)
+        self.color = color
+        self.collidable = True

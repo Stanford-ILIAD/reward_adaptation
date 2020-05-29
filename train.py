@@ -5,8 +5,7 @@ import time
 import numpy as np
 from stable_baselines import PPO2, DQN
 import wandb
-#import minigrid.gym_minigrid
-import driving_envs
+import driving.driving_envs
 import utils
 from tensorflow import flags
 import stable_baselines
