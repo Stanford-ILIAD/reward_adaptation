@@ -3,9 +3,11 @@ import shutil
 import gym
 import time
 import numpy as np
-from stable_baselines import PPO2, DQN
+from stable_baselines import PPO2, DQN, HER, DDPG
+from stable_baselines.her.utils import HERGoalEnvWrapper
 import wandb
 import driving.driving_envs
+import fetch.fetch_envs
 import utils
 from tensorflow import flags
 import stable_baselines
@@ -14,17 +16,19 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from eval_model import evaluate
 import csv
+import ipdb
 
 FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
-flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
-flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous", "Name of experiment")
-flags.DEFINE_string("experiment_name", "B9R", "Name of experiment")
-flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
-#flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
-flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
+flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
+#flags.DEFINE_integer("timesteps", 160000, "# timesteps to train")
+flags.DEFINE_string("experiment_dir", "output/fetch2", "Name of experiment")
+flags.DEFINE_string("experiment_name", "BL_final", "Name of experiment")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+#flags.DEFINE_integer("eval_save_period", 50, "how often we save state for eval")  # fine
 flags.DEFINE_integer("num_envs", 1, "number of envs")
-
+#
 
 class RewardCurriculum(object):
     """
@@ -32,11 +36,13 @@ class RewardCurriculum(object):
     """
 
     def __init__(self, model_type, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
-        self.model_type = "PPO"
+        self.model_type = model_type
         if self.model_type == "PPO":
             self.model = PPO2.load(model_dir) if model_dir else None  # loads pre-trained model
         elif self.model_type == "DQN":
             self.model = DQN.load(model_dir) if model_dir else None  # loads pre-trained model
+        elif self.model_type == "HER":
+            self.model = HER.load(model_dir) if model_dir else None  # loads pre-trained model
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
@@ -65,16 +71,17 @@ class RewardCurriculum(object):
         """
         Trains reward curriculum
         """
-        #self.timesteps = 1000000 # to train for longer
-        #self.timesteps = 100000 # to train for shorter
         for l, lesson in enumerate(self.curriculum):
             print("\ntraining on ", lesson)
             env = gym.make(lesson)
-            env = DummyVecEnv([lambda: env])
+            #env = DummyVecEnv([lambda: env])
+            eval_env = gym.make(lesson)
+            if self.model_type == "HER":
+                env = HERGoalEnvWrapper(env)
+                eval_env = HERGoalEnvWrapper(eval_env)
             self.model.set_env(env)
             #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
             #self.model.full_tensorboard_log = True
-            eval_env = gym.make(lesson)
             self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
                                self.is_save, self.eval_save_period, self.rets_path, l)
 
@@ -107,6 +114,13 @@ class RewardCurriculum(object):
                                learning_rate=1e-3)
             self.model = train(self.DQN, eval_env, self.timesteps, self.experiment_dir,
                                self.is_save, self.eval_save_period, self.rets_path, 0)
+        elif self.model_type == "HER":
+            env = HERGoalEnvWrapper(env)
+            eval_env = HERGoalEnvWrapper(eval_env)
+            self.HER = HER('MlpPolicy', env, DDPG, n_sampled_goal=4, goal_selection_strategy="future",
+                                                seed=self.seed, verbose=1)
+            self.model = train(self.HER, eval_env, self.timesteps, self.experiment_dir,
+                               self.is_save, self.eval_save_period, self.rets_path, 0)
 
 
 def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains):
@@ -121,32 +135,24 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
         # Saving best model
         if (total_steps) % eval_save_period == 0:
-            start_eval_time = time.time()
             if is_save:
                 ret, std, total_rets, state_history = evaluate(model, eval_env, render=False)
-                model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
+                #model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
                 wandb.log({"eval_ret": ret}, step=total_steps)
-                #print("state history: ", state_history)
-                #print("total_steps: ", total_steps)
-                #print("writing: ", [total_steps, state_history])
                 state_history = list(state_history)
                 line = [total_steps] + state_history
                 with open(rets_path, "a", newline="") as f:
                     writer = csv.writer(f)
                     writer.writerow(line)
-                #if ret >= 60.0:  # stop training when hit a threshold
-                #    print("STOPPING TRAININGGGGGGGGGGGGGGGGGGGGGGGG")
-                #    return False
             else:
+                print("\neval")
+                print("total steps: ", total_steps)
                 ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
-                #if ret >= 60.0:  # stop training when hit a threshold
-                #    return False
-            #print("eval ret: ", ret)
-        #print("training steps: ", model.num_timesteps)#
+                #ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
         return True
     best_ret, n_callbacks = -np.infty, 0
     model.learn(total_timesteps=timesteps, callback=callback)
@@ -155,13 +161,15 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="continuous_updated", sync_tensorboard=True)
-    from output.updated_gridworld_continuous.policies import *
-    model = B1R
-    model_dir = os.path.join(model[0], model[1], model[2])
-    RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="Continuous-v0")
-    #RC.train_curriculum(env_name="Continuous-v0")
+    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
+    #from output.updated_gridworld_continuous.policies import *
+    from output.fetch2.policies import *
+
+    model_info = BR_BL0_BL1_BL5
+    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+    RC = RewardCurriculum("HER", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+    RC.train_single(env_name="Fetch-v0")
+    #RC.train_curriculum(env_name="Fetch-v0")
 
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')

@@ -18,7 +18,8 @@ from stable_baselines import logger
 
 from stable_baselines.common import BaseRLModel
 
-from model import MlpPPNPolicy
+from baselines.PNN.model import MlpPPNPolicy
+import ipdb
 
 
 def load_from_file(load_path, load_data=True, custom_objects=None):
@@ -182,10 +183,17 @@ def looseload(cls, load_path, env=None, custom_objects=None, **kwargs):
 
         return model
 
-def resave_params_for_PPN(input_file, output_file):
+def resave_params_for_PNN(input_file, output_file):
+    print("input file: ", input_file)
+    print("output file: ", output_file)
     data, params = load_from_file(input_file)
     data['policy'] = MlpPPNPolicy
-    remove_keys = ['model/vf/w:0', 'model/vf/b:0', 'model/pi/w:0', 'model/pi/b:0', 'model/pi/logstd:0', 'model/q/w:0', 'model/q/b:0']
+    #remove_keys = ['model/vf/w:0', 'model/vf/b:0', 'model/pi/w:0', 'model/pi/b:0',
+    #               'model/pi/logstd:0', 'model/q/w:0', 'model/q/b:0']
+    remove_keys = ['model/pi/pi/kernel:0', 'model/pi/pi/bias:0',
+                   'model/qf/qf_output/kernel:0', 'model/qf/qf_output/bias:0',
+                   'target/pi/pi/kernel:0', 'target/pi/pi/bias:0',
+                   'target/qf/qf_output/kernel:0', 'target/qf/qf_output/bias:0']
     for remove_key in remove_keys:
         params.pop(remove_key)
     save_to_file(output_file, data, params)
