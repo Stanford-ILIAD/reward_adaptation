@@ -35,6 +35,7 @@ flags.DEFINE_string("experiment_dir", "output/fetch_PNN", "Name of experiment")
 flags.DEFINE_string("experiment_name", "BL_BR_PNN", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+flags.DEFINE_integer("seed", 10, "random seed")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -53,18 +54,21 @@ class RewardCurriculum(object):
     Code related to training reward curriculum or single domain
     """
 
-    def __init__(self, model_dir, output_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+    def __init__(self, model_dir, output_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period, seed):
         utils.resave_params_for_PNN(model_dir, output_dir)
         self.model = HER2BSS.load(output_dir)
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
+        print("Experiment name: ", experiment_name)
         self.timesteps = timesteps
         self.is_save = is_save
         self.eval_save_period = eval_save_period
         self.rets_path = None
         self.create_eval_dir()
-        self.seed = 42
+        #self.seed = 42
+        self.seed = seed
+        print("SEED: ", self.seed)
 
     def create_eval_dir(self):
         if self.is_save:
@@ -104,7 +108,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
             start_eval_time = time.time()
             if is_save:
                 ret, std, total_rets, state_history = evaluate(model, eval_env, render=False)
-                model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
+                #model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
@@ -130,12 +134,12 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
+    if FLAGS.is_save: wandb.init(project="fetch_LR1", sync_tensorboard=True, name=FLAGS.experiment_name)
     from output.fetch2.policies import *
-    model_info = BR_v3
+    model_info = BL_v021
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     output_dir = os.path.join("output/fetch_PNN", 'resave', model_info[2])
     RC = RewardCurriculum(model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
-                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
     RC.train_pnn(env_name="Fetch-v0")
 

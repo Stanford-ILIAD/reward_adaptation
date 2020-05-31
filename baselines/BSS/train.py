@@ -32,9 +32,10 @@ FLAGS = flags.FLAGS
 
 flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
 flags.DEFINE_string("experiment_dir", "output/fetch_BSS", "Name of experiment")
-flags.DEFINE_string("experiment_name", "BR_BL_BSS", "Name of experiment")
+flags.DEFINE_string("experiment_name", "BL_BR_BSS", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+flags.DEFINE_integer("seed", 10, "random seed")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 
 
@@ -54,7 +55,7 @@ class RewardCurriculum(object):
     Code related to training reward curriculum or single domain
     """
 
-    def __init__(self, model_dir, output_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+    def __init__(self, model_dir, output_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period, seed):
         utils.resave_params_for_BSS(model_dir, output_dir)
         #self.model = PPO2BSS.load(output_dir, bss_coef=0.001, l2_coef=0.0005)
         #self.model = HER2BSS.load(output_dir, bss_coef=0.001, l2_coef=0.0005)
@@ -67,7 +68,9 @@ class RewardCurriculum(object):
         self.eval_save_period = eval_save_period
         self.rets_path = None
         self.create_eval_dir()
-        self.seed = 42
+        #self.seed = 42
+        self.seed = seed
+        print("SEED: ", self.seed)
 
     def create_eval_dir(self):
         if self.is_save:
@@ -134,11 +137,11 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
+    if FLAGS.is_save: wandb.init(project="fetch_LR1", sync_tensorboard=True, name=FLAGS.experiment_name)
     from output.fetch2.policies import *
-    model_info = BR_v3
+    model_info = BL_v021
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     output_dir = os.path.join("output/fetch_BSS", 'resave', model_info[2])
     RC = RewardCurriculum(model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
-                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
     RC.train_bss(env_name="Fetch-v0")
