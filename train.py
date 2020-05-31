@@ -161,15 +161,15 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
-    #from output.updated_gridworld_continuous.policies import *
-    from output.fetch2.policies import *
+    if FLAGS.is_save: wandb.init(project="continuous_updated1", sync_tensorboard=True, name=FLAGS.experiment_name)
+    from output.updated_gridworld_continuous.policies import *
+    #from output.fetch2.policies import *
 
-    model_info = BR_BL0_BL1_BL5
+    model_info = B1R
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-    RC = RewardCurriculum("HER", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_single(env_name="Fetch-v0")
-    #RC.train_curriculum(env_name="Fetch-v0")
+    RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+    #RC.train_single(env_name="Fetch-v0")
+    RC.train_curriculum(env_name="Continuous-v0")
 
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
     #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
