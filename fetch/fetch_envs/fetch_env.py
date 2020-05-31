@@ -115,6 +115,7 @@ class FetchEnv(robot_env.RobotEnv):
             if self.detect_barrier_collision(verbose):
                 barrier_cost = -10
                 #barrier_cost = -5
+                #barrier_cost = -1
                 #barrier_cost = 0.0
             rew += barrier_cost
 
