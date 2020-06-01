@@ -25,7 +25,6 @@ flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
 flags.DEFINE_integer("seed", 10, "random seed")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
-flags.DEFINE_integer("seed", 1, "random seed")
 flags.DEFINE_string("target_env", "", "Name of target environment")
 flags.DEFINE_string("source_env", "", "Name of source environment")
         
@@ -129,9 +128,9 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    #if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=False, name=FLAGS.experiment_name)
+    if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=True, name=FLAGS.experiment_name)
     from output.updated_gridworld_continuous.policies import *
-    model = B1R1
+    model = B3R1
     model_dir = os.path.join(model[0], model[1], model[2])
     output_dir = os.path.join("output/updated_gridworld_continuous_PNN", 'resave', model[2])
     RC = RewardCurriculum("PPO", model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,

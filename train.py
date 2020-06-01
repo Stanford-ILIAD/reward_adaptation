@@ -184,14 +184,15 @@ if __name__ == '__main__':
     #from output.fetch2.policies import *
 
     if FLAGS.expt_type == "ours":
-        model_info = B1R_B0L1
+        model_info = B3R_B0L1
     else:
-        model_info = B1R1
+        model_info = B3R1
+    print("model info: ", model_info[1])
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
             FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
     if FLAGS.expt_type == "direct":
-        RC.train_single(env_name="Fetch-v0")
+        RC.train_single(env_name="Continuous-v0")
     else:
         RC.train_curriculum(env_name="Continuous-v0")
 

@@ -11,5 +11,6 @@ experiments/gridworld_continuous/.ipynb_checkpoints/
 *.swp
 *.swo
 *.tar.gz
+output/*
 output/gridworld_continuous/MO*
 output/gridworld_continuous/B*

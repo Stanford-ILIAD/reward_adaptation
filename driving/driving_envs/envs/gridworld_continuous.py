@@ -99,7 +99,7 @@ class GridworldContinuousEnv(gym.Env):
         self.world.reset()
 
         self.buildings = [
-           Building(Point(self.width/2., self.height/2.), Point(1,1), "#B22222")
+           Building(Point(self.width/2., self.height/2.), Point(3,3), "#B22222")
         ]
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "grey80")

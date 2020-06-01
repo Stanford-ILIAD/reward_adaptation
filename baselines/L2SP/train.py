@@ -130,7 +130,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=True, name=FLAGS.experiment_name)
     from output.updated_gridworld_continuous.policies import *
-    model = B1R1
+    model = B3R1
     model_dir = os.path.join(model[0], model[1], model[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps,
             FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
