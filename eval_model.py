@@ -64,10 +64,10 @@ def evaluate(model, eval_env, render=False):
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):  # fetch reach env, saving xyz of end effector
-            state_history.append(obs[:3])
-        else:  # eval env is driving environment
-            state_history.append(obs[:2])
+        #if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):  # fetch reach env, saving xyz of end effector
+        #    state_history.append(obs[:3])
+        #else:  # eval env is driving environment
+        state_history.append(obs[:2])
         state, ever_done = None, False
         while not ever_done:
             if render: eval_env.render()
@@ -80,10 +80,10 @@ def evaluate(model, eval_env, render=False):
                 rets += ret
             # print("rets: ", rets)
             obs = next_obs
-            if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):
-                state_history.append(obs[:3])
-            else:  # eval env is driving environment
-                state_history.append(obs[:2])
+            #if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):
+            #    state_history.append(obs[:3])
+            #else:  # eval env is driving environment
+            state_history.append(obs[:2])
             if render: time.sleep(.1)
             ever_done = done
         if render: eval_env.render()

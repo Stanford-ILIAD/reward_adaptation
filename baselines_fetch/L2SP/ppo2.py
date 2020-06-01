@@ -1,20 +1,10 @@
-import warnings
-from itertools import zip_longest
-from abc import ABC, abstractmethod
-
-import numpy as np
-import tensorflow as tf
-from gym.spaces import Discrete
-
-from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
-from stable_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
-    MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
-from stable_baselines.common.input import observation_input
-
-
 import time
 import sys
 from collections import deque
+
+import gym
+import numpy as np
+import tensorflow as tf
 
 from stable_baselines import logger
 from stable_baselines.common import explained_variance, ActorCriticRLModel, tf_util, SetVerbosity, TensorboardWriter
@@ -22,232 +12,8 @@ from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.policies import ActorCriticPolicy, RecurrentActorCriticPolicy
 from stable_baselines.a2c.utils import total_episode_reward_logger
 
-from stable_baselines.ppo2.ppo2 import Runner, get_schedule_fn, swap_and_flatten, safe_mean, constfn #constfn, safe_mean
 
-
-def nature_cnn(scaled_images, **kwargs):
-    """
-    CNN from Nature paper.
-
-    :param scaled_images: (TensorFlow Tensor) Image input placeholder
-    :param kwargs: (dict) Extra keywords parameters for the convolutional layers of the CNN
-    :return: (TensorFlow Tensor) The CNN output layer
-    """
-    activ = tf.nn.relu
-    layer_1 = activ(conv(scaled_images, 'c1', n_filters=32, filter_size=8, stride=4, init_scale=np.sqrt(2), **kwargs))
-    layer_2 = activ(conv(layer_1, 'c2', n_filters=64, filter_size=4, stride=2, init_scale=np.sqrt(2), **kwargs))
-    layer_3 = activ(conv(layer_2, 'c3', n_filters=64, filter_size=3, stride=1, init_scale=np.sqrt(2), **kwargs))
-    layer_3 = conv_to_fc(layer_3)
-    return activ(linear(layer_3, 'fc1', n_hidden=512, init_scale=np.sqrt(2)))
-
-
-def mlp_extractor_old(flat_observations, net_arch, act_fun):
-    """
-    Constructs an MLP that receives observations as an input and outputs a latent representation for the policy and
-    a value network. The ``net_arch`` parameter allows to specify the amount and size of the hidden layers and how many
-    of them are shared between the policy network and the value network. It is assumed to be a list with the following
-    structure:
-    1. An arbitrary length (zero allowed) number of integers each specifying the number of units in a shared layer.
-       If the number of ints is zero, there will be no shared layers.
-    2. An optional dict, to specify the following non-shared layers for the value network and the policy network.
-       It is formatted like ``dict(vf=[<value layer sizes>], pi=[<policy layer sizes>])``.
-       If it is missing any of the keys (pi or vf), no non-shared layers (empty list) is assumed.
-    For example to construct a network with one shared layer of size 55 followed by two non-shared layers for the value
-    network of size 255 and a single non-shared layer of size 128 for the policy network, the following layers_spec
-    would be used: ``[55, dict(vf=[255, 255], pi=[128])]``. A simple shared network topology with two layers of size 128
-    would be specified as [128, 128].
-    :param flat_observations: (tf.Tensor) The observations to base policy and value function on.
-    :param net_arch: ([int or dict]) The specification of the policy and value networks.
-        See above for details on its formatting.
-    :param act_fun: (tf function) The activation function to use for the networks.
-    :return: (tf.Tensor, tf.Tensor) latent_policy, latent_value of the specified network.
-        If all layers are shared, then ``latent_policy == latent_value``
-    """
-    latent = flat_observations
-    policy_only_layers = []  # Layer sizes of the network that only belongs to the policy network
-    value_only_layers = []  # Layer sizes of the network that only belongs to the value network
-    latent_representations = {'share':[], 'policy':[], 'value':[]}
-    # Iterate through the shared layers and build the shared parts of the network
-    for idx, layer in enumerate(net_arch):
-        if isinstance(layer, int):  # Check that this is a shared layer
-            layer_size = layer
-            latent = act_fun(linear(latent, "shared_fc{}".format(idx), layer_size, init_scale=np.sqrt(2)))
-            latent_representations['share'].append(latent)
-        else:
-            assert isinstance(layer, dict), "Error: the net_arch list can only contain ints and dicts"
-            if 'pi' in layer:
-                assert isinstance(layer['pi'], list), "Error: net_arch[-1]['pi'] must contain a list of integers."
-                policy_only_layers = layer['pi']
-
-            if 'vf' in layer:
-                assert isinstance(layer['vf'], list), "Error: net_arch[-1]['vf'] must contain a list of integers."
-                value_only_layers = layer['vf']
-            break  # From here on the network splits up in policy and value network
-
-    # Build the non-shared part of the network
-    latent_policy = latent
-    latent_value = latent
-    for idx, (pi_layer_size, vf_layer_size) in enumerate(zip_longest(policy_only_layers, value_only_layers)):
-        if pi_layer_size is not None:
-            assert isinstance(pi_layer_size, int), "Error: net_arch[-1]['pi'] must only contain integers."
-            latent_policy = act_fun(linear(latent_policy, "pi_fc{}".format(idx), pi_layer_size, init_scale=np.sqrt(2)))
-            latent_representations['policy'].append(latent_policy)
-        if vf_layer_size is not None:
-            assert isinstance(vf_layer_size, int), "Error: net_arch[-1]['vf'] must only contain integers."
-            latent_value = act_fun(linear(latent_value, "vf_fc{}".format(idx), vf_layer_size, init_scale=np.sqrt(2)))
-            latent_representations['value'].append(latent_value)
-
-    return latent_policy, latent_value, latent_representations
-
-
-def mlp_extractor_new(flat_observations, net_arch, act_fun, old_representations):
-    """
-    Constructs an MLP that receives observations as an input and outputs a latent representation for the policy and
-    a value network. The ``net_arch`` parameter allows to specify the amount and size of the hidden layers and how many
-    of them are shared between the policy network and the value network. It is assumed to be a list with the following
-    structure:
-    1. An arbitrary length (zero allowed) number of integers each specifying the number of units in a shared layer.
-       If the number of ints is zero, there will be no shared layers.
-    2. An optional dict, to specify the following non-shared layers for the value network and the policy network.
-       It is formatted like ``dict(vf=[<value layer sizes>], pi=[<policy layer sizes>])``.
-       If it is missing any of the keys (pi or vf), no non-shared layers (empty list) is assumed.
-    For example to construct a network with one shared layer of size 55 followed by two non-shared layers for the value
-    network of size 255 and a single non-shared layer of size 128 for the policy network, the following layers_spec
-    would be used: ``[55, dict(vf=[255, 255], pi=[128])]``. A simple shared network topology with two layers of size 128
-    would be specified as [128, 128].
-    :param flat_observations: (tf.Tensor) The observations to base policy and value function on.
-    :param net_arch: ([int or dict]) The specification of the policy and value networks.
-        See above for details on its formatting.
-    :param act_fun: (tf function) The activation function to use for the networks.
-    :return: (tf.Tensor, tf.Tensor) latent_policy, latent_value of the specified network.
-        If all layers are shared, then ``latent_policy == latent_value``
-    """
-    latent = flat_observations
-    policy_only_layers = []  # Layer sizes of the network that only belongs to the policy network
-    value_only_layers = []  # Layer sizes of the network that only belongs to the value network
-    idx_representations = {'share':0, 'policy':0, 'value':0}
-    # Iterate through the shared layers and build the shared parts of the network
-    
-    for idx, layer in enumerate(net_arch):
-        if isinstance(layer, int):  # Check that this is a shared layer
-            layer_size = layer
-            latent = act_fun(linear(latent, "shared_fc{}".format(idx), layer_size, init_scale=np.sqrt(2))+sum(old_representations['share'][idx_representations['share']]))
-            idx_representations['share'] += 1
-        else:
-            assert isinstance(layer, dict), "Error: the net_arch list can only contain ints and dicts"
-            if 'pi' in layer:
-                assert isinstance(layer['pi'], list), "Error: net_arch[-1]['pi'] must contain a list of integers."
-                policy_only_layers = layer['pi']
-
-            if 'vf' in layer:
-                assert isinstance(layer['vf'], list), "Error: net_arch[-1]['vf'] must contain a list of integers."
-                value_only_layers = layer['vf']
-            break  # From here on the network splits up in policy and value network
-
-    # Build the non-shared part of the network
-    latent_policy = latent
-    latent_value = latent
-    for idx, (pi_layer_size, vf_layer_size) in enumerate(zip_longest(policy_only_layers, value_only_layers)):
-        if pi_layer_size is not None:
-            assert isinstance(pi_layer_size, int), "Error: net_arch[-1]['pi'] must only contain integers."
-            latent_policy = act_fun(linear(latent_policy, "pi_fc{}".format(idx), pi_layer_size, init_scale=np.sqrt(2))+sum(old_representations['policy'][idx_representations['policy']]))
-            idx_representations['policy'] += 1
-        if vf_layer_size is not None:
-            assert isinstance(vf_layer_size, int), "Error: net_arch[-1]['vf'] must only contain integers."
-            latent_value = act_fun(linear(latent_value, "vf_fc{}".format(idx), vf_layer_size, init_scale=np.sqrt(2))+sum(old_representations['value'][idx_representations['value']]))
-            idx_representations['value'] += 1
-
-    return latent_policy, latent_value
-
-class L2SPPolicy(ActorCriticPolicy):
-    """
-    Policy object that implements actor critic, using a feed forward neural network.
-
-    :param sess: (TensorFlow session) The current TensorFlow session
-    :param ob_space: (Gym Space) The observation space of the environment
-    :param ac_space: (Gym Space) The action space of the environment
-    :param n_env: (int) The number of environments to run
-    :param n_steps: (int) The number of steps to run for each environment
-    :param n_batch: (int) The number of batch to run (n_envs * n_steps)
-    :param reuse: (bool) If the policy is reusable or not
-    :param layers: ([int]) (deprecated, use net_arch instead) The size of the Neural network for the policy
-        (if None, default to [64, 64])
-    :param net_arch: (list) Specification of the actor-critic policy network architecture (see mlp_extractor
-        documentation for details).
-    :param act_fun: (tf.func) the activation function to use in the neural network.
-    :param cnn_extractor: (function (TensorFlow Tensor, ``**kwargs``): (TensorFlow Tensor)) the CNN feature extraction
-    :param feature_extraction: (str) The feature extraction type ("cnn" or "mlp")
-    :param kwargs: (dict) Extra keyword arguments for the nature CNN feature extraction
-    """
-
-    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None, net_arch=None,
-                 act_fun=tf.tanh, cnn_extractor=nature_cnn, feature_extraction="cnn", original_params=None, **kwargs):
-        super(L2SPPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=reuse,
-                                                scale=(feature_extraction == "cnn"))
-
-        self._kwargs_check(feature_extraction, kwargs)
-
-        if layers is not None:
-            warnings.warn("Usage of the `layers` parameter is deprecated! Use net_arch instead "
-                          "(it has a different semantics though).", DeprecationWarning)
-            if net_arch is not None:
-                warnings.warn("The new `net_arch` parameter overrides the deprecated `layers` parameter!",
-                              DeprecationWarning)
-
-        if net_arch is None:
-            if layers is None:
-                layers = [64, 64]
-            net_arch = [dict(vf=layers, pi=layers)]
-
-        with tf.variable_scope("model", reuse=reuse):
-            if feature_extraction == "cnn":
-                pi_latent = vf_latent = cnn_extractor(self.processed_obs, **kwargs)
-            else:
-                pi_latent, vf_latent = mlp_extractor(tf.layers.flatten(self.processed_obs), net_arch, act_fun)
-
-            self._value_fn = linear(vf_latent, 'vf', 1)
-
-            self._proba_distribution, self._policy, self.q_value = \
-                self.pdtype.proba_distribution_from_latent(pi_latent, vf_latent, init_scale=0.01)
-        self.original_params = original_params
-
-        self._setup_init()
-
-    def step(self, obs, state=None, mask=None, deterministic=False):
-        if deterministic:
-            action, value, neglogp = self.sess.run([self.deterministic_action, self.value_flat, self.neglogp],
-                                                   {self.obs_ph: obs})
-        else:
-            action, value, neglogp = self.sess.run([self.action, self.value_flat, self.neglogp],
-                                                   {self.obs_ph: obs})
-        return action, value, self.initial_state, neglogp
-
-    def proba_step(self, obs, state=None, mask=None):
-        return self.sess.run(self.policy_proba, {self.obs_ph: obs})
-
-    def value(self, obs, state=None, mask=None):
-        return self.sess.run(self.value_flat, {self.obs_ph: obs})
-
-
-class MlpPPNPolicy(L2SPPolicy):
-    """
-    Policy object that implements actor critic, using a MLP (2 layers of 64)
-    :param sess: (TensorFlow session) The current TensorFlow session
-    :param ob_space: (Gym Space) The observation space of the environment
-    :param ac_space: (Gym Space) The action space of the environment
-    :param n_env: (int) The number of environments to run
-    :param n_steps: (int) The number of steps to run for each environment
-    :param n_batch: (int) The number of batch to run (n_envs * n_steps)
-    :param reuse: (bool) If the policy is reusable or not
-    :param _kwargs: (dict) Extra keyword arguments for the nature CNN feature extraction
-    """
-
-    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **_kwargs):
-        super(MlpPPNPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse,
-                                        feature_extraction="mlp", **_kwargs)
-
-
-class PPO2L2SP(ActorCriticRLModel):
+class PPO2(ActorCriticRLModel):
     """
     Proximal Policy Optimization algorithm (GPU version).
     Paper: https://arxiv.org/abs/1707.06347
@@ -284,16 +50,14 @@ class PPO2L2SP(ActorCriticRLModel):
     :param n_cpu_tf_sess: (int) The number of threads for TensorFlow operations
         If None, the number of cpu of the current machine will be used.
     """
-    def __init__(self, policy, env, gamma=0.99, n_steps=128, ent_coef=0.01, l2sp_coef=0.01, l2_coef=0.0005, learning_rate=2.5e-4, vf_coef=0.5,
+    def __init__(self, policy, env, gamma=0.99, n_steps=128, ent_coef=0.01, learning_rate=2.5e-4, vf_coef=0.5,
                  max_grad_norm=0.5, lam=0.95, nminibatches=4, noptepochs=4, cliprange=0.2, cliprange_vf=None,
-                 verbose=0, tensorboard_log=None, _init_setup_model=True, original_params=None, policy_kwargs=None,
+                 verbose=0, tensorboard_log=None, _init_setup_model=True, policy_kwargs=None,
                  full_tensorboard_log=False, seed=None, n_cpu_tf_sess=None):
 
-        super(PPO2L2SP, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
+        super(PPO2, self).__init__(policy=policy, env=env, verbose=verbose, requires_vec_env=True,
                                    _init_setup_model=_init_setup_model, policy_kwargs=policy_kwargs,
                                    seed=seed, n_cpu_tf_sess=n_cpu_tf_sess)
-
-        self.original_params = original_params
 
         self.learning_rate = learning_rate
         self.cliprange = cliprange
@@ -301,8 +65,6 @@ class PPO2L2SP(ActorCriticRLModel):
         self.n_steps = n_steps
         self.ent_coef = ent_coef
         self.vf_coef = vf_coef
-        self.l2sp_coef = l2sp_coef
-        self.l2_coef = l2_coef
         self.max_grad_norm = max_grad_norm
         self.gamma = gamma
         self.lam = lam
@@ -427,20 +189,8 @@ class PPO2L2SP(ActorCriticRLModel):
                     self.approxkl = .5 * tf.reduce_mean(tf.square(neglogpac - self.old_neglog_pac_ph))
                     self.clipfrac = tf.reduce_mean(tf.cast(tf.greater(tf.abs(ratio - 1.0),
                                                                       self.clip_range_ph), tf.float32))
+                    loss = self.pg_loss - self.entropy * self.ent_coef + self.vf_loss * self.vf_coef
 
-                    ## custom loss
-                    self.l2sp_loss = 0
-                    all_vars = [v for v in tf.global_variables()]
-                    for var_ in all_vars:
-                        self.l2sp_loss += tf.losses.mean_squared_error(self.original_params[var_.name], var_)
-                    self.l2_loss = 0 
-                    for var_ in all_vars:
-                        self.l2_loss += tf.losses.mean_squared_error(tf.zeros(var_.shape), var_)
-
-                    loss = self.pg_loss - self.entropy * self.ent_coef + self.vf_loss * self.vf_coef + self.l2sp_loss * self.l2sp_coef + self.l2_loss * self.l2_coef
-
-                    tf.summary.scalar('l2_loss', self.l2_loss)
-                    tf.summary.scalar('l2sp_loss', self.l2sp_loss)
                     tf.summary.scalar('entropy_loss', self.entropy)
                     tf.summary.scalar('policy_gradient_loss', self.pg_loss)
                     tf.summary.scalar('value_function_loss', self.vf_loss)
@@ -460,7 +210,7 @@ class PPO2L2SP(ActorCriticRLModel):
                 trainer = tf.train.AdamOptimizer(learning_rate=self.learning_rate_ph, epsilon=1e-5)
                 self._train = trainer.apply_gradients(grads)
 
-                self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac', 'l2sp_loss', 'l2_loss']
+                self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac']
 
                 with tf.variable_scope("input_info", reuse=False):
                     tf.summary.scalar('discounted_rewards', tf.reduce_mean(self.rewards_ph))
@@ -538,20 +288,20 @@ class PPO2L2SP(ActorCriticRLModel):
             if self.full_tensorboard_log and (1 + update) % 10 == 0:
                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                 run_metadata = tf.RunMetadata()
-                summary, policy_loss, value_loss, policy_entropy, approxkl, clipfrac, l2sp_loss, l2_loss, _ = self.sess.run(
-                    [self.summary, self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self.l2sp_loss, self.l2_loss, self._train],
+                summary, policy_loss, value_loss, policy_entropy, approxkl, clipfrac, _ = self.sess.run(
+                    [self.summary, self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self._train],
                     td_map, options=run_options, run_metadata=run_metadata)
                 writer.add_run_metadata(run_metadata, 'step%d' % (update * update_fac))
             else:
-                summary, policy_loss, value_loss, policy_entropy, approxkl, clipfrac, l2sp_loss, l2_loss, _ = self.sess.run(
-                    [self.summary, self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self.l2sp_loss, self.l2_loss, self._train],
+                summary, policy_loss, value_loss, policy_entropy, approxkl, clipfrac, _ = self.sess.run(
+                    [self.summary, self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self._train],
                     td_map)
             writer.add_summary(summary, (update * update_fac))
         else:
-            policy_loss, value_loss, policy_entropy, approxkl, clipfrac, l2sp_loss, l2_loss, _ = self.sess.run(
-                [self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self.l2sp_loss, self.l2_loss, self._train], td_map)
+            policy_loss, value_loss, policy_entropy, approxkl, clipfrac, _ = self.sess.run(
+                [self.pg_loss, self.vf_loss, self.entropy, self.approxkl, self.clipfrac, self._train], td_map)
 
-        return policy_loss, value_loss, policy_entropy, approxkl, clipfrac, l2sp_loss, l2_loss
+        return policy_loss, value_loss, policy_entropy, approxkl, clipfrac
 
     def learn(self, total_timesteps, callback=None, log_interval=1, tb_log_name="PPO2",
               reset_num_timesteps=True):
@@ -662,8 +412,6 @@ class PPO2L2SP(ActorCriticRLModel):
             "n_steps": self.n_steps,
             "vf_coef": self.vf_coef,
             "ent_coef": self.ent_coef,
-            "l2_coef": self.l2_coef,
-            "l2sp_coef": self.l2sp_coef,
             "max_grad_norm": self.max_grad_norm,
             "learning_rate": self.learning_rate,
             "lam": self.lam,
@@ -686,3 +434,137 @@ class PPO2L2SP(ActorCriticRLModel):
 
         self._save_to_file(save_path, data=data, params=params_to_save, cloudpickle=cloudpickle)
 
+
+class Runner(AbstractEnvRunner):
+    def __init__(self, *, env, model, n_steps, gamma, lam):
+        """
+        A runner to learn the policy of an environment for a model
+
+        :param env: (Gym environment) The environment to learn from
+        :param model: (Model) The model to learn
+        :param n_steps: (int) The number of steps to run for each environment
+        :param gamma: (float) Discount factor
+        :param lam: (float) Factor for trade-off of bias vs variance for Generalized Advantage Estimator
+        """
+        super().__init__(env=env, model=model, n_steps=n_steps)
+        self.lam = lam
+        self.gamma = gamma
+
+    def run(self):
+        """
+        Run a learning step of the model
+
+        :return:
+            - observations: (np.ndarray) the observations
+            - rewards: (np.ndarray) the rewards
+            - masks: (numpy bool) whether an episode is over or not
+            - actions: (np.ndarray) the actions
+            - values: (np.ndarray) the value function output
+            - negative log probabilities: (np.ndarray)
+            - states: (np.ndarray) the internal states of the recurrent policies
+            - infos: (dict) the extra information of the model
+        """
+        # mb stands for minibatch
+        mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [], [], [], [], [], []
+        mb_states = self.states
+        ep_infos = []
+        for _ in range(self.n_steps):
+            actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
+            mb_obs.append(self.obs.copy())
+            mb_actions.append(actions)
+            mb_values.append(values)
+            mb_neglogpacs.append(neglogpacs)
+            mb_dones.append(self.dones)
+            clipped_actions = actions
+            # Clip the actions to avoid out of bound error
+            if isinstance(self.env.action_space, gym.spaces.Box):
+                clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
+            self.obs[:], rewards, self.dones, infos = self.env.step(clipped_actions)
+            for info in infos:
+                maybe_ep_info = info.get('episode')
+                if maybe_ep_info is not None:
+                    ep_infos.append(maybe_ep_info)
+            mb_rewards.append(rewards)
+        # batch of steps to batch of rollouts
+        mb_obs = np.asarray(mb_obs, dtype=self.obs.dtype)
+        mb_rewards = np.asarray(mb_rewards, dtype=np.float32)
+        mb_actions = np.asarray(mb_actions)
+        mb_values = np.asarray(mb_values, dtype=np.float32)
+        mb_neglogpacs = np.asarray(mb_neglogpacs, dtype=np.float32)
+        mb_dones = np.asarray(mb_dones, dtype=np.bool)
+        last_values = self.model.value(self.obs, self.states, self.dones)
+        # discount/bootstrap off value fn
+        mb_advs = np.zeros_like(mb_rewards)
+        true_reward = np.copy(mb_rewards)
+        last_gae_lam = 0
+        for step in reversed(range(self.n_steps)):
+            if step == self.n_steps - 1:
+                nextnonterminal = 1.0 - self.dones
+                nextvalues = last_values
+            else:
+                nextnonterminal = 1.0 - mb_dones[step + 1]
+                nextvalues = mb_values[step + 1]
+            delta = mb_rewards[step] + self.gamma * nextvalues * nextnonterminal - mb_values[step]
+            mb_advs[step] = last_gae_lam = delta + self.gamma * self.lam * nextnonterminal * last_gae_lam
+        mb_returns = mb_advs + mb_values
+
+        mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, true_reward = \
+            map(swap_and_flatten, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, true_reward))
+
+        return mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs, mb_states, ep_infos, true_reward
+
+
+def get_schedule_fn(value_schedule):
+    """
+    Transform (if needed) learning rate and clip range
+    to callable.
+
+    :param value_schedule: (callable or float)
+    :return: (function)
+    """
+    # If the passed schedule is a float
+    # create a constant function
+    if isinstance(value_schedule, (float, int)):
+        # Cast to float to avoid errors
+        value_schedule = constfn(float(value_schedule))
+    else:
+        assert callable(value_schedule)
+    return value_schedule
+
+
+# obs, returns, masks, actions, values, neglogpacs, states = runner.run()
+def swap_and_flatten(arr):
+    """
+    swap and then flatten axes 0 and 1
+
+    :param arr: (np.ndarray)
+    :return: (np.ndarray)
+    """
+    shape = arr.shape
+    return arr.swapaxes(0, 1).reshape(shape[0] * shape[1], *shape[2:])
+
+
+def constfn(val):
+    """
+    Create a function that returns a constant
+    It is useful for learning rate schedule (to avoid code duplication)
+
+    :param val: (float)
+    :return: (function)
+    """
+
+    def func(_):
+        return val
+
+    return func
+
+
+def safe_mean(arr):
+    """
+    Compute the mean of an array if there is at least one element.
+    For empty array, return nan. It is used for logging only.
+
+    :param arr: (np.ndarray)
+    :return: (float)
+    """
+    return np.nan if len(arr) == 0 else np.mean(arr)
