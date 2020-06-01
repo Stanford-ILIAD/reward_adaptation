@@ -6,16 +6,13 @@ import csv
 import gym
 import numpy as np
 import time
-from stable_baselines import DQN, PPO2, HER, DDPG
-from stable_baselines.her.utils import HERGoalEnvWrapper
+from stable_baselines import DQN, PPO2
 from stable_baselines.common.policies import MlpPolicy
 import wandb
 from tensorflow import flags
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-import driving.driving_envs
-import fetch.fetch_envs
-import ipdb
+import driving_envs
 
 
 
@@ -34,8 +31,6 @@ def load_model(model_dir, model_type="PPO"):
         model = PPO2.load(model_dir)
     elif model_type == "DQN":
         model = DQN.load(model_dir)
-    elif model_type == "HER":
-        model = HER.load(model_dir)
     return model
 
 
@@ -50,60 +45,49 @@ def evaluate(model, eval_env, render=False):
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        #if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):  # fetch reach env, saving xyz of end effector
-        #    state_history.append(obs[:3])
-        #else:  # eval env is driving environment
         state_history.append(obs[:2])
         state, ever_done = None, False
-        #print("obs: ", obs[:2])
         while not ever_done:
-            if render: eval_env.render()
             nsteps += 1
             action, state = model.predict(obs, state=state, deterministic=True)
-            #print("action: ", action)
             next_obs, ret, done, _info = eval_env.step(action, verbose=render)
+            # print("ret: ", ret)
             if render: eval_env.render()
             if not ever_done:
                 rets += ret
             # print("rets: ", rets)
             obs = next_obs
-            #if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):
-            #    state_history.append(obs[:3])
-            #else:  # eval env is driving environment
             state_history.append(obs[:2])
             if render: time.sleep(.1)
             ever_done = done
-        if render: eval_env.render()
         total_rets.append(rets)
-        #print("total mean ep return: ", np.mean(total_rets), total_rets)
-        #print("nsteps: ", nsteps)
+        print("total mean ep return: ", np.mean(total_rets), total_rets)
+        print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets, np.array(state_history)
 
 def save_traj(model, state_history):
     state_history = list(state_history)
-    with open("output/fetch/single_trajs/{}.csv".format(model[1]), "w") as f:
+    with open("output/gridworld_continuous/single_trajs/{}.csv".format(model[1]), "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(state_history)
 
 if __name__ == "__main__":
     #from gridworld_policies.policies import *
-    #from output.updated_gridworld_continuous.policies import *
-    from output.fetch2.policies import *
+    from output.gridworld_continuous.policies import *
 
-    model_info = BR_v3
+    model_info = B6R
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-    #eval_env = load_env("Continuous-v0", "PPO")
-    eval_env = HERGoalEnvWrapper(load_env("Fetch-v0"))
+    eval_env = load_env("Continuous-v0", "PPO")
     save = True
 
-    model = load_model(model_dir, "HER")
+    model = load_model(model_dir)
     sum_reward = 0.0
-    num_episode = 1
+    num_episode = 200
     for ne in range(num_episode):
         mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=True)
         save_traj(model_info, state_history)
         sum_reward += mean_ret
         print("\nrunning mean: ", sum_reward / (ne + 1))
-        #break
+        break
 
     print("mean ret: ", sum_reward / num_episode)

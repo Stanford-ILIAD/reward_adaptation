@@ -12,7 +12,7 @@ import wandb
 from tensorflow import flags
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-import driving_envs
+import driving.driving_envs
 
 
 
@@ -61,8 +61,8 @@ def evaluate(model, eval_env, render=False):
             if render: time.sleep(.1)
             ever_done = done
         total_rets.append(rets)
-        print("total mean ep return: ", np.mean(total_rets), total_rets)
-        print("nsteps: ", nsteps)
+        #print("total mean ep return: ", np.mean(total_rets), total_rets)
+        #print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets, np.array(state_history)
 
 def save_traj(model, state_history):

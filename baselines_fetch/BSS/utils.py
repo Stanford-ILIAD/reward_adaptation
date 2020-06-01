@@ -18,7 +18,7 @@ from stable_baselines import logger
 
 from stable_baselines.common import BaseRLModel
 
-from model import MlpPPNPolicy
+from baselines.BSS.model import MlpBSSPolicy
 
 
 def load_from_file(load_path, load_data=True, custom_objects=None):
@@ -150,44 +150,11 @@ def save_to_file_zip(save_path, data=None, params=None):
                 file_.writestr("parameters", serialized_params)
                 file_.writestr("parameter_list", serialized_param_list)
 
-def looseload(cls, load_path, env=None, custom_objects=None, **kwargs):
-        """
-        Load the model from file
-
-        :param load_path: (str or file-like) the saved parameter location
-        :param env: (Gym Environment) the new environment to run the loaded model on
-            (can be None if you only need prediction from a trained model)
-        :param custom_objects: (dict) Dictionary of objects to replace
-            upon loading. If a variable is present in this dictionary as a
-            key, it will not be deserialized and the corresponding item
-            will be used instead. Similar to custom_objects in
-            `keras.models.load_model`. Useful when you have an object in
-            file that can not be deserialized.
-        :param kwargs: extra arguments to change the model when loading
-        """
-        data, params = cls._load_from_file(load_path, custom_objects=custom_objects)
-
-        if 'policy_kwargs' in kwargs and kwargs['policy_kwargs'] != data['policy_kwargs']:
-            raise ValueError("The specified policy kwargs do not equal the stored policy kwargs. "
-                             "Stored kwargs: {}, specified kwargs: {}".format(data['policy_kwargs'],
-                                                                              kwargs['policy_kwargs']))
-
-        model = cls(policy=data["policy"], env=None, _init_setup_model=False)
-        model.__dict__.update(data)
-        model.__dict__.update(kwargs)
-        model.set_env(env)
-        model.setup_model()
-
-        model.load_parameters(params, exact_match=False)
-
-        return model
-
-def resave_params_for_PPN(input_file, output_file):
+def resave_params_for_BSS(input_file, output_file):
+    print("input file: ", input_file)
+    print("output file: ", output_file)
     data, params = load_from_file(input_file)
-    data['policy'] = MlpPPNPolicy
-    remove_keys = ['model/vf/w:0', 'model/vf/b:0', 'model/pi/w:0', 'model/pi/b:0', 'model/pi/logstd:0', 'model/q/w:0', 'model/q/b:0']
-    for remove_key in remove_keys:
-        params.pop(remove_key)
+    data['policy'] = MlpBSSPolicy
     save_to_file(output_file, data, params)
 
 

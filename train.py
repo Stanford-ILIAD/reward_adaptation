@@ -20,14 +20,16 @@ import ipdb
 
 FLAGS = flags.FLAGS
 #flags.DEFINE_integer("timesteps", 128000, "# timesteps to train")
-flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
-#flags.DEFINE_integer("timesteps", 160000, "# timesteps to train")
-flags.DEFINE_string("experiment_dir", "output/fetch2", "Name of experiment")
+#flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
+flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
+flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous2", "Name of experiment")
 flags.DEFINE_string("experiment_name", "BL_final", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 50, "how often we save state for eval")  # fine
+#flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
 flags.DEFINE_integer("num_envs", 1, "number of envs")
+flags.DEFINE_integer("seed", 1, "random seed")
+flags.DEFINE_string("expt_type", "ours", "experiment type")
 #
 
 class RewardCurriculum(object):
@@ -35,7 +37,8 @@ class RewardCurriculum(object):
     Code related to training reward curriculum or single domain
     """
 
-    def __init__(self, model_type, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+    def __init__(self, model_type, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save,
+            eval_save_period, seed):
         self.model_type = model_type
         if self.model_type == "PPO":
             self.model = PPO2.load(model_dir) if model_dir else None  # loads pre-trained model
@@ -46,12 +49,15 @@ class RewardCurriculum(object):
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
+        print("Experiment name: ", experiment_name)
         self.timesteps = timesteps
         self.is_save = is_save
         self.eval_save_period = eval_save_period
         self.rets_path = None
         self.create_eval_dir()
-        self.seed = 42
+        #self.seed = 42
+        self.seed = seed
+        print("SEED: ", self.seed)
         self.curriculum = [
         ]
 
@@ -79,6 +85,8 @@ class RewardCurriculum(object):
             if self.model_type == "HER":
                 env = HERGoalEnvWrapper(env)
                 eval_env = HERGoalEnvWrapper(eval_env)
+            else:
+                env = DummyVecEnv([lambda: env])
             self.model.set_env(env)
             #self.model.tensorboard_log = "./Gridworldv1_tensorboard/" + self.experiment_name
             #self.model.full_tensorboard_log = True
@@ -149,9 +157,9 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer = csv.writer(f)
                     writer.writerow(line)
             else:
-                print("\neval")
-                print("total steps: ", total_steps)
-                ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
+                #print("\neval")
+                #print("total steps: ", total_steps)
+                ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
                 #ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
         return True
     best_ret, n_callbacks = -np.infty, 0
@@ -161,19 +169,19 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="continuous_updated1", sync_tensorboard=True, name=FLAGS.experiment_name)
+    if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=True, name=FLAGS.experiment_name)
     from output.updated_gridworld_continuous.policies import *
     #from output.fetch2.policies import *
 
-    model_info = B1R
+    if FLAGS.expt_type == "ours":
+        model_info = B1R_B0L1
+    else:
+        model_info = B1R1
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-    RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    #RC.train_single(env_name="Fetch-v0")
-    RC.train_curriculum(env_name="Continuous-v0")
+    RC = RewardCurriculum("PPO", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
+            FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
+    if FLAGS.expt_type == "direct":
+        RC.train_single(env_name="Fetch-v0")
+    else:
+        RC.train_curriculum(env_name="Continuous-v0")
 
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'll_policy.pkl')
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
-    #model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
-    #RC.train_single(env_name="ContinuousNoneRL-v0")
-    ##RC.train_curriculum(env_name="ContinuousNoneRL-v0")

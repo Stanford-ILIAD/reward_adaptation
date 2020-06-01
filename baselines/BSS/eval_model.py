@@ -12,7 +12,7 @@ import wandb
 from tensorflow import flags
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-import driving_envs
+import driving.driving_envs
 
 
 

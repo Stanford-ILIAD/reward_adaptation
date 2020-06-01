@@ -4,8 +4,8 @@ import gym
 import time
 import numpy as np
 import wandb
-import fetch.fetch_envs
-from stable_baselines.her.utils import HERGoalEnvWrapper
+#import minigrid.gym_minigrid
+import driving.driving_envs
 from tensorflow import flags
 import stable_baselines
 from stable_baselines.common.vec_env import DummyVecEnv
@@ -13,32 +13,24 @@ import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from eval_model import evaluate
 import csv
+
+import utils
+
+from model import PPO2L2SP
 import ipdb
 
-import baselines.L2SP.utils as utils
-
-from baselines.L2SP.model import PPO2L2SP, HER2L2SP
-from stable_baselines import HER
-
 FLAGS = flags.FLAGS
-#flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
-#flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous_L2SP", "Name of experiment")
-#flags.DEFINE_string("experiment_name", "B0R_B0L_L2SP", "Name of experiment")
-#flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-##flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
-#flags.DEFINE_integer("num_envs", 1, "number of envs")
-#flags.DEFINE_string("target_env", "", "Name of target environment")
-#flags.DEFINE_string("source_env", "", "Name of source environment")
-
-flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
-flags.DEFINE_string("experiment_dir", "output/fetch_L2SP", "Name of experiment")
-flags.DEFINE_string("experiment_name", "BR_BL_L2SP", "Name of experiment")
+flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
+flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous_L2SP", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B0R_B0L_L2SP", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+#flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
+flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
 flags.DEFINE_integer("num_envs", 1, "number of envs")
-#
-
+flags.DEFINE_integer("seed", 1, "random seed")
+flags.DEFINE_string("target_env", "", "Name of target environment")
+flags.DEFINE_string("source_env", "", "Name of source environment")
+        
 
 
 def find_best(dir_name):
@@ -55,11 +47,9 @@ class RewardCurriculum(object):
     """
     Code related to training reward curriculum or single domain
     """
-
-    def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
+    def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period, seed):
         data, params = utils.load_from_file(model_dir)
-        #self.model = PPO2L2SP.load(model_dir, original_params=params)
-        self.model = HER2L2SP.load(model_dir, original_params=params)
+        self.model = PPO2L2SP.load(model_dir, original_params=params)
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
         self.experiment_name = experiment_name
@@ -68,7 +58,8 @@ class RewardCurriculum(object):
         self.eval_save_period = eval_save_period
         self.rets_path = None
         self.create_eval_dir()
-        self.seed = 42
+        #self.seed = 42
+        self.seed = seed
 
     def create_eval_dir(self):
         if self.is_save:
@@ -84,11 +75,11 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
+        #self.timesteps = 220000 # to train for longer
         env = gym.make(env_name)
-        env = HERGoalEnvWrapper(env)
+        env = DummyVecEnv([lambda: env])
         self.model.set_env(env)
         eval_env = gym.make(env_name)
-        eval_env = HERGoalEnvWrapper(eval_env)
         self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
                            self.is_save, self.eval_save_period, self.rets_path, 0)
 
@@ -101,14 +92,17 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
     def callback(_locals, _globals):
         nonlocal n_callbacks, best_ret
         model = _locals['self']
-        total_steps = model.num_timesteps + (timesteps)*num_trains
+        n_callbacks += 1
+        #total_steps = model.num_timesteps + (timesteps)*num_trains
+        total_steps = n_callbacks * model.n_steps
+        print("total steps: ", total_steps)
 
         # Saving best model
         if (total_steps) % eval_save_period == 0:
             start_eval_time = time.time()
             if is_save:
                 ret, std, total_rets, state_history = evaluate(model, eval_env, render=False)
-                model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
+                #model.save(os.path.join(experiment_name, 'model_{}_{}.pkl'.format(total_steps, ret)))
                 if ret > best_ret:
                     print("Saving new best model")
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
@@ -123,22 +117,38 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer = csv.writer(f)
                     writer.writerow(line)
             else:
-                ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
+                ret, std, total_rets, _ = evaluate(model, eval_env, render=False)
             #print("eval ret: ", ret)
         #print("training steps: ", model.num_timesteps)
         return True
     best_ret, n_callbacks = -np.infty, 0
-    print("begin training!")
     model.learn(total_timesteps=timesteps, callback=callback)
     if is_save: model.save(os.path.join(experiment_name, 'final_model_{}.pkl'.format(num_trains)))
     return model
 
 
 if __name__ == '__main__':
-    if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
-    from output.fetch2.policies import *
-    model_info = BR_v3
-    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-    RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
-                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
-    RC.train_l2sp(env_name="Fetch-v0")
+    if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=True, name=FLAGS.experiment_name)
+    from output.updated_gridworld_continuous.policies import *
+    model = B1R1
+    model_dir = os.path.join(model[0], model[1], model[2])
+    RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps,
+            FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
+    RC.train_l2sp(env_name="Continuous-v0")
+
+    #if FLAGS.is_save: wandb.init(project="continuous", sync_tensorboard=True)
+    ##from output.gridworld_continuous.policies import *
+    #if 'LL' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'll_policy.pkl')
+    #elif 'RL' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rl_policy.pkl')
+    #elif 'LR' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'lr_policy.pkl')
+    #elif 'RR' in FLAGS.source_env:
+    #    model = ('output/gridworld_continuous', 'multi_obj_policies1', 'rr_policy.pkl')
+    ##model = ('output/gridworld_continuous', 'multi_obj_policies', 'rl_policy.pkl')
+    ##model = ('output/gridworld_continuous', 'multi_obj_policies', 'lr_policy.pkl')
+    ##model = ('output/gridworld_continuous', 'multi_obj_policies', 'rr_policy.pkl')
+    #model_dir = os.path.join(model[0], model[1], model[2])
+    #RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name, FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+    #RC.train_l2sp(env_name=FLAGS.target_env)

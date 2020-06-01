@@ -18,7 +18,7 @@ from stable_baselines import logger
 
 from stable_baselines.common import BaseRLModel
 
-from baselines.BSS.model import MlpBSSPolicy
+from model import MlpBSSPolicy
 
 
 def load_from_file(load_path, load_data=True, custom_objects=None):
@@ -151,8 +151,6 @@ def save_to_file_zip(save_path, data=None, params=None):
                 file_.writestr("parameter_list", serialized_param_list)
 
 def resave_params_for_BSS(input_file, output_file):
-    print("input file: ", input_file)
-    print("output file: ", output_file)
     data, params = load_from_file(input_file)
     data['policy'] = MlpBSSPolicy
     save_to_file(output_file, data, params)
