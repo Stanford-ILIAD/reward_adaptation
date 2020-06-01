@@ -1,8 +1,8 @@
 from typing import Union
 import numpy as np
-from driving_envs.agents import Car, Pedestrian, Building
-from driving_envs.entities import Entity
-from driving_envs.visualizer import Visualizer
+from driving.driving_envs.agents import Car, Pedestrian, Building
+from driving.driving_envs.entities import Entity
+from driving.driving_envs.visualizer import Visualizer
 
 
 class World:

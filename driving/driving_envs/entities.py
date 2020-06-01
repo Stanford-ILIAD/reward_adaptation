@@ -1,7 +1,7 @@
 import math
 from typing import Text, Union
 import numpy as np
-from driving_envs.geometry import Point, Rectangle, Circle
+from driving.driving_envs.geometry import Point, Rectangle, Circle
 import copy
 
 

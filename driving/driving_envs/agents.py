@@ -1,5 +1,5 @@
-from driving_envs.entities import RectangleEntity, CircleEntity
-from driving_envs.geometry import Point
+from driving.driving_envs.entities import RectangleEntity, CircleEntity
+from driving.driving_envs.geometry import Point
 
 # For colors, we use tkinter colors. See http://www.science.smith.edu/dftwiki/index.php/Color_Charts_for_TKinter
 
