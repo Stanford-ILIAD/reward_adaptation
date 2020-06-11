@@ -1,0 +1,10 @@
+BR_v3 = ["output/fetch", "BR_v3", "best_model_100000_10.64116769685721.pkl"]
+BL_v3 = ["output/fetch", "BL_v3", "best_model_150000_10.78360856051533.pkl"]
+#BR_B0L_v3 = ["output/fetch", "BR_B0L_v3", "best_model_480000_11.229728961546101.pkl"]
+BR_B0L_v3 = ["output/fetch", "BR_B0L_v3", "best_model_220000_-0.23178307189500696.pkl"]
+BL_B0R_v3 = ["output/fetch", "BL_B0R_v3", "best_model_20000_-2.7129063596297027.pkl"]
+BL_B0R_B5R_v4 = ["output/fetch", "BL_B0R_B5R_v4", "best_model_130000_-2.8482345787041967.pkl"]
+BL_B0R_B1R_v4 = ["output/fetch", "BL_B0R_B1R_v4", "best_model_70000_-2.8068323384500076.pkl"]
+
+BL_B0R_v4 = ["output/fetch", "BL_B0R_v4", "best_model_30000_-3.0722772800834184.pkl"]
+BL_B0R_only_hom = ["output/fetch", "BL_B0R_only_hom", "best_model_510000_-1.1268570977528165.pkl"]
