@@ -66,9 +66,10 @@ class GridworldContinuousEnv(gym.Env):
         self.correct_pos = []
         self.next_pos = []
         self.start = np.array([self.width/2.,5])
-        #self.goal = np.array([self.width/2., self.height-5.])
         self.goal = np.array([self.width/2., self.height])
         self.max_dist = np.linalg.norm(self.goal-self.start,2)
+        self.homotopy_class = 'right'
+        self.barrier_size = 1
 
     def step(self, action: np.ndarray, verbose: bool = False):
         self.step_num += 1
@@ -83,24 +84,20 @@ class GridworldContinuousEnv(gym.Env):
         reward = self.reward(verbose)
 
         done = False
-        #for building in self.buildings:
-        #    if car.collidesWith(building):
-        #        done = True
         if car.y >= self.height or car.y <= 0 or car.x <= 0 or car.x >= self.width:
             done = True
         if self.step_num >= self.time_limit:
             done = True
-        #if car.collidesWith(self.goal_obj):
-        #    if verbose: print("COLLIDING WITH GOAL!")
-        #    done = True
         return self._get_obs(), reward, done, {'episode': {'r': reward, 'l': self.step_num}}
 
     def reset(self):
         self.world.reset()
 
+        ## BARRIER SPECIFICATION
         self.buildings = [
-           Building(Point(self.width/2., self.height/2.), Point(3,3), "#B22222")
+           Building(Point(self.width/2., self.height/2.), Point(self.barrier_size,self.barrier_size), "#B22222")
         ]
+        ## BARRIER SPECIFICATION
 
         self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "grey80")
         self.car.velocity = Point(0, 5)
@@ -113,33 +110,6 @@ class GridworldContinuousEnv(gym.Env):
         self.world.add(self.car)
         self.world.add(self.goal_obj)
 
-        #self.left_waypoints = [
-        #    Waypoint(Point(24.97763344,  6.49506554), 'blue'),
-        #    Waypoint(Point(22.82250067, 15.70518498), 'blue'),
-        #    Waypoint(Point(20.74403936, 23.77848768), 'blue'),
-        #    Waypoint(Point(18.81342004, 35.15174814), 'blue'),
-        #    Waypoint(Point(13.69422607, 43.08956743), 'blue'),
-        #    Waypoint(Point(9.64661255, 46.54991709),  'blue'),
-        #    Waypoint(Point(2.3459517, 50.04638585),  'blue'),
-        #]
-        #self.right_waypoints = [
-        #    Waypoint(Point(25.00747225, 5.99810455), 'orange'),
-        #    #Waypoint(Point(25.40014368,  9.93517617), 'orange'),
-        #    Waypoint(Point(26.77891927, 14.75295797), 'orange'),
-        #    Waypoint(Point(28.38167054, 19.71457118), 'orange'),
-        #    Waypoint(Point(28.86268052, 26.81082929), 'orange'),
-        #    Waypoint(Point(26.76418647, 35.11340546),  'orange'),
-        #    Waypoint(Point(22.13190007, 42.10567368),  'orange'),
-        #    Waypoint(Point(16.91899745, 46.39322666),  'orange'),
-        #    Waypoint(Point(10.07441797, 49.38522158),  'orange'),
-        #    #Waypoint(Point(6.3640775,  50.11094359),  'orange'),
-        #]
-
-        #for l_wp in self.left_waypoints:
-        #    self.world.add(l_wp)
-        #for r_wp in self.right_waypoints:
-        #    self.world.add(r_wp)
-
         self.step_num = 0
         return self._get_obs()
 
@@ -151,7 +121,6 @@ class GridworldContinuousEnv(gym.Env):
         return self.world.state
 
     def reward(self, verbose, weight=10.0):
-        #dist2goal = 1.0 - (self.car.center.distanceTo(self.goal_obj)/self.max_dist)
         dist2goal = self.car.y/self.height
         coll_cost = 0
         for building in self.buildings:
@@ -164,18 +133,16 @@ class GridworldContinuousEnv(gym.Env):
 
         # adding preference
         heading = self.world.state[-3]
-        #mean_heading = 2.0
         mean_heading = np.pi/2.0
         gamma = 0.9
         homotopy_rew = 0.0
-        homotopy_rew += 2*(heading-mean_heading) # left
-        #homotopy_rew += -2*(heading-mean_heading) # right
+        if self.homotopy_class == 'left':
+            homotopy_rew += 2*(heading-mean_heading) # left
+        elif self.homotopy_class == 'right':
+            homotopy_rew += -2*(heading-mean_heading) # right
         homotopy_rew *= gamma**(self.step_num)
         dist2goal *= (1.0 - gamma**(self.step_num))
 
-        #homotopy_rew = 0.0
-        #for building in self.buildings:
-        #    homotopy_rew += 1 if self.car.x > building.center.x + building.size.x/2. and self.car.y < self.width/2. else 0
         reward = np.sum(np.array([
                  dist2goal,
                  coll_cost,
@@ -184,7 +151,6 @@ class GridworldContinuousEnv(gym.Env):
             ]))
         if verbose: print("dist to goal: ", dist2goal,
                           "homotopy: ", homotopy_rew,
-                          #"heading: ", heading,
                           "reward: ", reward)
         return reward
 

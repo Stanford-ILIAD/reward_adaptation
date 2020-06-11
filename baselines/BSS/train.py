@@ -16,16 +16,15 @@ import csv
 
 import utils
 
-from model import PPO2BSS
+from baselines.BSS.model import PPO2BSS
 from stable_baselines import PPO2
 
 FLAGS = flags.FLAGS
 flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
 flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous_BSS", "Name of experiment")
 flags.DEFINE_string("experiment_name", "B1R_B1L_BSS1", "Name of experiment")
-flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-#flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
-flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine 
+flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
+flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 flags.DEFINE_string("target_env", "", "Name of target environment")
 flags.DEFINE_string("source_env", "", "Name of source environment")
@@ -60,7 +59,6 @@ class RewardCurriculum(object):
         self.eval_save_period = eval_save_period
         self.rets_path = None
         self.create_eval_dir()
-        #self.seed = 42
         self.seed = seed
         print("SEED: ", self.seed)
 
@@ -78,7 +76,6 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        #self.timesteps = 220000 # to train for longer
         env = gym.make(env_name)
         env = DummyVecEnv([lambda: env])
         self.model.set_env(env)
@@ -110,9 +107,6 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
                 wandb.log({"eval_ret": ret}, step=total_steps)
-                #print("state history: ", state_history)
-                #print("total_steps: ", total_steps)
-                #print("writing: ", [total_steps, state_history])
                 state_history = list(state_history)
                 line = [total_steps] + state_history
                 with open(rets_path, "a", newline="") as f:
@@ -120,8 +114,6 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer.writerow(line)
             else:
                 ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
-            #print("eval ret: ", ret)
-        #print("training steps: ", model.num_timesteps)
         return True
     best_ret, n_callbacks = -np.infty, 0
     model.learn(total_timesteps=timesteps, callback=callback)
@@ -133,7 +125,7 @@ if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=True, name=FLAGS.experiment_name
             )
     from output.updated_gridworld_continuous.policies import *
-    model = B3R1
+    model = B1R2
     model_dir = os.path.join(model[0], model[1], model[2])
     output_dir = os.path.join("output/updated_gridworld_continuous_BSS", 'resave', model[2])
     RC = RewardCurriculum(model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,

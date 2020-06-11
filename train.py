@@ -21,16 +21,16 @@ import ipdb
 
 FLAGS = flags.FLAGS
 
+
 # NAVIGATION1: BARRIER SIZES
-# flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
-# flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous2", "Name of experiment")
-# flags.DEFINE_string("experiment_name", "BL_final", "Name of experiment")
-# flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
-# flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
-# flags.DEFINE_integer("num_envs", 1, "number of envs")
-# flags.DEFINE_integer("seed", 1, "random seed")
-# flags.DEFINE_string("expt_type", "ours", "experiment type")
-# flags.DEFINE_string("env", "nav1", "environment")
+#flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
+#flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous2", "Name of experiment")
+#flags.DEFINE_string("experiment_name", "BL_final", "Name of experiment")
+#flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
+#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
+#flags.DEFINE_integer("num_envs", 1, "number of envs")
+#flags.DEFINE_integer("seed", 1, "random seed")
+#flags.DEFINE_string("expt_type", "ours", "experiment type")
 
 # FETCH REACH
 flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")
@@ -41,7 +41,6 @@ flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eva
 flags.DEFINE_integer("seed", 10, "random seed")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 flags.DEFINE_string("expt_type", "finetune", "expt type")
-flags.DEFINE_string("env", "fetch", "environment")
 
 
 class RewardCurriculum(object):

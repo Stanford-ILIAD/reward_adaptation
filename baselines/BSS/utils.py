@@ -18,7 +18,7 @@ from stable_baselines import logger
 
 from stable_baselines.common import BaseRLModel
 
-from model import MlpBSSPolicy
+from baselines.BSS.model import MlpBSSPolicy
 
 
 def load_from_file(load_path, load_data=True, custom_objects=None):

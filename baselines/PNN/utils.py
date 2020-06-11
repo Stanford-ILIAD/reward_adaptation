@@ -18,7 +18,7 @@ from stable_baselines import logger
 
 from stable_baselines.common import BaseRLModel
 
-from model import MlpPPNPolicy
+from baselines.PNN.model import MlpPPNPolicy
 
 
 def load_from_file(load_path, load_data=True, custom_objects=None):

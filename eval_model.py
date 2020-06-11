@@ -16,8 +16,12 @@ tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 import driving.driving_envs
 import fetch.fetch_envs
 import ipdb
+from tensorflow import flags
+import stable_baselines
 
 
+FLAGS = flags.FLAGS
+flags.DEFINE_string("env", "fetch", "environment")
 
 def load_env(env, num_envs=1):
     # env_fns = num_envs * [lambda: gym.make(env)]
@@ -64,32 +68,28 @@ def evaluate(model, eval_env, render=False):
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        #if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):  # fetch reach env, saving xyz of end effector
-        #    state_history.append(obs[:3])
-        #else:  # eval env is driving environment
-        state_history.append(obs[:2])
+        if isinstance(eval_env, stable_baselines.her.utils.HERGoalEnvWrapper):  # fetch reach env, saving xyz of end effector
+            state_history.append(obs[:3])
+        else:  # eval env is driving environment
+            state_history.append(obs[:2])
         state, ever_done = None, False
         while not ever_done:
             if render: eval_env.render()
             nsteps += 1
             action, state = model.predict(obs, state=state, deterministic=True)
-            #print("action: ", action)
             next_obs, ret, done, _info = eval_env.step(action, verbose=render)
             if render: eval_env.render()
             if not ever_done:
                 rets += ret
-            # print("rets: ", rets)
             obs = next_obs
-            #if isinstance(eval_env.env, fetch.fetch_envs.envs.reach.FetchEnv):
-            #    state_history.append(obs[:3])
-            #else:  # eval env is driving environment
-            state_history.append(obs[:2])
+            if isinstance(eval_env, stable_baselines.her.utils.HERGoalEnvWrapper):
+                state_history.append(obs[:3])
+            else:  # eval env is driving environment
+                state_history.append(obs[:2])
             if render: time.sleep(.1)
             ever_done = done
         if render: eval_env.render()
         total_rets.append(rets)
-        #print("total mean ep return: ", np.mean(total_rets), total_rets)
-        #print("nsteps: ", nsteps)
     return np.mean(total_rets), np.std(total_rets), total_rets, np.array(state_history)
 
 def save_traj(model, state_history):
@@ -99,17 +99,19 @@ def save_traj(model, state_history):
         writer.writerow(state_history)
 
 if __name__ == "__main__":
-    #from gridworld_policies.policies import *
-    #from output.updated_gridworld_continuous.policies import *
-    from output.fetch2.policies import *
-
-    model_info = BL_v021
-    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-    #eval_env = load_env("Continuous-v0", "PPO")
-    eval_env = HERGoalEnvWrapper(load_env("Fetch-v0"))
-    save = True
-
-    model = load_model(model_dir, "HER")
+    if FLAGS.env == "nav1":
+        from output.updated_gridworld_continuous.policies import *
+        model_info = B5R_B5L
+        model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+        eval_env = load_env("Continuous-v0", "PPO")
+        model = load_model(model_dir, "PPO")
+    elif FLAGS.env == 'fetch':
+        from output.fetch2.policies import *
+        model_info = BL_s
+        model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+        eval_env = HERGoalEnvWrapper(load_env("Fetch-v0"))
+        model = load_model(model_dir, "HER", baseline=None)
+    save = False
     sum_reward = 0.0
     num_episode = 10
     for ne in range(num_episode):
@@ -117,6 +119,5 @@ if __name__ == "__main__":
         save_traj(model_info, state_history)
         sum_reward += mean_ret
         print("\nrunning mean: ", sum_reward / (ne + 1))
-        #break
 
     print("mean ret: ", sum_reward / num_episode)

@@ -29,15 +29,12 @@
 * Before running each experiment, make sure that the homotopy class you are fine-tuning to is correctly specified in line 49 of `fetch/fetch_envs/robot_env.py`
 * When running our method, you will want to change the barrier penalties as part of the curriculum. Make sure that the correct barrier penalty is specifeid on line 111 of  `fetch/fetch_envs/fetch_env.py` The exact curriculum we used is detailed in the supplementary materials
 * Ours:
-  * specify the correct homotopy class you are fine-tuning to in `robot_env.py`
   * specify a source model on line 195 in `train.py`
   * run `python train.py --env fetch --expt_type ours`
 * Fine tune:
-  * specify the correct homotopy class you are fine-tuning to in `robot_env.py`
   * specify a source model on line 197 in `train.py`
   * run `python train.py --env fetch --expt_type finetune`
 * Random:
-  * specify the correct homotopy class you are fine-tuning to in `robot_env.py`
   * run `python train.py --env fetch --expt_type direct`
 * PNN:
   * specify a source model on line 116 in `baselines_fetch/PNN/train.py`
@@ -62,5 +59,23 @@
 
 ### Reproducing Results (Table 1) 
 
-
+* Uncomment the set of flags (lines 26-33) for the navigation experiment in `train.py`
+* Before running each experiment, (1) make sure that the barrier size (1,3,5,7) is correctly specified on line 72 and (2) make sure the correct homotopy class (`right` or `left`) you want to fine-tune to is specified on line 71 of `driving/driving_envs/envs/gridworld_continuous.py`
+* Ours:
+  * specify a source model on line 179 in `train.py`
+  * run `python train.py --env nav1 --expt_type ours`
+* Fine tune:
+  * specify a source model on line 181 in `train.py`
+  * run `python train.py --env nav1 --expt_type finetune`
+* Random:
+  * run `python train.py --env nav1 --expt_type direct`
+* PNN:
+  * specify a source model on line 125 in `baselines/PNN/train.py`
+  * run `python baselines/PNN/train.py`  
+* L2SP:
+  * specify a source model on line 126 in `baselines/L2SP/train.py`
+  * run `python baselines/L2SP/train.py`  
+* BSS:
+  * specify a source model on line 128 in `baselines/BSS/train.py`
+  * run `python baselines/BSS/train.py`  
 
