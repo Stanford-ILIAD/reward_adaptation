@@ -3,19 +3,8 @@ import glob
 import json
 import zipfile
 import warnings
-from abc import ABC, abstractmethod
-from collections import OrderedDict, deque
-from typing import Union, List, Callable, Optional
-
-import gym
 import cloudpickle
-import numpy as np
-import tensorflow as tf
-
-from stable_baselines.common.misc_util import set_global_seeds
 from stable_baselines.common.save_util import data_to_json, json_to_data, params_to_bytes, bytes_to_params
-from stable_baselines import logger
-
 from stable_baselines.common import BaseRLModel
 
 

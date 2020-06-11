@@ -24,21 +24,10 @@
 
 # Fetch Reach 
 
-
-
-### Pre-trained Models  & Evaluation 
-
-* A list of pre-trained models and their directories are located in `output/fetch2/policies.py` 
-* To evaluate saved models, 
-  * make sure that the correct homotopy class and barrier penalty are specified
-  * specify a desired model to run from `output/fetch2/policies.py` on line 109
-  * if running L2SP or PNN, specify the baseline name on line 113; e.g.,  `load_model(model_dir, "HER", baseline='L2SP')`
-  * run `python eval_model.py --env fetch`
-
 ### Reproducing Results (Table 3)
 
 * Before running each experiment, make sure that the homotopy class you are fine-tuning to is correctly specified in line 49 of `fetch/fetch_envs/robot_env.py`
-* When running our method, you will want to change the barrier penalties as part of the curriculum. Make sure that the correct barrier penalty is specifeid on line 111 of  `fetch/fetch_envs/fetch_env.py` The exact curriculum we used is detailed in the supplementary materials. 
+* When running our method, you will want to change the barrier penalties as part of the curriculum. Make sure that the correct barrier penalty is specifeid on line 111 of  `fetch/fetch_envs/fetch_env.py` The exact curriculum we used is detailed in the supplementary materials
 * Ours:
   * specify the correct homotopy class you are fine-tuning to in `robot_env.py`
   * specify a source model on line 195 in `train.py`
@@ -60,5 +49,18 @@
   * specify a source model on line 121 in `baselines_fetch/BSS/train.py`
   * run `python baselines_fetch/BSS/train.py`  
 
-###  
+### Pre-trained Models  & Evaluation 
+
+* A list of pre-trained models and their directories are located in `output/fetch2/policies.py` 
+* To evaluate saved models, 
+  * make sure that the correct homotopy class and barrier penalty are specified
+  * specify a desired model to run from `output/fetch2/policies.py` on line 109
+  * if running L2SP or PNN, specify the baseline name on line 113; e.g.,  `load_model(model_dir, "HER", baseline='L2SP')`
+  * run `python eval_model.py --env fetch`
+
+# Navigation1: Barrier Sizes
+
+### Reproducing Results (Table 1) 
+
+
 

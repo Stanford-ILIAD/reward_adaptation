@@ -8,33 +8,22 @@ import fetch.fetch_envs
 from stable_baselines.her.utils import HERGoalEnvWrapper
 from tensorflow import flags
 import stable_baselines
-from stable_baselines.common.vec_env import DummyVecEnv
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
 from eval_model import evaluate
 import csv
 import ipdb
 
-import baselines.L2SP.utils as utils
+import baselines_fetch.L2SP.utils as utils
 
-from baselines.L2SP.model import PPO2L2SP, HER2L2SP
+from baselines_fetch.L2SP.model import HER2L2SP
 from stable_baselines import HER
 
 FLAGS = flags.FLAGS
-#flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
-#flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous_L2SP", "Name of experiment")
-#flags.DEFINE_string("experiment_name", "B0R_B0L_L2SP", "Name of experiment")
-#flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-##flags.DEFINE_integer("eval_save_period", 30, "how often we save state for eval")
-#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
-#flags.DEFINE_integer("num_envs", 1, "number of envs")
-#flags.DEFINE_string("target_env", "", "Name of target environment")
-#flags.DEFINE_string("source_env", "", "Name of source environment")
-
 flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")  # 3000 updates
 flags.DEFINE_string("experiment_dir", "output/fetch_L2SP", "Name of experiment")
 flags.DEFINE_string("experiment_name", "BR_BL_L2SP", "Name of experiment")
-flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_boolean("is_save", False, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
 #
@@ -58,7 +47,6 @@ class RewardCurriculum(object):
 
     def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
         data, params = utils.load_from_file(model_dir)
-        #self.model = PPO2L2SP.load(model_dir, original_params=params)
         self.model = HER2L2SP.load(model_dir, original_params=params)
         self.num_envs = num_envs
         self.experiment_dir = os.path.join(experiment_dir, experiment_name)
@@ -114,9 +102,6 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     model.save(os.path.join(experiment_name, 'best_model_{}_{}.pkl'.format(total_steps, ret)))
                     best_ret = ret
                 wandb.log({"eval_ret": ret}, step=total_steps)
-                #print("state history: ", state_history)
-                #print("total_steps: ", total_steps)
-                #print("writing: ", [total_steps, state_history])
                 state_history = list(state_history)
                 line = [total_steps] + state_history
                 with open(rets_path, "a", newline="") as f:
@@ -124,8 +109,6 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
                     writer.writerow(line)
             else:
                 ret, std, total_rets, _ = evaluate(model, eval_env, render=True)
-            #print("eval ret: ", ret)
-        #print("training steps: ", model.num_timesteps)
         return True
     best_ret, n_callbacks = -np.infty, 0
     print("begin training!")
@@ -137,7 +120,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
     from output.fetch2.policies import *
-    model_info = BR_v3
+    model_info = BR
     model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
                           FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)

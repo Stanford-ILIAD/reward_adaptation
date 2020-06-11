@@ -18,7 +18,7 @@ from stable_baselines import logger
 
 from stable_baselines.common import BaseRLModel
 
-from baselines.PNN.model import MlpPPNPolicy
+from baselines_fetch.PNN.model import MlpPPNPolicy
 import ipdb
 
 

@@ -7,12 +7,10 @@ import gym
 import numpy as np
 import time
 from stable_baselines import DQN, PPO2
-from stable_baselines.common.policies import MlpPolicy
 import wandb
 from tensorflow import flags
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-import driving_envs
 
 
 

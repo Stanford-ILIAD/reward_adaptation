@@ -12,7 +12,6 @@ try:
 except ImportError as e:
     raise error.DependencyNotInstalled("{}. (HINT: you need to install mujoco_py, and also perform the setup instructions here: https://github.com/openai/mujoco-py/.)".format(e))
 
-#DEFAULT_SIZE = 500
 DEFAULT_SIZE = 300
 
 class RobotEnv(gym.GoalEnv):
@@ -46,7 +45,6 @@ class RobotEnv(gym.GoalEnv):
             achieved_goal=spaces.Box(-np.inf, np.inf, shape=obs['achieved_goal'].shape, dtype='float32'),
             observation=spaces.Box(-np.inf, np.inf, shape=obs['observation'].shape, dtype='float32'),
         ))
-        #self.max_steps = 50
         self.max_steps = 12
         self.homotopy_class = "right"
 
@@ -69,7 +67,6 @@ class RobotEnv(gym.GoalEnv):
         self._step_callback()
         obs = self._get_obs(verbose)
         if verbose: print("")
-        #if verbose: print("mocap, sitexpos: ", self.sim.data.mocap_pos, self.sim.data.get_site_xpos('robot0:grip'))
 
         done = False
         info = {
@@ -90,19 +87,16 @@ class RobotEnv(gym.GoalEnv):
         did_reset_sim = False
         while not did_reset_sim:
             did_reset_sim = self._reset_sim()
-        #self.goal = self._sample_goal().copy()
         obs = self._get_obs()
         self.steps = 0
         return obs
 
     def close(self):
         if self.viewer is not None:
-            # self.viewer.finish()
             self.viewer = None
             self._viewers = {}
 
     def render(self, mode='human', width=DEFAULT_SIZE, height=DEFAULT_SIZE):
-        #self._render_callback()
         if mode == 'rgb_array':
             self._get_viewer(mode).render(width, height)
             # window size used for old mujoco-py:

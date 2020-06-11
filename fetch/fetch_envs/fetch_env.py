@@ -1,7 +1,6 @@
 import numpy as np
 import ipdb
 
-#from gym.envs.robotics import rotations, robot_env, utils
 from gym.envs.robotics import rotations
 from fetch.fetch_envs import robot_env, utils
 
@@ -47,7 +46,6 @@ class FetchEnv(robot_env.RobotEnv):
         self.reward_type = reward_type
 
         super(FetchEnv, self).__init__(
-            #model_path=model_path, n_substeps=n_substeps, n_actions=4,
             model_path=model_path, n_substeps=n_substeps, n_actions=8,
             initial_qpos=initial_qpos)
 
@@ -61,9 +59,6 @@ class FetchEnv(robot_env.RobotEnv):
             contact = self.sim.data.contact[i]
             contact_geom1_name = self.sim.model.geom_id2name(contact.geom1)
             contact_geom2_name = self.sim.model.geom_id2name(contact.geom2)
-            #print(contact_geom1_name, contact_geom2_name)
-            #if contact_geom1_name is None or contact_geom2_name is None:
-            #    ipdb.set_trace()
             if contact_geom2_name==None or contact_geom1_name==None:
                 continue
             if 'side' in contact_geom1_name or 'side' in contact_geom2_name:
@@ -95,7 +90,7 @@ class FetchEnv(robot_env.RobotEnv):
             rew = 0.0
 
             # distance to goal
-            dist2goal = -(desired_goal[0]-achieved_goal[0])#/(self.goal[0]-initial_x) # move toward goal, normalized
+            dist2goal = -(desired_goal[0]-achieved_goal[0]) # move toward goal, normalized
             rew += dist2goal
 
             # homotopy reward
@@ -138,10 +133,8 @@ class FetchEnv(robot_env.RobotEnv):
             self.sim.forward()
 
     def _set_action(self, action):
-        #assert action.shape == (4,)
         assert action.shape == (8,)
         action = action.copy()  # ensure that we don't change the action outside of this scope
-        #pos_ctrl, gripper_ctrl = action[:3], action[3]
         pos_ctrl, rot_ctrl, gripper_ctrl = action[:3], action[3:7], action[7]
 
         pos_ctrl *= 0.05  # limit maximum change in position
@@ -203,15 +196,6 @@ class FetchEnv(robot_env.RobotEnv):
         self.viewer.cam.azimuth = 132.
         self.viewer.cam.elevation = -14.
 
-    #def _render_callback(self):
-    #    # Visualize target.
-    #    #sites_offset = (self.sim.data.site_xpos - self.sim.model.site_pos).copy()
-    #    #site_id = self.sim.model.site_name2id('target0')
-    #    #self.sim.model.site_pos[site_id] = self.goal - sites_offset[0]
-    #    #self.goal_site_pos = self.sim.model.site_pos[site_id]
-    #    self._goal_site_pos()
-    #    self.sim.forward()
-
     def _reset_sim(self):
         self.sim.set_state(self.initial_state)
 
@@ -228,20 +212,6 @@ class FetchEnv(robot_env.RobotEnv):
         self.sim.forward()
         return True
 
-    #def _sample_goal(self):
-    #    if self.has_object:  # always going to be False
-    #        goal = self.initial_gripper_xpos[:3] + self.np_random.uniform(-self.target_range, self.target_range, size=3)
-    #        goal += self.target_offset
-    #        goal[2] = self.height_offset
-    #        if self.target_in_the_air and self.np_random.uniform() < 0.5:
-    #            goal[2] += self.np_random.uniform(0, 0.45)
-    #    else:
-    #        #goal = self.initial_gripper_xpos[:3] + self.np_random.uniform(-0.15, 0.15, size=3)
-    #        #random_y = self.np_random.uniform(-0.15, 0.15)
-    #        goal = self.initial_gripper_xpos[:3] + np.array([0.15, 0.00, 0.10]) # away from robot, right/left, up/down
-    #        self.max_x = self.initial_gripper_xpos[0] + 0.15
-    #    return goal.copy()
-
     def _sample_goal(self):
         if self.has_object:  # always going to be False
             goal = self.initial_gripper_xpos[:3] + self.np_random.uniform(-self.target_range, self.target_range, size=3)
@@ -250,17 +220,11 @@ class FetchEnv(robot_env.RobotEnv):
             if self.target_in_the_air and self.np_random.uniform() < 0.5:
                 goal[2] += self.np_random.uniform(0, 0.45)
         else:
-            #site_id = self.sim.model.site_name2id('target0')
-            #goal = self.sim.model.site_pos[site_id]
-            #goal = self.sim.data.get_site_xpos('target0')
             goal = self.sim.data.get_geom_xpos('target0')
             goal[0] = goal[0]-0.2  # subtracting the width
         return goal.copy()
 
     def _is_success(self, achieved_goal, verbose=False):
-        #d = goal_distance(achieved_goal, desired_goal)
-        #return (d < self.distance_threshold).astype(np.float32)
-        #ipdb.set_trace()
         x_dist2goal = self.goal[0] - achieved_goal[0]
         barrier_id = self.sim.model.geom_name2id('sideN')
         barrier_y = self.sim.model.geom_pos[barrier_id][1]
@@ -270,27 +234,18 @@ class FetchEnv(robot_env.RobotEnv):
             homotopy_rew = barrier_y-achieved_goal[1]  # R
         if verbose: print("is success: ", achieved_goal[0], homotopy_rew, x_dist2goal <= 1e-2 and homotopy_rew>=0, self.goal[0])
         return x_dist2goal <= 1e-2 and homotopy_rew >= 0
-        #if verbose: print("is success: ", self.detect_goal_collision(verbose=verbose))
-        #return self.detect_goal_collision()
 
     def _env_setup(self, initial_qpos):
-        #ipdb.set_trace()
         for name, value in initial_qpos.items():
             self.sim.data.set_joint_qpos(name, value)
         utils.reset_mocap_welds(self.sim)
         self.sim.forward()
-        #ipdb.set_trace()
 
         ## Move end effector into position.
-        ##gripper_target = np.array([-0.498, 0.005, -0.431 + self.gripper_extra_height]) + self.sim.data.get_site_xpos('robot0:grip')
         gripper_target = self.sim.data.get_site_xpos('robot0:grip')
         ##gripper_rotation = np.array([1., 0., 1., 0.])
         gripper_rotation = self.sim.data.get_body_xquat('robot0:mocap')
         self.sim.data.set_mocap_pos('robot0:mocap', gripper_target)
-        #self.sim.data.set_mocap_quat('robot0:mocap', gripper_rotation)
-        #for _ in range(10):
-        #    self.sim.step()
-        #ipdb.set_trace()
 
         # Extract information for sampling goals.
         self.initial_gripper_xpos = self.sim.data.get_site_xpos('robot0:grip').copy()
