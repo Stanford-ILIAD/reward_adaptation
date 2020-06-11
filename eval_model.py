@@ -24,32 +24,44 @@ FLAGS = flags.FLAGS
 flags.DEFINE_string("env", "fetch", "environment")
 
 def load_env(env, num_envs=1):
-    # env_fns = num_envs * [lambda: gym.make(env)]
-    # eval_env = VecNormalize(DummyVecEnv(env_fns), training=False, norm_reward=False)
     eval_env = gym.make(env)
-    # env = VecNormalize(SubprocVecEnv(env_fns))
-    # env = VecNormalize(env_fns)
     return eval_env
 
 
-def load_model(model_dir, model_type="PPO", baseline=None, pkl_file=None):
-    import baselines
-    #policy = MlpPolicy
+def load_model(model_info, model_type="PPO", baseline=None, pkl_file=None):
+    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     if model_type == "PPO":
-        model = PPO2.load(model_dir)
-    elif model_type == "DQN":
-        model = DQN.load(model_dir)
+        if baseline == 'L2SP':
+            from baselines.L2SP.model import PPO2L2SP
+            import baselines.L2SP.utils as L2SP_utils
+            data, params = L2SP_utils.load_from_file(model_dir)
+            model = PPO2L2SP.load(model_dir, original_params=params)
+        elif baseline == 'PNN':
+            from baselines.PNN.utils import looseload, resave_params_for_PPN
+            output_dir = os.path.join("output/updated_gridworld_continuous_PNN", 'resave', model_info[2])
+            resave_params_for_PPN(model_dir, output_dir)
+            model = looseload(PPO2, output_dir)
+        elif baseline == 'BSS':
+            from baselines.BSS.utils import resave_params_for_BSS
+            from baselines.BSS.model import PPO2BSS
+            output_dir = os.path.join("output/updated_gridworld_continuous_BSS", 'resave', model_info[2])
+            resave_params_for_BSS(model_dir, output_dir)
+            model = PPO2BSS.load(output_dir, bss_coef=0.001, l2_coef=0.0005)
+        else:
+            model = PPO2.load(model_dir)
+
     elif model_type == "HER":
         if baseline == 'L2SP':
-            from baselines.L2SP.model import HER2L2SP
-            import baselines.L2SP.utils as L2SP_utils
+            from baselines_fetch.L2SP.model import HER2L2SP
+            import baselines_fetch.L2SP.utils as L2SP_utils
             data, params = L2SP_utils.load_from_file(model_dir)
             model = HER2L2SP.load(model_dir, original_params=params)
         elif baseline == "PNN":
-            from baselines.PNN.model import HER2BSS
-            output_dir = os.path.join("output/fetch_PNN", 'resave', pkl_file)
-            model = HER2BSS.load(output_dir)
-
+            from baselines_fetch.PNN.model import HER2PNN
+            from baselines_fetch.PNN.utils import resave_params_for_PNN
+            output_dir = os.path.join("output/fetch_PNN", 'resave', model_info[2])
+            resave_params_for_PNN(model_dir, output_dir)
+            model = HER2PNN.load(output_dir)
         elif baseline == "BSS":
             pass
         else:
@@ -102,15 +114,13 @@ if __name__ == "__main__":
     if FLAGS.env == "nav1":
         from output.updated_gridworld_continuous.policies import *
         model_info = B5R_B5L
-        model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
         eval_env = load_env("Continuous-v0", "PPO")
-        model = load_model(model_dir, "PPO")
+        model = load_model(model_info, "PPO", baseline=None)
     elif FLAGS.env == 'fetch':
         from output.fetch2.policies import *
-        model_info = BL_s
-        model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+        model_info = BR_BL
         eval_env = HERGoalEnvWrapper(load_env("Fetch-v0"))
-        model = load_model(model_dir, "HER", baseline=None)
+        model = load_model(model_info, "HER", baseline=None)
     save = False
     sum_reward = 0.0
     num_episode = 10

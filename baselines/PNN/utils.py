@@ -183,6 +183,7 @@ def looseload(cls, load_path, env=None, custom_objects=None, **kwargs):
         return model
 
 def resave_params_for_PPN(input_file, output_file):
+    print(input_file, output_file)
     data, params = load_from_file(input_file)
     data['policy'] = MlpPPNPolicy
     remove_keys = ['model/vf/w:0', 'model/vf/b:0', 'model/pi/w:0', 'model/pi/b:0', 'model/pi/logstd:0', 'model/q/w:0', 'model/q/b:0']

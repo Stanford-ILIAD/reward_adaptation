@@ -51,8 +51,8 @@
 * A list of pre-trained models and their directories are located in `output/fetch2/policies.py` 
 * To evaluate saved models, 
   * make sure that the correct homotopy class and barrier penalty are specified
-  * specify a desired model to run from `output/fetch2/policies.py` on line 109
-  * if running L2SP or PNN, specify the baseline name on line 113; e.g.,  `load_model(model_dir, "HER", baseline='L2SP')`
+  * specify a desired model to run from `output/fetch2/policies.py` on line 121
+  * if running L2SP or PNN, specify the baseline name on line 123; e.g.,  `load_model(model_dir, "HER", baseline='L2SP')`
   * run `python eval_model.py --env fetch`
 
 # Navigation1: Barrier Sizes
@@ -79,3 +79,13 @@
   * specify a source model on line 128 in `baselines/BSS/train.py`
   * run `python baselines/BSS/train.py`  
 
+### Pre-trained Models  & Evaluation 
+
+* A list of pre-trained models and their directories are located in `output/updated_gridworld_continuous/policies.py` 
+* To evaluate saved models, 
+  * make sure that the correct homotopy class and barrier size are specified
+  * specify a desired model to run from `output/updated_gridworld_continuous/policies.py` on line 116
+  * if running L2SP, BSS, or PNN, specify the baseline name on line 118; e.g.,  `load_model(model_dir, "PPO", baseline='L2SP')`
+  * run `python eval_model.py --env nav1
+
+# 
