@@ -22,6 +22,8 @@ B7R2 = ["output/updated_gridworld_continuous", "B7R", "model_59648_53.0605924168
 B1L = ["output/updated_gridworld_continuous", "B1L", "best_model_162560_63.68349868746966.pkl"]
 B1L1 = ["output/updated_gridworld_continuous2", "B1L_final1", "best_model_33408_60.787530655741044.pkl"]
 B1L2 = ["output/updated_gridworld_continuous2", "B1L_final2", "best_model_15744_61.185747347934594.pkl"]
+B1L3 = ["output/updated_gridworld_continuous2", "B1L101", "best_model_44419_61.243058206114966.pkl"]
+B1L4 = ["output/updated_gridworld_continuous2", "B1L102", "best_model_17025_60.54104213237223.pkl"]
 
 B3L = ["output/updated_gridworld_continuous", "B3L", "best_model_83328_64.04193777139717.pkl"]
 B3L1 = ["output/updated_gridworld_continuous2", "B3L_final1", "best_model_168448_62.72728952962192.pkl"]
@@ -38,11 +40,11 @@ B7L2 = ["output/updated_gridworld_continuous2", "B7L_final2", "best_model_62208_
 
 # Ours:
 # R -> 0
-B1R_B0L = ["output/updated_gridworld_continuous", "B1R_B0L", "best_model_128_57.502501283889494.pkl"]
+B1R_B0L = ["output/updated_gridworld_continuous", "B1R_B0L", "model_128_57.502501283889494.pkl"]
 B1R_B0L1 = ["output/updated_gridworld_continuous2", "B1R_B0L1", "best_model_18432_59.235113023677016.pkl"]
 B1R_B0L2 = ["output/updated_gridworld_continuous2", "B1R_B0L2", "best_model_34304_59.39322007708397.pkl"]
 
-B3R_B0L = ["output/updated_gridworld_continuous", "B3R_B0L", "best_model_84480_62.28856462807559.pkl"]
+B3R_B0L = ["output/updated_gridworld_continuous", "B3R_B0L", "model_84480_62.28856462807559.pkl"]
 B3R_B0L1 = ["output/updated_gridworld_continuous", "B3R_B0L", "model_98560_62.20306929126655.pkl"]
 B3R_B0L2 = ["output/updated_gridworld_continuous", "B3R_B0L", "model_87808_59.98765780964113.pkl"]
 
@@ -68,7 +70,7 @@ B5R_B0L_B5L1 = ["output/updated_gridworld_continuous2", "B5R_B0L_B5L1", "best_mo
 B5R_B0L_B5L2 = ["output/updated_gridworld_continuous2", "B5R_B0L_B5L2", "best_model_46336_62.20556371186273.pkl"]
 
 # R -> 0 -> 4  (for barrier 7)
-B7R_B0L_B4L = ["output/updated_gridworld_continuous2", "B7R_B0L_B4L", "best_model_384_55.289594802737675.pkl"]
+B7R_B0L_B4L = ["output/updated_gridworld_continuous2", "B7R_B0L_B4L", "best_model_768_55.89724587213112.pkl"]
 B7R_B0L_B4L1 = ["output/updated_gridworld_continuous2", "B7R_B0L_B4L1", "best_model_384_60.6308355994256.pkl"]
 B7R_B0L_B4L2 = ["output/updated_gridworld_continuous2", "B7R_B0L_B4L2", "best_model_20608_57.158493041942194.pkl"]
 
