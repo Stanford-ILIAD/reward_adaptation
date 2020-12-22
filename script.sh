@@ -1,10 +1,16 @@
 #!/bin/bash
 #SBATCH --partition=iliad --qos=normal
-#SBATCH --time=7-00
 #SBATCH --nodes=1
-#SBATCH -n 4
-#SBATCH --mem=8G
-#SBATCH --gres=gpu:0
-#SBATCH --output=run1.out
-python train.py 
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=4G
+#SBATCH --gres=gpu:1 
+#SBATCH --job-name="l2sp_bs1"
+#SBATCH --output=/iliad/u/minae/reward_adaptation/jobs/%x.o
+
+##CUDA_VISIBLE_DEVICES=0 python train.py --env nav1 --expt_type finetune --bs 7
+##CUDA_VISIBLE_DEVICES=0 python train.py --env nav1_sparse --bs 1 --experiment_dir output/sparse
+###CUDA_VISIBLE_DEVICES=0 python baselines/PNN/train.py --bs 7
+CUDA_VISIBLE_DEVICES=0 python baselines/L2SP/train.py --bs 1
+###CUDA_VISIBLE_DEVICES=0 python baselines/BSS/train.py --bs 7
+
 echo "done"
