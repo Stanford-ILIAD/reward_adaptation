@@ -23,6 +23,7 @@ from gym.envs.registration import register
 #register(id="Obstacle-v9", entry_point="driving_envs.envs:ObstacleAvoidanceEnv9")
 
 register(id="Continuous-v0", entry_point="driving.driving_envs.envs:GridworldContinuousEnv")
+register(id="ContinuousSparse-v0", entry_point="driving.driving_envs.envs:GridworldSparseEnv")
 register(id="ContinuousMultiObjLL-v0", entry_point="driving_envs.envs:GridworldContinuousMultiObjLLEnv")
 register(id="ContinuousMultiObjRR-v0", entry_point="driving_envs.envs:GridworldContinuousMultiObjRREnv")
 register(id="ContinuousMultiObjLR-v0", entry_point="driving_envs.envs:GridworldContinuousMultiObjLREnv")

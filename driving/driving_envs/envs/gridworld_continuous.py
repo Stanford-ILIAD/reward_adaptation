@@ -68,7 +68,7 @@ class GridworldContinuousEnv(gym.Env):
         self.start = np.array([self.width/2.,5])
         self.goal = np.array([self.width/2., self.height])
         self.max_dist = np.linalg.norm(self.goal-self.start,2)
-        self.homotopy_class = 'right'
+        self.homotopy_class = 'left'
         self.barrier_size = 1
 
     def step(self, action: np.ndarray, verbose: bool = False):
@@ -157,6 +157,50 @@ class GridworldContinuousEnv(gym.Env):
     def render(self):
         self.world.render()
 
+
+class GridworldSparseEnv(GridworldContinuousEnv):
+    def __init__(self,
+                 dt: float = 0.1,
+                 width: int = 50,
+                 height: int = 100,
+                 time_limit: float = 150.0):
+        super(GridworldContinuousEnv, self).__init__()
+        GridworldContinuousEnv.__init__(self, dt=dt, width=width, height=height, time_limit=time_limit)
+
+    def reward(self, verbose, weight=10.0):
+        #dist2goal = self.car.y/self.height
+        dist2goal = 1.0 if self.car.y >= (self.height-1.0) else 0.0
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+
+        # adding preference
+        heading = self.world.state[-3]
+        mean_heading = np.pi/2.0
+        gamma = 0.9
+        homotopy_rew = 0.0
+        if self.homotopy_class == 'left':
+            homotopy_rew += 2*(heading-mean_heading) # left
+        elif self.homotopy_class == 'right':
+            homotopy_rew += -2*(heading-mean_heading) # right
+        homotopy_rew *= gamma**(self.step_num)
+        #dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        if verbose: print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "reward: ", reward)
+        return reward
 
 class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
     def __init__(self,
