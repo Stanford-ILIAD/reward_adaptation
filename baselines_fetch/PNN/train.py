@@ -70,12 +70,12 @@ class RewardCurriculum(object):
         """
         bs2model = {'RL':BR_s, 'LR':BL_s}
         for bs in bs2model.keys():
-            model_info = bs2model[bs]
-            model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-            output_dir = os.path.join("output/fetch_PNN", 'resave', model_info[2])
-            utils.resave_params_for_PNN(model_dir, output_dir)
-            self.model = HER2PNN.load(output_dir)
             for seed in [101, 102]:
+                model_info = bs2model[bs]
+                model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+                output_dir = os.path.join("output/fetch_PNN", 'resave', model_info[2])
+                utils.resave_params_for_PNN(model_dir, output_dir)
+                self.model = HER2PNN.load(output_dir)
                 self.seed = seed
                 self.experiment_name = f"PNN_{bs}_{self.seed}"
                 print("EXPT NAME: ", self.experiment_name)

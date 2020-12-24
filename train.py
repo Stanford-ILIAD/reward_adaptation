@@ -133,17 +133,17 @@ class RewardCurriculum(object):
         bs2model = {'RL':BR_s, 'LR':BL_s}
         for l, lesson in enumerate(self.curriculum):
             for bs in bs2model.keys():
-                self.bs = bs
-                if self.expt_type == "ours":
-                    model_info = bs2model_ours[self.bs]
-                else:
-                    model_info = bs2model[self.bs]
-                model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-                if self.model_type == "PPO":
-                    self.model = PPO2.load(model_dir)  # loads pre-trained model
-                elif self.model_type == "HER":
-                    self.model = HER.load(model_dir)   # loads pre-trained model
                 for seed in [101, 102]:
+                    self.bs = bs
+                    if self.expt_type == "ours":
+                        model_info = bs2model_ours[self.bs]
+                    else:
+                        model_info = bs2model[self.bs]
+                    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+                    if self.model_type == "PPO":
+                        self.model = PPO2.load(model_dir)  # loads pre-trained model
+                    elif self.model_type == "HER":
+                        self.model = HER.load(model_dir)   # loads pre-trained model
                     print(f"\ntraining on {lesson}, bs {self.bs}, seed{seed}")
                     self.seed = seed
                     self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"

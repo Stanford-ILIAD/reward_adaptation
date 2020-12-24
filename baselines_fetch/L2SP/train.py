@@ -75,11 +75,11 @@ class RewardCurriculum(object):
         """
         bs2model = {'RL':BR_s, 'LR': BL_s}
         for bs in bs2model.keys():
-            model_info = bs2model[bs]
-            model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-            data, params = utils.load_from_file(model_dir)
-            self.model = HER2L2SP.load(model_dir, original_params=params)
             for seed in [101, 102]:
+                model_info = bs2model[bs]
+                model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+                data, params = utils.load_from_file(model_dir)
+                self.model = HER2L2SP.load(model_dir, original_params=params)
                 self.seed = seed
                 self.experiment_name = f"L2SP_{bs}_{self.seed}"
                 print("EXPT NAME: ", self.experiment_name)
