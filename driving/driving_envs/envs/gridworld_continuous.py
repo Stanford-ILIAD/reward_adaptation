@@ -23,7 +23,9 @@ class PidVelPolicy:
         self.Kp, self.Ki, self.Kd = params
 
     def action(self, obs):
-        my_y_dot = obs[3]
+        #my_y_dot = obs[3]
+        # TODO: fix
+        my_y_dot = obs['observation'][3]
         if self._target_vel is None:
             self._target_vel = my_y_dot
         error = self._target_vel - my_y_dot
@@ -158,14 +160,144 @@ class GridworldContinuousEnv(gym.Env):
         self.world.render()
 
 
-class GridworldSparseEnv(GridworldContinuousEnv):
+
+class GridworldSparseEnv(gym.GoalEnv):
+
     def __init__(self,
                  dt: float = 0.1,
                  width: int = 50,
-                 height: int = 100,
+                 height: int = 50,
                  time_limit: float = 150.0):
-        super(GridworldContinuousEnv, self).__init__()
-        GridworldContinuousEnv.__init__(self, dt=dt, width=width, height=height, time_limit=time_limit)
+        super(GridworldSparseEnv, self).__init__()
+        self.dt = dt
+        self.width = width
+        self.height = height
+        self.world = World(self.dt, width=width, height=height, ppm=6)
+        self.buildings, self.cars = [], {}
+        self.step_num = 0
+        self.accelerate = PidVelPolicy(dt=self.dt)
+        self.time_limit = time_limit
+        self.action_space = spaces.Box(
+            np.array([-0.04]), np.array([0.04]), dtype=np.float32
+        )
+        #self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
+        self.observation_space = spaces.Dict(dict(
+            observation = spaces.Box(-np.inf, np.inf, shape=(7,)),
+            achieved_goal = spaces.Box(-np.inf, np.inf, shape=(7,)),
+            desired_goal = spaces.Box(-np.inf, np.inf, shape=(7,))
+                ))
+        self.correct_pos = []
+        self.next_pos = []
+        self.start = np.array([self.width/2.,5])
+        self.goal = np.array([self.width/2., self.height])
+        self.max_dist = np.linalg.norm(self.goal-self.start,2)
+        self.homotopy_class = 'left'
+        self.barrier_size = 1
+
+    def step(self, action: np.ndarray, verbose: bool = False):
+        self.step_num += 1
+
+        car = self.world.dynamic_agents[0]
+        if verbose: print("a: ", action)
+        acc = self.accelerate.action(self._get_obs())
+        action = np.append(action, acc)
+        car.set_control(*action)
+        self.world.tick()
+
+        #reward = self.reward(verbose)
+        reward = self.compute_reward(None, None, None,verbose=verbose)
+
+        done = False
+        if car.y >= self.height or car.y <= 0 or car.x <= 0 or car.x >= self.width:
+            done = True
+        if self.step_num >= self.time_limit:
+            done = True
+        return self._get_obs(), reward, done, {'episode': {'r': reward, 'l': self.step_num}}
+
+    def reset(self):
+        self.world.reset()
+
+        ## BARRIER SPECIFICATION
+        self.buildings = [
+           Building(Point(self.width/2., self.height/2.), Point(self.barrier_size,self.barrier_size), "#B22222")
+        ]
+        ## BARRIER SPECIFICATION
+
+        self.car = Car(Point(self.start[0], self.start[1]), np.pi/2., "grey80")
+        self.car.velocity = Point(0, 5)
+
+        #self.goal_obj = Goal(Point(self.goal[0], self.goal[1]), 0.0)
+        self.goal_obj = Goal2(Point(self.goal[0], self.goal[1]), Point(self.width, self.height / 8.), color='#007600')
+
+        for building in self.buildings:
+            self.world.add(building)
+        self.world.add(self.car)
+        self.world.add(self.goal_obj)
+
+        self.step_num = 0
+        #print()
+        return self._get_obs()
+
+    def _get_obs(self):
+        """
+        Get state of car
+        """
+
+        #return self.world.state
+        desired = np.array((
+            self.width/2.,
+            self.height-1.0,
+            0,
+            0,
+            0,
+            0,
+            0
+            ))
+        return {
+                'observation': self.world.state,
+                'achieved_goal': self.world.state,
+                'desired_goal' : desired
+                }
+
+    def compute_reward(self, achieved_goal, desired_goal, info, verbose=False, weight=10.0):
+        #dist2goal = self.car.y/self.height
+        dist2goal = 1.0 if self.car.y >= (self.height-1.0) else 0.0
+        coll_cost = 0
+        for building in self.buildings:
+            if self.car.collidesWith(building):
+                coll_cost = -1000
+
+        goal_rew = 0.0
+        if self.car.collidesWith(self.goal_obj):
+            goal_rew = 10
+
+        # adding preference
+        heading = self.world.state[-3]
+        mean_heading = np.pi/2.0
+        gamma = 0.9
+        homotopy_rew = 0.0
+        if self.homotopy_class == 'left':
+            homotopy_rew += 2*(heading-mean_heading) # left
+        elif self.homotopy_class == 'right':
+            homotopy_rew += -2*(heading-mean_heading) # right
+        homotopy_rew *= gamma**(self.step_num)
+        #dist2goal *= (1.0 - gamma**(self.step_num))
+
+        reward = np.sum(np.array([
+                 dist2goal,
+                 coll_cost,
+                 #goal_rew,
+                 homotopy_rew
+            ]))
+        #if verbose: print("dist to goal: ", dist2goal,
+        #                  "homotopy: ", homotopy_rew,
+        #                  "coll cost: ", coll_cost,
+        #                  "reward: ", reward)
+        #print("dist to goal: ", dist2goal,
+        #                  "homotopy: ", homotopy_rew,
+        #                  "coll cost: ", coll_cost,
+        #                  "reward: ", reward)
+        return reward
 
     def reward(self, verbose, weight=10.0):
         #dist2goal = self.car.y/self.height
@@ -201,6 +333,10 @@ class GridworldSparseEnv(GridworldContinuousEnv):
                           "homotopy: ", homotopy_rew,
                           "reward: ", reward)
         return reward
+
+    def render(self):
+        self.world.render()
+
 
 class GridworldContinuousMultiObjLLEnv(GridworldContinuousEnv):
     def __init__(self,
