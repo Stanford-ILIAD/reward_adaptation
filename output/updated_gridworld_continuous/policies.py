@@ -4,18 +4,22 @@
 B1R = ["output/updated_gridworld_continuous", "B1R", "best_model_215808_62.22815662179966.pkl"]
 B1R1 = ["output/updated_gridworld_continuous", "B1R", "model_216064_59.8557838740874.pkl"]
 B1R2 = ["output/updated_gridworld_continuous", "B1R", "model_216320_60.77716059383434.pkl"]
+spB1R102 = ["output/sparse", "B1R102", "best_model_209_4.808047097185733.pkl"]
 
 B3R = ["output/updated_gridworld_continuous", "B3R", "best_model_124032_62.29229838319685.pkl"]
 B3R1 = ["output/updated_gridworld_continuous", "B3R", "model_130432_60.042624844634.pkl"]
 B3R2 = ["output/updated_gridworld_continuous", "B3R", "model_214912_61.172637044374284.pkl"]
+spB3R102 = ["output/sparse", "B3R102", "best_model_208_5.76422274273462.pkl"]
 
 B5R = ["output/updated_gridworld_continuous", "B5R", "best_model_135168_62.205550367107705.pkl"]
 B5R1 = ["output/updated_gridworld_continuous", "B5R", "model_134656_54.28355803991594.pkl"]
 B5R2 = ["output/updated_gridworld_continuous", "B5R", "model_135936_54.65200649011712.pkl"]
+spB5R102 = ["output/sparse", "B5R102", "best_model_403_3.764279615039852.pkl"]
 
 B7R = ["output/updated_gridworld_continuous", "B7R", "best_model_160128_53.80273751182808.pkl"]
 B7R1 = ["output/updated_gridworld_continuous", "B7R", "model_27904_53.0769959331807.pkl"]
 B7R2 = ["output/updated_gridworld_continuous", "B7R", "model_59648_53.060592416888205.pkl"]
+spB7R102 = ["output/sparse", "B7R102", "best_model_355_3.45112879613578.pkl"]
 
 
 # Random
