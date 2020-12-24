@@ -60,8 +60,7 @@ class RewardCurriculum(object):
         self.rets_path = None
         #self.create_eval_dir()
         self.seed = seed
-        self.bs
-        print("SEED: ", self.seed)
+        self.bs = bs
 
     def create_eval_dir(self):
         if self.is_save:
@@ -82,7 +81,7 @@ class RewardCurriculum(object):
         model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
         data, params = utils.load_from_file(model_dir)
         self.model = PPO2L2SP.load(model_dir, original_params=params)
-        for seed in [101, 102, 103, 104]:
+        for seed in [101, 102]:
                 self.seed = seed
                 self.experiment_name = f"{model_info[1]}_B{self.bs}L_L2SP{seed}"
                 print("EXPT NAME: ", self.experiment_name)
@@ -90,6 +89,7 @@ class RewardCurriculum(object):
                 self.create_eval_dir()
                 env = gym.make(env_name)
                 env.barrier_size = self.bs
+                env = DummyVecEnv([lambda: env])
                 self.model.set_env(env)
                 eval_env = gym.make(env_name)
                 eval_env.barrier_size = self.bs
@@ -104,7 +104,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
     """
     def callback(_locals, _globals):
         nonlocal n_callbacks, best_ret
-        model = _locals['self'].model
+        model = _locals['self']
         n_callbacks += 1
         #total_steps = model.num_timesteps + (timesteps)*num_trains
         total_steps = n_callbacks * model.n_steps

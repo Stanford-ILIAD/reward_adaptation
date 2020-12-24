@@ -62,7 +62,7 @@ class RewardCurriculum(object):
         self.rets_path = None
         #self.create_eval_dir()
         self.seed = seed
-        self.bs
+        self.bs=bs
         print("SEED: ", self.seed)
 
     def create_eval_dir(self):
@@ -85,7 +85,7 @@ class RewardCurriculum(object):
         output_dir = os.path.join("output/updated_gridworld_continuous_BSS", 'resave', model[2])
         utils.resave_params_for_BSS(model_dir, output_dir)
         self.model = PPO2BSS.load(output_dir, bss_coef=0.001, l2_coef=0.0005)
-        for seed in [101, 102, 103, 104]:
+        for seed in [101, 102]:
                 self.seed = seed
                 self.experiment_name = f"{model_info[1]}_B{self.bs}L_BSS{seed}"
                 print("EXPT NAME: ", self.experiment_name)
@@ -99,12 +99,6 @@ class RewardCurriculum(object):
                 eval_env.barrier_size = self.bs
                 self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
                                    self.is_save, self.eval_save_period, self.rets_path, 0)
-        env = gym.make(env_name)
-        env = DummyVecEnv([lambda: env])
-        self.model.set_env(env)
-        eval_env = gym.make(env_name)
-        self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
-                           self.is_save, self.eval_save_period, self.rets_path, 0)
 
 
 def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains):
@@ -114,7 +108,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
     """
     def callback(_locals, _globals):
         nonlocal n_callbacks, best_ret
-        model = _locals['self'].model
+        model = _locals['self']
         n_callbacks += 1
         #total_steps = model.num_timesteps + (timesteps)*num_trains
         total_steps = n_callbacks * model.n_steps
@@ -146,11 +140,11 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 
 if __name__ == '__main__':
     #if FLAGS.is_save: wandb.init(project="continuous_updated2", sync_tensorboard=True, name=FLAGS.experiment_name
-            )
+    #        )
     from output.updated_gridworld_continuous.policies import *
     model = B1R2
     model_dir = os.path.join(model[0], model[1], model[2])
     output_dir = os.path.join("output/updated_gridworld_continuous_BSS", 'resave', model[2])
     RC = RewardCurriculum(model_dir, output_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
-            FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed)
+            FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed, FLAGS.bs)
     RC.train_bss(env_name="Continuous-v0")

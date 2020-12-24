@@ -2,7 +2,9 @@ import warnings
 from itertools import zip_longest
 import numpy as np
 import tensorflow as tf
-from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
+#from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
+#from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
+from stable_baselines.common.tf_layers import conv, linear, conv_to_fc, lstm
 from stable_baselines.common.policies import ActorCriticPolicy
 from stable_baselines.ddpg.policies import DDPGPolicy
 

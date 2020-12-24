@@ -6,7 +6,9 @@ import numpy as np
 import tensorflow as tf
 from gym.spaces import Discrete
 
-from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
+#from stable_baselines.a2c.utils import conv, linear, conv_to_fc, batch_to_seq, seq_to_batch, lstm
+from stable_baselines.common.tf_util import batch_to_seq, seq_to_batch, total_episode_reward_logger
+from stable_baselines.common.tf_layers import conv, linear, conv_to_fc, lstm
 from stable_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
 from stable_baselines.common.input import observation_input
@@ -20,9 +22,11 @@ from stable_baselines import logger
 from stable_baselines.common import explained_variance, ActorCriticRLModel, tf_util, SetVerbosity, TensorboardWriter
 from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.policies import nature_cnn, mlp_extractor,ActorCriticPolicy, RecurrentActorCriticPolicy
-from stable_baselines.a2c.utils import total_episode_reward_logger
+#from stable_baselines.a2c.utils import total_episode_reward_logger
 
-from stable_baselines.ppo2.ppo2 import Runner, get_schedule_fn, swap_and_flatten, safe_mean, constfn
+#from stable_baselines.ppo2.ppo2 import Runner, get_schedule_fn, swap_and_flatten, safe_mean, constfn
+from stable_baselines.ppo2.ppo2 import Runner, get_schedule_fn, swap_and_flatten, safe_mean #constfn #constfn, safe_mean
+from stable_baselines.common.schedules import constfn
 
 
 class BSSPolicy(ActorCriticPolicy):
