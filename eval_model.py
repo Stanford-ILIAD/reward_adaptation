@@ -80,24 +80,25 @@ def evaluate(model, eval_env, render=False):
     for e in range(1):
         rets = 0.0
         obs = eval_env.reset()
-        if isinstance(eval_env, stable_baselines.her.utils.HERGoalEnvWrapper):  # fetch reach env, saving xyz of end effector
-            state_history.append(obs[:3])
-        else:  # eval env is driving environment
-            state_history.append(obs[:2])
+        #if isinstance(eval_env, stable_baselines.her.utils.HERGoalEnvWrapper):  # fetch reach env, saving xyz of end effector
+        #    state_history.append(obs[:3])
+        #else:  # eval env is driving environment
+        #    state_history.append(obs[:2])
         state, ever_done = None, False
         while not ever_done:
             if render: eval_env.render()
             nsteps += 1
             action, state = model.predict(obs, state=state, deterministic=True)
-            next_obs, ret, done, _info = eval_env.step(action, verbose=render)
+            #next_obs, ret, done, _info = eval_env.step(action, verbose=render)
+            next_obs, ret, done, _info = eval_env.step(action)
             if render: eval_env.render()
             if not ever_done:
                 rets += ret
             obs = next_obs
-            if isinstance(eval_env, stable_baselines.her.utils.HERGoalEnvWrapper):
-                state_history.append(obs[:3])
-            else:  # eval env is driving environment
-                state_history.append(obs[:2])
+            #if isinstance(eval_env, stable_baselines.her.utils.HERGoalEnvWrapper):
+            #    state_history.append(obs[:3])
+            #else:  # eval env is driving environment
+            #    state_history.append(obs[:2])
             if render: time.sleep(.1)
             ever_done = done
         if render: eval_env.render()
@@ -113,9 +114,13 @@ def save_traj(model, state_history):
 if __name__ == "__main__":
     if FLAGS.env == "nav1":
         from output.updated_gridworld_continuous.policies import *
-        model_info = B5R_B5L
-        eval_env = load_env("Continuous-v0", "PPO")
-        model = load_model(model_info, "PPO", baseline=None)
+        model_info = spB1R102
+        #eval_env = load_env("Continuous-v0", "PPO")
+        eval_env = load_env("ContinuousSparse-v0", "HER")
+        eval_env.barrier_size = 1
+        #TODO: REMOVE
+        eval_env = HERGoalEnvWrapper(load_env("ContinuousSparse-v0"))
+        model = load_model(model_info, "HER", baseline=None)
     elif FLAGS.env == 'fetch':
         from output.fetch2.policies import *
         model_info = BR_BL
@@ -125,8 +130,8 @@ if __name__ == "__main__":
     sum_reward = 0.0
     num_episode = 10
     for ne in range(num_episode):
-        mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=True)
-        save_traj(model_info, state_history)
+        mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=False)
+        #save_traj(model_info, state_history)
         sum_reward += mean_ret
         print("\nrunning mean: ", sum_reward / (ne + 1))
 
