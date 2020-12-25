@@ -190,6 +190,52 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
+        for bs in [7]:
+            self.bs = bs
+            for seed in [104]:
+                print(f"\ntraining with bsize {self.bs}, seed{seed}")
+                self.seed = seed
+                self.experiment_name = f"B{self.bs}R{seed}"
+                #self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"
+                print("EXPT NAME: ", self.experiment_dir1, self.experiment_name)
+                self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
+                self.create_eval_dir()
+                self.model = None
+                env = gym.make(env_name)
+                eval_env = gym.make(env_name)
+                #TODO: remove this later
+                env.barrier_size = self.bs
+                eval_env.barrier_size = self.bs
+                if self.model_type == "PPO":
+                    if self.is_save:
+                        self.PPO = PPO2('MlpPolicy', env, verbose=1, seed=self.seed, learning_rate=1e-3,
+                                        )
+                    else:
+                        self.PPO = PPO2('MlpPolicy', env, verbose=1, seed=self.seed, learning_rate=1e-3)
+                    self.model = train(self.PPO, eval_env, self.timesteps, self.experiment_dir,
+                                       self.is_save, self.eval_save_period, self.rets_path, 0)
+                elif self.model_type == "DQN":
+                    if self.is_save:
+                        self.DQN = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True,
+                                       learning_rate=1e-3, tensorboard_log="./Gridworldv1_tensorboard/" + self.experiment_name,
+                                       full_tensorboard_log=True)
+                    else:
+                        self.DQN = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True,
+                                       learning_rate=1e-3)
+                    self.model = train(self.DQN, eval_env, self.timesteps, self.experiment_dir,
+                                       self.is_save, self.eval_save_period, self.rets_path, 0)
+                elif self.model_type == "HER":
+                    env = HERGoalEnvWrapper(env)
+                    eval_env = HERGoalEnvWrapper(eval_env)
+                    self.HER = HER('MlpPolicy', env, DDPG, n_sampled_goal=4, goal_selection_strategy="future",
+                                   seed=self.seed, verbose=1)
+                    self.model = train(self.HER, eval_env, self.timesteps, self.experiment_dir,
+                                       self.is_save, self.eval_save_period, self.rets_path, 0)
+
+    def train_single_fetch(self, env_name="Merging-v0"):
+        """
+        Directly trains on env_name
+        """
         for bs in ['RL', 'LR']:
             self.bs = bs
             for seed in [101,102]:
@@ -322,6 +368,6 @@ if __name__ == '__main__':
                               FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed, FLAGS.bs,
                               FLAGS.expt_type)
         if FLAGS.expt_type == "direct":
-            RC.train_single(env_name="Fetch-v0")
+            RC.train_single_fetch(env_name="Fetch-v0")
         else:
             RC.train_curriculum_fetch(env_name="Fetch-v0")
