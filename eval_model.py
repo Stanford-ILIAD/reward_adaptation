@@ -120,6 +120,7 @@ if __name__ == "__main__":
         #TODO: REMOVE
         eval_env = HERGoalEnvWrapper(load_env("ContinuousSparse-v0"))
         eval_env.env._set_barrier_size(7)
+        eval_env.env._set_homotopy_class('right')
         model = load_model(model_info, "HER", baseline=None)
     elif FLAGS.env == 'fetch':
         from output.fetch2.policies import *
