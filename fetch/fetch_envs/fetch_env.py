@@ -52,6 +52,9 @@ class FetchEnv(robot_env.RobotEnv):
     # GoalEnv methods
     # ----------------------------
 
+    def _set_homotopy_class(self, hc):
+        self.homotopy_class = hc
+
     def detect_barrier_collision(self, verbose=False):
         for i in range(self.sim.data.ncon):
             # Note that the contact array has more than `ncon` entries,

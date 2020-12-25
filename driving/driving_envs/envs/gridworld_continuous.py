@@ -247,7 +247,7 @@ class GridworldSparseEnv(gym.GoalEnv):
         self.world.add(self.goal_obj)
 
         self.step_num = 0
-        #print()
+        print()
         return self._get_obs()
 
     def _get_obs(self):
@@ -297,18 +297,18 @@ class GridworldSparseEnv(gym.GoalEnv):
 
         reward = np.sum(np.array([
                  dist2goal,
-                 coll_cost,
-                 #goal_rew,
+                 #coll_cost,
+                 goal_rew,
                  homotopy_rew
             ]))
         #if verbose: print("dist to goal: ", dist2goal,
         #                  "homotopy: ", homotopy_rew,
         #                  "coll cost: ", coll_cost,
         #                  "reward: ", reward)
-        #print("dist to goal: ", dist2goal,
-        #                  "homotopy: ", homotopy_rew,
-        #                  "coll cost: ", coll_cost,
-        #                  "reward: ", reward)
+        print("dist to goal: ", dist2goal,
+                          "homotopy: ", homotopy_rew,
+                          "coll cost: ", coll_cost,
+                          "reward: ", reward)
         return reward
 
     def reward(self, verbose, weight=10.0):
