@@ -94,45 +94,44 @@ class RewardCurriculum(object):
         bs2model_ours = {'RL':BR_BL0_BL1_BL5, 'LR':BL_BR0}
         bs2model = {'RL':BR_s, 'LR':BL_s}
         for l, lesson in enumerate(self.curriculum):
-            #for bs in bs2model.keys():
-                #self.bs = bs
-            #for seed in [101,102,103,104,105]:
-            for seed in [102]:
-                if self.expt_type == "ours":
-                    model_info = bs2model_ours[self.bs]
-                else:
-                    model_info = bs2model[self.bs]
-                model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-                if self.model_type == "PPO":
-                    self.model = PPO2.load(model_dir)  # loads pre-trained model
-                elif self.model_type == "HER":
-                    self.model = HER.load(model_dir)   # loads pre-trained model
-                print(f"\ntraining on {lesson}, bs {self.bs}, seed{seed}")
-                self.seed = seed
-                self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"
-                print("EXPT NAME: ", self.experiment_dir1, self.experiment_name)
-                self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
-                self.create_eval_dir()
-                env = gym.make(lesson)
-                eval_env = gym.make(lesson)
+            for bs in bs2model.keys():
+                self.bs = bs
+                for seed in [101,102]:
+                    if self.expt_type == "ours":
+                        model_info = bs2model_ours[self.bs]
+                    else:
+                        model_info = bs2model[self.bs]
+                    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+                    if self.model_type == "PPO":
+                        self.model = PPO2.load(model_dir)  # loads pre-trained model
+                    elif self.model_type == "HER":
+                        self.model = HER.load(model_dir)   # loads pre-trained model
+                    print(f"\ntraining on {lesson}, bs {self.bs}, seed{seed}")
+                    self.seed = seed
+                    self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"
+                    print("EXPT NAME: ", self.experiment_dir1, self.experiment_name)
+                    self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
+                    self.create_eval_dir()
+                    env = gym.make(lesson)
+                    eval_env = gym.make(lesson)
 
-                #TODO: remove this later
-                if self.bs == 'RL':
-                    env.homotopy_class = 'left'
-                    eval_env.homotopy_class = 'left'
-                elif self.bs == 'LR':
-                    env.homotopy_class = 'right'
-                    eval_env.homotopy_class = 'right'
+                    #TODO: remove this later
+                    if self.bs == 'RL':
+                        env.homotopy_class = 'left'
+                        eval_env.homotopy_class = 'left'
+                    elif self.bs == 'LR':
+                        env.homotopy_class = 'right'
+                        eval_env.homotopy_class = 'right'
 
-                if self.model_type == "HER":
-                    env = HERGoalEnvWrapper(env)
-                    eval_env = HERGoalEnvWrapper(eval_env)
-                else:
-                    env = DummyVecEnv([lambda: env])
-                self.model.set_env(env)
-                self.model.seed = self.seed
-                self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
-                                   self.is_save, self.eval_save_period, self.rets_path, l)
+                    if self.model_type == "HER":
+                        env = HERGoalEnvWrapper(env)
+                        eval_env = HERGoalEnvWrapper(eval_env)
+                    else:
+                        env = DummyVecEnv([lambda: env])
+                    self.model.set_env(env)
+                    self.model.seed = self.seed
+                    self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
+                                       self.is_save, self.eval_save_period, self.rets_path, l)
 
     def train_curriculum(self, env_name="Merging-v0"):
         """
