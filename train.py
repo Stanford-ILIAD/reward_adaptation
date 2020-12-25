@@ -231,7 +231,7 @@ class RewardCurriculum(object):
         """
         Directly trains on env_name
         """
-        for bs in ['RL', 'LR']:
+        for bs in ['LR', 'RL']:
             self.bs = bs
             for seed in [101,102]:
                 print(f"\ntraining with bsize {self.bs}, seed{seed}")
@@ -250,7 +250,7 @@ class RewardCurriculum(object):
                     eval_env._set_homotopy_class('left')
                 elif self.bs == 'LR':
                     env._set_homotopy_class('right')
-                    eval_env._sethomotopy_class('right')
+                    eval_env._set_homotopy_class('right')
                 if self.model_type == "PPO":
                     if self.is_save:
                         self.PPO = PPO2('MlpPolicy', env, verbose=1, seed=self.seed, learning_rate=1e-3,
