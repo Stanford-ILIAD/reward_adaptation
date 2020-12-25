@@ -10,6 +10,7 @@ from driving.driving_envs.entities import TextEntity, Entity
 from driving.driving_envs.agents import Car, Building, Goal, Goal2, Waypoint
 from driving.driving_envs.geometry import Point
 from typing import Tuple
+import ipdb
 
 class PidVelPolicy:
     """PID controller for H that maintains its initial velocity."""
@@ -115,6 +116,12 @@ class GridworldContinuousEnv(gym.Env):
         self.step_num = 0
         return self._get_obs()
 
+    def _set_barrier_size(self, bs):
+        self.barrier_size = bs
+
+    def _set_homotopy_class(self, hc):
+        self.homotopy_class = hc
+
     def _get_obs(self):
         """
         Get state of car
@@ -191,12 +198,18 @@ class GridworldSparseEnv(gym.GoalEnv):
         self.start = np.array([self.width/2.,5])
         self.goal = np.array([self.width/2., self.height])
         self.max_dist = np.linalg.norm(self.goal-self.start,2)
-        self.homotopy_class = 'left'
-        self.barrier_size = 1
+        self.homotopy_class = None
+        self.barrier_size = None
+
+    def _set_barrier_size(self, bs):
+        self.barrier_size = bs
+
+    def _set_homotopy_class(self, hc):
+        self.homotopy_class = hc
 
     def step(self, action: np.ndarray, verbose: bool = False):
         self.step_num += 1
-
+        ipdb.set_trace()
         car = self.world.dynamic_agents[0]
         if verbose: print("a: ", action)
         acc = self.accelerate.action(self._get_obs())
