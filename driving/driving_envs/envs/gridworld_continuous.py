@@ -209,7 +209,6 @@ class GridworldSparseEnv(gym.GoalEnv):
 
     def step(self, action: np.ndarray, verbose: bool = False):
         self.step_num += 1
-        ipdb.set_trace()
         car = self.world.dynamic_agents[0]
         if verbose: print("a: ", action)
         acc = self.accelerate.action(self._get_obs())
