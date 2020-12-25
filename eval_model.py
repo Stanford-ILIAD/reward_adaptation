@@ -114,7 +114,7 @@ def save_traj(model, state_history):
 if __name__ == "__main__":
     if FLAGS.env == "nav1":
         from output.updated_gridworld_continuous.policies import *
-        model_info = spB1R102
+        model_info = spB3R102
         #eval_env = load_env("Continuous-v0", "PPO")
         eval_env = load_env("ContinuousSparse-v0", "HER")
         eval_env.barrier_size = 1
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     sum_reward = 0.0
     num_episode = 10
     for ne in range(num_episode):
-        mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=False)
+        mean_ret, std_ret, total_ret, state_history = evaluate(model, eval_env, render=True)
         #save_traj(model_info, state_history)
         sum_reward += mean_ret
         print("\nrunning mean: ", sum_reward / (ne + 1))

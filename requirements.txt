@@ -79,7 +79,6 @@ subprocess32==3.5.4
 tensorboard==1.14.0
 tensorboard-plugin-wit==1.7.0
 tensorflow-estimator==1.14.0
-tensorflow-gpu==1.14.0
 termcolor==1.1.0
 traitlets==5.0.5
 typing-extensions==3.7.4.3

@@ -23,26 +23,26 @@ FLAGS = flags.FLAGS
 
 
 # NAVIGATION1: BARRIER SIZES
-#flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
-#flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous2", "Name of experiment")
-#flags.DEFINE_string("experiment_name", "B1R_B1L2", "Name of experiment")
-#flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-#flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
-#flags.DEFINE_integer("num_envs", 1, "number of envs")
-#flags.DEFINE_integer("seed", 101, "random seed")
-#flags.DEFINE_integer("bs", 5, "barrier size")
-#flags.DEFINE_string("expt_type", "ours", "experiment type")
+flags.DEFINE_integer("timesteps", 256000, "# timesteps to train")
+flags.DEFINE_string("experiment_dir", "output/updated_gridworld_continuous2", "Name of experiment")
+flags.DEFINE_string("experiment_name", "B1R_B1L2", "Name of experiment")
+flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+flags.DEFINE_integer("eval_save_period", 1, "how often we save state for eval")  # fine
+flags.DEFINE_integer("num_envs", 1, "number of envs")
+flags.DEFINE_integer("seed", 101, "random seed")
+flags.DEFINE_integer("bs", 5, "barrier size")
+flags.DEFINE_string("expt_type", "ours", "experiment type")
 
 # FETCH REACH
-flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")
-flags.DEFINE_string("experiment_dir", "output/fetch3", "Name of experiment")
-flags.DEFINE_string("experiment_name", "Bn1L_seed1", "Name of experiment")
-flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
-flags.DEFINE_integer("seed", 10, "random seed")
-flags.DEFINE_integer("num_envs", 1, "number of envs")
-flags.DEFINE_string("expt_type", "finetune", "expt type")
-flags.DEFINE_string("bs", "LR", "barrier size")
+#flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")
+#flags.DEFINE_string("experiment_dir", "output/fetch3", "Name of experiment")
+#flags.DEFINE_string("experiment_name", "Bn1L_seed1", "Name of experiment")
+#flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
+#flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
+#flags.DEFINE_integer("seed", 10, "random seed")
+#flags.DEFINE_integer("num_envs", 1, "number of envs")
+#flags.DEFINE_string("expt_type", "finetune", "expt type")
+#flags.DEFINE_string("bs", "LR", "barrier size")
 
 from output.updated_gridworld_continuous.policies import *
 
@@ -84,43 +84,6 @@ class RewardCurriculum(object):
             self.rets_path = os.path.join(self.experiment_dir, "trajs.csv")
             #wandb.save(self.experiment_dir)
 
-    def train_curriculum_fetch(self, env_name="Merging-v0"):
-        """
-        Trains reward curriculum
-        """
-        self.curriculum = [
-            env_name
-        ]
-        #bs2model = {1:B1R_B0L, 3:B3R_B0L, 5:B5R_B0L, 7:B7R_B0L_B4L}
-        bs2model = {'LR':BL_s}
-        for l, lesson in enumerate(self.curriculum):
-            model_info = bs2model[self.bs]
-            model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-            if self.model_type == "PPO":
-                self.model = PPO2.load(model_dir)  # loads pre-trained model
-            elif self.model_type == "HER":
-                self.model = HER.load(model_dir)   # loads pre-trained model
-            for seed in [101, 102, 104]:
-                print(f"\ntraining on {lesson}, bsize {self.bs}, seed{seed}")
-                self.seed = seed
-                self.experiment_name = f"BL_BR{seed}"
-                print("EXPT NAME: ", self.experiment_name)
-                self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
-                self.create_eval_dir()
-                env = gym.make(lesson)
-                #env.barrier_size = self.bs
-                eval_env = gym.make(lesson)
-                #eval_env.barrier_size = self.bs
-                if self.model_type == "HER":
-                    env = HERGoalEnvWrapper(env)
-                    eval_env = HERGoalEnvWrapper(eval_env)
-                else:
-                    env = DummyVecEnv([lambda: env])
-                self.model.set_env(env)
-                self.model.seed = self.seed
-                self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
-                                   self.is_save, self.eval_save_period, self.rets_path, l)
-
     def train_curriculum(self, env_name="Merging-v0"):
         """
         Trains reward curriculum
@@ -128,13 +91,13 @@ class RewardCurriculum(object):
         self.curriculum = [
             env_name
         ]
-        bs2model = {1:spB1R102, 3:spB3R102, 5:spB5R102, 7:spB7R102}
+        bs2model = {3:spB3R, 5:spB5R, 7:spB7R}
         #bs2model_ours = {'RL':BR_BL0_BL1_BL5, 'LR':BL_BR0}
         #bs2model = {'RL':BR_s, 'LR':BL_s}
         for l, lesson in enumerate(self.curriculum):
             #for bs in bs2model.keys():
                 #self.bs = bs
-            for seed in [102, 103, 104, 105]:
+            for seed in [101,102,103,104,105]:
                 #if self.expt_type == "ours":
                 #    model_info = bs2model_ours[self.bs]
                 #else:
