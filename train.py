@@ -204,8 +204,10 @@ class RewardCurriculum(object):
                 env = gym.make(env_name)
                 eval_env = gym.make(env_name)
                 #TODO: remove this later
-                env.barrier_size = self.bs
-                eval_env.barrier_size = self.bs
+                env._set_barrier_size(self.bs)
+                env._set_homotopy_class('right')
+                eval_env._set_barrier_size(self.bs)
+                eval_env._set_homotopy_class('right')
                 if self.model_type == "PPO":
                     if self.is_save:
                         self.PPO = PPO2('MlpPolicy', env, verbose=1, seed=self.seed, learning_rate=1e-3,
@@ -227,6 +229,7 @@ class RewardCurriculum(object):
                 elif self.model_type == "HER":
                     env = HERGoalEnvWrapper(env)
                     eval_env = HERGoalEnvWrapper(eval_env)
+                    ipdb.set_trace()
                     self.HER = HER('MlpPolicy', env, DDPG, n_sampled_goal=4, goal_selection_strategy="future",
                                    seed=self.seed, verbose=1)
                     self.model = train(self.HER, eval_env, self.timesteps, self.experiment_dir,
