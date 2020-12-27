@@ -315,7 +315,7 @@ class GridworldSparseEnv(gym.GoalEnv):
             #homotopy_rew = 0.5 if self.car.x > self.width/2. and dist2goal==1.0 else 0.
         else:
             raise ValueError
-        homotopy_rew *= gamma**(self.step_num)
+        homotopy_rew *= gamma**(self.step_num) * 3
         dist2goal *= (1.0 - gamma**(self.step_num))
 
         reward = np.sum(np.array([
