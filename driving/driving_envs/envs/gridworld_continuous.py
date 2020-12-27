@@ -217,8 +217,8 @@ class GridworldSparseEnv(gym.GoalEnv):
         self.world.tick()
 
         #reward = self.reward(verbose)
-        #reward = self.compute_reward(None, None, None,verbose=verbose)
-        reward = self.compute_reward_sparse(None, None, None,verbose=verbose)
+        reward = self.compute_reward(None, None, None,verbose=verbose)
+        #reward = self.compute_reward_sparse(None, None, None,verbose=verbose)
 
         done = False
         if car.y >= self.height or car.y <= 0 or car.x <= 0 or car.x >= self.width:
@@ -321,7 +321,7 @@ class GridworldSparseEnv(gym.GoalEnv):
         reward = np.sum(np.array([
                  dist2goal,
                  coll_cost,
-                 goal_rew,
+                 #goal_rew,
                  homotopy_rew
             ]))
         #print("dist to goal: ", dist2goal,
@@ -360,7 +360,7 @@ class GridworldSparseEnv(gym.GoalEnv):
 
         reward = np.sum(np.array([
                  dist2goal,
-                 #coll_cost,
+                 coll_cost,
                  #goal_rew,
                  homotopy_rew
             ]))
