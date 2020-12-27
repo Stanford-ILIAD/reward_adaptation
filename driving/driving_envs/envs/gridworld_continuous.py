@@ -185,7 +185,7 @@ class GridworldSparseEnv(gym.GoalEnv):
         self.accelerate = PidVelPolicy(dt=self.dt)
         self.time_limit = time_limit
         self.action_space = spaces.Box(
-            np.array([-0.04]), np.array([0.04]), dtype=np.float32
+            np.array([-0.06]), np.array([0.06]), dtype=np.float32
         )
         #self.observation_space = spaces.Box(-np.inf, np.inf, shape=(7,))
         self.observation_space = spaces.Dict(dict(
@@ -210,15 +210,15 @@ class GridworldSparseEnv(gym.GoalEnv):
     def step(self, action: np.ndarray, verbose: bool = False):
         self.step_num += 1
         car = self.world.dynamic_agents[0]
-        if verbose: print("a: ", action)
+        #print("a: ", action)
         acc = self.accelerate.action(self._get_obs())
         action = np.append(action, acc)
         car.set_control(*action)
         self.world.tick()
 
         #reward = self.reward(verbose)
-        reward = self.compute_reward(None, None, None,verbose=verbose)
-        #reward = self.compute_reward_sparse(None, None, None,verbose=verbose)
+        #reward = self.compute_reward(None, None, None,verbose=verbose)
+        reward = self.compute_reward_sparse(None, None, None,verbose=verbose)
 
         done = False
         if car.y >= self.height or car.y <= 0 or car.x <= 0 or car.x >= self.width:
@@ -312,10 +312,11 @@ class GridworldSparseEnv(gym.GoalEnv):
             #homotopy_rew = 0.5 if self.car.x <= self.width/2. and dist2goal==1.0 else 0.
         elif self.homotopy_class == 'right':
             homotopy_rew += -2*(heading-mean_heading) # right
-            #homotopy_rew = 0.5 if self.car.x > self.width/2. and dist2goal==1.0 else 0.
+            #print(heading, mean_heading)
+            #homotopy_rew = 1. if self.car.x > self.width/2. else -1.
         else:
             raise ValueError
-        homotopy_rew *= gamma**(self.step_num) * 3
+        homotopy_rew *= gamma**(self.step_num)
         dist2goal *= (1.0 - gamma**(self.step_num))
 
         reward = np.sum(np.array([
@@ -343,16 +344,18 @@ class GridworldSparseEnv(gym.GoalEnv):
             goal_rew = 10
 
         # adding preference
-        #heading = self.world.state[-3]
+        heading = self.world.state[-3]
         mean_heading = np.pi/2.0
         gamma = 0.8
         homotopy_rew = 0.0
         if self.homotopy_class == 'left':
             #homotopy_rew += 2*(heading-mean_heading) # left
-            homotopy_rew = 0.5 if self.car.x <= self.width/2. and dist2goal==1.0 else 0.
+            #homotopy_rew = 1.0 if self.car.x <= self.width/2. and dist2goal==1.0 else 0.
+            homotopy_rew = 1.0 if self.car.x <= self.width/2. else 0.
+
         elif self.homotopy_class == 'right':
-            #homotopy_rew += -2*(heading-mean_heading) # right
-            homotopy_rew = 0.5 if self.car.x > self.width/2. and dist2goal==1.0 else 0.
+            homotopy_rew += -2*(heading-mean_heading) # right
+            #homotopy_rew = 0.5 if self.car.x > self.width/2. and dist2goal==1.0 else 0.
         else:
             raise ValueError
         #homotopy_rew *= gamma**(self.step_num*2)

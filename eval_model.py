@@ -114,13 +114,13 @@ def save_traj(model, state_history):
 if __name__ == "__main__":
     if FLAGS.env == "nav1":
         from output.updated_gridworld_continuous.policies import *
-        model_info = spB7R_B0R
+        model_info = spB7L
         #eval_env = load_env("Continuous-v0", "PPO")
         eval_env = load_env("ContinuousSparse-v0", "HER")
         #TODO: REMOVE
         eval_env = HERGoalEnvWrapper(load_env("ContinuousSparse-v0"))
         eval_env.env._set_barrier_size(7)
-        eval_env.env._set_homotopy_class('right')
+        eval_env.env._set_homotopy_class('left')
         model = load_model(model_info, "HER", baseline=None)
     elif FLAGS.env == 'fetch':
         from output.fetch2.policies import *

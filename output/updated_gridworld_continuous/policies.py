@@ -148,10 +148,12 @@ B7R_B7L_BSS2 = ["output/updated_gridworld_continuous_BSS", "B7R_B7L_BSS2", "best
 
 
 # SPARSE
-spB1R = ["output/sparse", "B1R104", "best_model_10000_3.4164767358208126.pkl"]
-spB3R = ["output/sparse", "B3R102", "best_model_2506_155.93643390124575.pkl"]
-spB5R = ["output/sparse", "B5R102", "best_model_1401_156.72305882091763.pkl"]
-spB7R = ["output/sparse", "B7R102", "best_model_701_26.192318902808676.pkl"]
+spB1R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
+spB3R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
+spB5R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
+spB7R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
 
-spB7R_B0R = ["output/sparse", "7_ours_102_0", "best_model_9664_0.17051221813642947.pkl"]
-spB3R_B0R = ["output/sparse", "3_ours_102_0", "best_model_1_114.5.pkl"]
+#spB7R_B0R = ["output/sparse", "7_ours_5_0", "best_model_7406_89.49159749358883.pk"]
+spB7R_B0R = ["output/sparse", "7_ours_7_0", "best_model_4301_4.777777777777779.pkl"]
+
+spB7L = ["output/sparse", "7_ours_7", "best_model_101_94.0.pkl"]

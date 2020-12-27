@@ -141,9 +141,9 @@ class RewardCurriculum(object):
         self.curriculum = [
             env_name
         ]
-        bs2model = {1:spB1R, 3:spB3R, 5:spB5R, 7:spB7R}
+        bs2model = {1:spB7R_B0R, 3:spB7R_B0R, 5:spB7R_B0R, 7:spB7R_B0R}
         for l, lesson in enumerate(self.curriculum):
-            for seed in [102]:
+            for seed in [7]:
                 model_info = bs2model[int(self.bs)]
                 model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
                 if self.model_type == "PPO":
@@ -152,7 +152,7 @@ class RewardCurriculum(object):
                     self.model = HER.load(model_dir)   # loads pre-trained model
                 print(f"\ntraining on {lesson}, bs {self.bs}, seed{seed}")
                 self.seed = seed
-                self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}_0"
+                self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"
                 print("EXPT NAME: ", self.experiment_dir1, self.experiment_name)
                 self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
                 self.create_eval_dir()
@@ -183,7 +183,7 @@ class RewardCurriculum(object):
         """
         #for bs in [7]:
         #    self.bs = bs
-        for seed in [102]:
+        for seed in [5]:
             print(f"\ntraining with bsize {self.bs}, seed{seed}")
             self.seed = seed
             self.experiment_name = f"B{self.bs}R{seed}"
