@@ -151,6 +151,6 @@ B7R_B7L_BSS2 = ["output/updated_gridworld_continuous_BSS", "B7R_B7L_BSS2", "best
 spB1R = ["output/sparse", "B1R104", "best_model_10000_3.4164767358208126.pkl"]
 spB3R = ["output/sparse", "B3R102", "best_model_40000_4.029506438465594.pkl"]
 spB5R = ["output/sparse", "B5R104", "best_model_40000_4.029956100106663.pkl"]
-spB7R = ["output/sparse", "B7R104", "best_model_40000_4.029956140550333.pkl"]
+spB7R = ["output/sparse", "B7R102", "best_model_601_24.03689549907578.pkl"]
 
-spB3R_B0R = ["output/sparse", "3_ours_102_0", ""]
+spB7R_B0R = ["output/sparse", "7_ours_102_0", "best_model_9664_0.17051221813642947.pkl"]

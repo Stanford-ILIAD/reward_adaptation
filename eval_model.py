@@ -114,7 +114,7 @@ def save_traj(model, state_history):
 if __name__ == "__main__":
     if FLAGS.env == "nav1":
         from output.updated_gridworld_continuous.policies import *
-        model_info = spB7R
+        model_info = spB7R_B0R
         #eval_env = load_env("Continuous-v0", "PPO")
         eval_env = load_env("ContinuousSparse-v0", "HER")
         #TODO: REMOVE
