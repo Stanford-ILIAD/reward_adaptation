@@ -11,15 +11,13 @@ This code requires Python3. We use version 3.7. The Python3 requirements are spe
 pip install -r requirements.txt
 ```
 
-To install the navigation environment
-```
-cd driving
-pip install -e .
-```
-
 ## Training
 
 ### Navigation1: Barrier Sizes (Table 1)
+* Install the env
+  * `cd driving`
+  * `pip install -e .`
+
 * When running these scripts, please specify a barrier size [1,3,5,7].
 * Ours:
   * run `python train_nav1.py --expt_type ours --bs [1,3,5,7]`
@@ -35,10 +33,18 @@ pip install -e .
   * run `python baselines/BSS/train.py --bs [1,3,5,7]`  
 
 ### Navigation2: Four Homotopy Classes (Table 2)
+* Install the env
+  * `cd driving`
+  * `pip install -e .`
+
 * Ours:
   * run `./train_nav2.sh`
 
 ### Lunar Lander (Table 3)
+* Install the env
+  * `cd lunarlander`
+  * `pip install -e .`
+
 * Ours:
   * run `./train_lunarlander.sh`
 
@@ -60,8 +66,13 @@ pip install -e .
   * run `python baselines_fetch/BSS/train.py --bs [RL, LR]`  
 
 ### Ant (Table 5)
+* Install the env
+  * `cd ant/imperfect_envs`
+  * `pip install -e .`
+
 * Ours:
-  * run `ant/transfer/curriculum.sh`
+  * `cd ant/transfer`
+  * run `curriculum.sh`
 
 ### Assistive Gym (Table 5)
 Please refer to the README in the `assistive-gym` directory for installation and training instructions.
