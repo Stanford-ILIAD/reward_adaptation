@@ -26,6 +26,7 @@ flags.DEFINE_string("experiment_name", "BR_BL_L2SP", "Name of experiment")
 flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
 flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
 flags.DEFINE_integer("num_envs", 1, "number of envs")
+flags.DEFINE_string("bs", "RL", "direction of fine-tuning")
 #
 
 
@@ -45,19 +46,15 @@ class RewardCurriculum(object):
     Code related to training reward curriculum or single domain
     """
 
-    def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period):
-        #data, params = utils.load_from_file(model_dir)
-        #self.model = HER2L2SP.load(model_dir, original_params=params)
+    def __init__(self, model_dir, num_envs, experiment_dir, experiment_name, timesteps, is_save, eval_save_period, bs):
         self.num_envs = num_envs
         self.experiment_dir1 = experiment_dir
-        #self.experiment_dir = os.path.join(experiment_dir, experiment_name)
-        #self.experiment_name = experiment_name
         self.timesteps = timesteps
         self.is_save = is_save
         self.eval_save_period = eval_save_period
         self.rets_path = None
-        #self.create_eval_dir()
-        self.seed = 42
+        self.seed = None
+        self.bs = bs
 
     def create_eval_dir(self):
         if self.is_save:
@@ -74,30 +71,31 @@ class RewardCurriculum(object):
         Directly trains on env_name
         """
         bs2model = {'RL':BR_s, 'LR': BL_s}
-        for bs in bs2model.keys():
-            for seed in [101, 102]:
-                model_info = bs2model[bs]
-                model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-                data, params = utils.load_from_file(model_dir)
-                self.model = HER2L2SP.load(model_dir, original_params=params)
-                self.seed = seed
-                self.experiment_name = f"L2SP_{bs}_{self.seed}"
-                print("EXPT NAME: ", self.experiment_name)
-                self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
-                self.create_eval_dir()
-                env = gym.make(env_name)
-                eval_env = gym.make(env_name)
-                if bs == 'RL':
-                    env.homotopy_class = 'left'
-                    eval_env.homotopy_class = 'left'
-                elif bs == 'LR':
-                    env.homotopy_class = 'right'
-                    eval_env.homotopy_class = 'right'
-                env = HERGoalEnvWrapper(env)
-                self.model.set_env(env)
-                eval_env = HERGoalEnvWrapper(eval_env)
-                self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
-                                   self.is_save, self.eval_save_period, self.rets_path, 0)
+        #for bs in bs2model.keys():
+        bs = self.bs
+        for seed in [101, 102]:
+            model_info = bs2model[bs]
+            model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
+            data, params = utils.load_from_file(model_dir)
+            self.model = HER2L2SP.load(model_dir, original_params=params)
+            self.seed = seed
+            self.experiment_name = f"L2SP_{bs}_{self.seed}"
+            print("EXPT NAME: ", self.experiment_name)
+            self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
+            self.create_eval_dir()
+            env = gym.make(env_name)
+            eval_env = gym.make(env_name)
+            if bs == 'RL':
+                env.homotopy_class = 'left'
+                eval_env.homotopy_class = 'left'
+            elif bs == 'LR':
+                env.homotopy_class = 'right'
+                eval_env.homotopy_class = 'right'
+            env = HERGoalEnvWrapper(env)
+            self.model.set_env(env)
+            eval_env = HERGoalEnvWrapper(eval_env)
+            self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
+                               self.is_save, self.eval_save_period, self.rets_path, 0)
 
 
 def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains):
@@ -139,9 +137,7 @@ def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period
 if __name__ == '__main__':
     #if FLAGS.is_save: wandb.init(project="fetch2", sync_tensorboard=True)
     from output.fetch2.policies import *
-    #model_info = BR
-    #model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
     model_dir = None
     RC = RewardCurriculum(model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
-                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period)
+                          FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.bs)
     RC.train_l2sp(env_name="Fetch-v0")
