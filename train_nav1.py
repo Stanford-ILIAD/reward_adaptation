@@ -34,17 +34,6 @@ flags.DEFINE_integer("seed", 101, "random seed")
 flags.DEFINE_integer("bs", 5, "barrier size")
 flags.DEFINE_string("expt_type", "ours", "experiment type")
 
-# FETCH REACH
-#flags.DEFINE_integer("timesteps", 512000, "# timesteps to train")
-#flags.DEFINE_string("experiment_dir", "output/fetch3", "Name of experiment")
-#flags.DEFINE_string("experiment_name", "Bn1L_seed1", "Name of experiment")
-#flags.DEFINE_boolean("is_save", True, "Saves and logs experiment data if True")
-#flags.DEFINE_integer("eval_save_period", 10000, "how often we save state for eval")
-#flags.DEFINE_integer("seed", 10, "random seed")
-#flags.DEFINE_integer("num_envs", 1, "number of envs")
-#flags.DEFINE_string("expt_type", "finetune", "expt type")
-#flags.DEFINE_string("bs", "LR", "barrier size")
-
 from output.updated_gridworld_continuous.policies import *
 
 class RewardCurriculum(object):
@@ -77,55 +66,6 @@ class RewardCurriculum(object):
             os.makedirs(self.experiment_dir)
             self.rets_path = os.path.join(self.experiment_dir, "trajs.csv")
             #wandb.save(self.experiment_dir)
-
-    def train_curriculum_fetch(self, env_name="Merging-v0"):
-        """
-        Trains reward curriculum
-        """
-        self.curriculum = [
-            env_name
-        ]
-        bs2model_ours = {'RL':BR_BL0_BL1_BL5, 'LR':BL_BR0}
-        bs2model = {'RL':BR_s, 'LR':BL_s}
-        for l, lesson in enumerate(self.curriculum):
-            for bs in bs2model.keys():
-                self.bs = bs
-                for seed in [101,102]:
-                    if self.expt_type == "ours":
-                        model_info = bs2model_ours[self.bs]
-                    else:
-                        model_info = bs2model[self.bs]
-                    model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-                    if self.model_type == "PPO":
-                        self.model = PPO2.load(model_dir)  # loads pre-trained model
-                    elif self.model_type == "HER":
-                        self.model = HER.load(model_dir)   # loads pre-trained model
-                    print(f"\ntraining on {lesson}, bs {self.bs}, seed{seed}")
-                    self.seed = seed
-                    self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"
-                    print("EXPT NAME: ", self.experiment_dir1, self.experiment_name)
-                    self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
-                    self.create_eval_dir()
-                    env = gym.make(lesson)
-                    eval_env = gym.make(lesson)
-
-                    if self.bs == 'RL':
-                        env._set_homotopy_class('left')
-                        eval_env._set_homotopy_class('left')
-                    elif self.bs == 'LR':
-                        env._set_homotopy_class('right')
-                        eval_env._set_homotopy_class('right')
-
-                    if self.model_type == "HER":
-                        env = HERGoalEnvWrapper(env)
-                        eval_env = HERGoalEnvWrapper(eval_env)
-                        print("hc: ", env.env.homotopy_class)
-                    else:
-                        env = DummyVecEnv([lambda: env])
-                    self.model.set_env(env)
-                    self.model.seed = self.seed
-                    self.model = train(self.model, eval_env, self.timesteps, self.experiment_dir,
-                                       self.is_save, self.eval_save_period, self.rets_path, l)
 
     def train_curriculum(self, env_name="Merging-v0"):
         """
@@ -230,55 +170,6 @@ class RewardCurriculum(object):
                 self.model = train(self.HER, eval_env, self.timesteps, self.experiment_dir,
                                    self.is_save, self.eval_save_period, self.rets_path, 0)
 
-    def train_single_fetch(self, env_name="Merging-v0"):
-        """
-        Directly trains on env_name
-        """
-        for bs in ['LR', 'RL']:
-            self.bs = bs
-            for seed in [101,102]:
-                print(f"\ntraining with bsize {self.bs}, seed{seed}")
-                self.seed = seed
-                self.experiment_name = f"{self.bs}_{self.expt_type}_{seed}"
-                print("EXPT NAME: ", self.experiment_dir1, self.experiment_name)
-                self.experiment_dir = os.path.join(self.experiment_dir1, self.experiment_name)
-                self.create_eval_dir()
-                self.model = None
-                env = gym.make(env_name)
-                eval_env = gym.make(env_name)
-                if self.bs == 'RL':
-                    env._set_homotopy_class('left')
-                    eval_env._set_homotopy_class('left')
-                elif self.bs == 'LR':
-                    env._set_homotopy_class('right')
-                    eval_env._set_homotopy_class('right')
-                if self.model_type == "PPO":
-                    if self.is_save:
-                        self.PPO = PPO2('MlpPolicy', env, verbose=1, seed=self.seed, learning_rate=1e-3,
-                                        )
-                    else:
-                        self.PPO = PPO2('MlpPolicy', env, verbose=1, seed=self.seed, learning_rate=1e-3)
-                    self.model = train(self.PPO, eval_env, self.timesteps, self.experiment_dir,
-                                       self.is_save, self.eval_save_period, self.rets_path, 0)
-                elif self.model_type == "DQN":
-                    if self.is_save:
-                        self.DQN = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True,
-                                       learning_rate=1e-3, tensorboard_log="./Gridworldv1_tensorboard/" + self.experiment_name,
-                                       full_tensorboard_log=True)
-                    else:
-                        self.DQN = DQN('MlpPolicy', env, verbose=1, seed=self.seed, prioritized_replay=True,
-                                       learning_rate=1e-3)
-                    self.model = train(self.DQN, eval_env, self.timesteps, self.experiment_dir,
-                                       self.is_save, self.eval_save_period, self.rets_path, 0)
-                elif self.model_type == "HER":
-                    env = HERGoalEnvWrapper(env)
-                    eval_env = HERGoalEnvWrapper(eval_env)
-                    print("hc: ", env.env.homotopy_class)
-                    self.HER = HER('MlpPolicy', env, DDPG, n_sampled_goal=4, goal_selection_strategy="future",
-                                   seed=self.seed, verbose=1)
-                    self.model = train(self.HER, eval_env, self.timesteps, self.experiment_dir,
-                                       self.is_save, self.eval_save_period, self.rets_path, 0)
-
 
 def train(model, eval_env, timesteps, experiment_name, is_save, eval_save_period, rets_path, num_trains):
     """
@@ -349,20 +240,3 @@ if __name__ == '__main__':
                                   FLAGS.expt_type)
             RC.train_curriculum(env_name="ContinuousSparse-v0")
 
-    elif FLAGS.env == 'fetch':
-        #if FLAGS.is_save: wandb.init(project="fetch_LR1", sync_tensorboard=True, name=FLAGS.experiment_name)
-        from output.fetch2.policies import *
-
-        if FLAGS.expt_type == "ours":
-            model_info = BL_BR0
-        else:
-            model_info = BL_s
-
-        model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
-        RC = RewardCurriculum("HER", model_dir, FLAGS.num_envs, FLAGS.experiment_dir, FLAGS.experiment_name,
-                              FLAGS.timesteps, FLAGS.is_save, FLAGS.eval_save_period, FLAGS.seed, FLAGS.bs,
-                              FLAGS.expt_type)
-        if FLAGS.expt_type == "direct":
-            RC.train_single_fetch(env_name="Fetch-v0")
-        else:
-            RC.train_curriculum_fetch(env_name="Fetch-v0")
