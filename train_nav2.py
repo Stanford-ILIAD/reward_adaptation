@@ -4,7 +4,7 @@ import gym
 import time
 import numpy as np
 from stable_baselines import PPO2, DQN
-import driving.driving_envs
+import driving_envs
 from tensorflow import flags
 import stable_baselines
 from stable_baselines.common.vec_env import DummyVecEnv

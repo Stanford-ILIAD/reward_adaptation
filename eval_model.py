@@ -13,7 +13,7 @@ import wandb
 from tensorflow import flags
 import tensorflow as tf
 tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-import driving.driving_envs
+import driving_envs
 import fetch.fetch_envs
 import ipdb
 from tensorflow import flags

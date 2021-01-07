@@ -1,5 +1,5 @@
-from driving.driving_envs.graphics import *
-from driving.driving_envs.entities import RectangleEntity, CircleEntity, TextEntity
+from driving_envs.graphics import *
+from driving_envs.entities import RectangleEntity, CircleEntity, TextEntity
 
 
 

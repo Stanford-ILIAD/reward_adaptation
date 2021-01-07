@@ -5,10 +5,10 @@ from gym import spaces
 from PIL import Image
 import numpy as np
 import scipy.special
-from driving.driving_envs.world import World
-from driving.driving_envs.entities import TextEntity, Entity
-from driving.driving_envs.agents import Car, Building, Goal, Goal2, Waypoint
-from driving.driving_envs.geometry import Point
+from driving_envs.world import World
+from driving_envs.entities import TextEntity, Entity
+from driving_envs.agents import Car, Building, Goal, Goal2, Waypoint
+from driving_envs.geometry import Point
 from typing import Tuple
 import ipdb
 

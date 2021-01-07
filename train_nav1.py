@@ -6,7 +6,7 @@ import numpy as np
 from stable_baselines import PPO2, DQN, HER, DDPG
 from stable_baselines.her.utils import HERGoalEnvWrapper
 import wandb
-import driving.driving_envs
+import driving_envs
 import fetch.fetch_envs
 import utils
 from tensorflow import flags

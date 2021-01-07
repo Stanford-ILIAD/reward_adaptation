@@ -11,6 +11,12 @@ This code requires Python3. We use version 3.7. The Python3 requirements are spe
 pip install -r requirements.txt
 ```
 
+To install the navigation environment
+```
+cd driving
+pip install -e .
+```
+
 ## Training
 
 ### Navigation1: Barrier Sizes (Table 1)
