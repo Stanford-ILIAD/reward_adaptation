@@ -80,12 +80,12 @@ class RewardCurriculum(object):
         Directly trains on env_name
         """
         bs2model = {1:B1R, 3:B3R, 5:B5R, 7:B7R}
-        model_info = bs2model[self.bs]
+        model_info = bs2model[int(self.bs)]
         model_dir = os.path.join(model_info[0], model_info[1], model_info[2])
         output_dir = os.path.join("output/updated_gridworld_continuous_BSS", 'resave', model[2])
         utils.resave_params_for_BSS(model_dir, output_dir)
         self.model = PPO2BSS.load(output_dir, bss_coef=0.001, l2_coef=0.0005)
-        for seed in [101, 102]:
+        for seed in [201, 202, 203, 204, 205]:
                 self.seed = seed
                 self.experiment_name = f"{model_info[1]}_B{self.bs}L_BSS{seed}"
                 print("EXPT NAME: ", self.experiment_name)

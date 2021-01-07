@@ -24,9 +24,9 @@ class PidVelPolicy:
         self.Kp, self.Ki, self.Kd = params
 
     def action(self, obs):
-        #my_y_dot = obs[3]
+        my_y_dot = obs[3]
         # TODO: fix
-        my_y_dot = obs['observation'][3]
+        #my_y_dot = obs['observation'][3]
         if self._target_vel is None:
             self._target_vel = my_y_dot
         error = self._target_vel - my_y_dot
