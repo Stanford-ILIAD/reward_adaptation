@@ -28,7 +28,15 @@ pip install -r requirements.txt
 * BSS:
   * run `python baselines/BSS/train.py --bs [1,3,5,7]`  
 
-### Fetch Reach (Table 3)
+### Navigation2: Four Homotopy Classes (Table 2)
+* Ours:
+  * run `./train_nav2.sh`
+
+### Lunar Lander (Table 3)
+* Ours:
+  * run `./train_lunarlander.sh`
+
+### Fetch Reach (Table 4)
 
 * When running our method, you will want to change the barrier penalties as part of the curriculum. Make sure that the correct barrier penalty is specified on line 114-117 of `fetch/fetch_envs/fetch_env.py` The exact curriculum we used is detailed in the supplementary materials
 * Please also specify whether you are fine-tuning from Right to Left (RL) or from Left to Right (LR).
@@ -44,3 +52,10 @@ pip install -r requirements.txt
   * run `python baselines_fetch/L2SP/train.py --bs [RL, LR]`  
 * BSS:
   * run `python baselines_fetch/BSS/train.py --bs [RL, LR]`  
+
+### Ant (Table 5)
+* Ours:
+  * run `ant/transfer/curriculum.sh`
+
+### Assistive Gym (Table 5)
+Please refer to the README in the `assistive-gym` directory for installation and training instructions.
