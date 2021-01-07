@@ -153,7 +153,22 @@ spB3R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
 spB5R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
 spB7R = ["output/sparse", "B7R5", "best_model_201_23.220567540467965.pkl"]
 
-#spB7R_B0R = ["output/sparse", "7_ours_5_0", "best_model_7406_89.49159749358883.pk"]
 spB7R_B0R = ["output/sparse", "7_ours_7_0", "best_model_4301_4.777777777777779.pkl"]
 
 spB7L = ["output/sparse", "7_ours_7", "best_model_101_94.0.pkl"]
+
+
+# DEEP NETWORK
+deep_B1R = ["output/deep", "B1R5", "best_model_26628_55.38201108409925.pkl"]
+deep_B7R5 = ["output/deep", "B7R5", "best_model_41089_47.46352849042.pkl"]
+deep_B7R6 = ["output/deep", "B7R6", "best_model_123393_53.17645393232421.pkl"]
+deep_B7R7 = ["output/deep", "B7R7", "best_model_60035_45.76840579602017.pkl"]
+deep_B7R8 = ["output/deep", "B7R8", "best_model_10644_47.52965957767484.pkl"]
+deep_B7R9 = ["output/deep", "B7R9", "best_model_57217_53.33474841350924.pkl"]
+
+# DROPOUT
+drop_B7R1 = ["output/dropout", "B7R1", "best_model_5708_51.97901355258479.pkl"]
+drop_B7R2 = ["output/dropout", "B7R2", "best_model_8847_49.30462860384518.pkl"]
+drop_B7R3 = ["output/dropout", "B7R3", "best_model_61245_52.474817016076955.pkl"]
+drop_B7R4 = ["output/dropout", "B7R4", "best_model_231282_46.36544258157703.pkl"]
+drop_B7R5 = ["output/dropout", "B7R5", "best_model_13527_46.629110145894394.pkl"]
